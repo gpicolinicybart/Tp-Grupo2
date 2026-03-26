@@ -33,7 +33,7 @@ if __name__ == "__main__":
         orden_1.recibir_materiales(mi_inventario)
         print(f"-> Stock físico de '{acero._nombre}': {mi_inventario.consultar_stock(acero)} unidades.")
             
-        print("\n--- 3. SOLICITUD DE FABRICACIÓN  ---")
+        print("\n--- 3. SOLICITUD DE FABRICACIÓN  ---")       
         
         solicitud_mesa = SolicitudDeFabricacion(id_solicitud=5001, item_solicitado=acero, cantidad=2, es_para_cliente=True)
         tecno_mecanica.crear_solicitud(solicitud_mesa)
@@ -57,7 +57,7 @@ if __name__ == "__main__":
         
         operario_1.asignar_tarea(tarea, duracion)
         print("Estado final:", operario_1)
-        
+
         print("-----------------------------FIN-------------------------------------")
     
     except ValueError as e:
