@@ -20,7 +20,7 @@ if __name__ == "__main__":
             
         print("\n--- 1. CATÁLOGO DE INSUMOS ---")
         acero = InsumoBasico(101, "Plancha de Acero", 500.0)
-        tornillos = InsumoBasico(102, "Caja de Tornillos 10mm", 50.0)
+        tornillos = InsumoBasico(102, "Tornillo 10mm", 5.0)
         pintura = InsumoBasico(103, "Pintura Industrial Azul", 200.0)
         print(acero)
         print(tornillos)
@@ -48,7 +48,7 @@ if __name__ == "__main__":
             
 
         # Producto ya definido en el sistema
-        bom_mesa = ItemBOM(2001, "BOM Mesa Simple", {acero: 2, tornillos: 4})
+        bom_mesa = ItemBOM(2001, "BOM Mesa Simple", {acero: 1, tornillos: 4})
 
         mesa = ArticuloFabricadoInternamente(
             3001,
