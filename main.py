@@ -85,14 +85,8 @@ if __name__ == "__main__":
         print(operario_1)
         
         tarea, duracion = "Soldadura", 5.0
-
-        print(f"\nEvaluando asignación de tarea (Requiere {tarea}, {duracion}hs)...")
-        if operario_1.tiene_habilidad(tarea) and operario_1.verificar_disponibilidad(duracion):
-            print("-> CHECK: El colaborador cumple los requisitos. Asignando tarea...")
-            operario_1._horas_asignadas += duracion
-            print(operario_1) 
-        else:
-            print("-> ERROR: El colaborador no cumple con los requisitos.")
+        operario_1.asignar_tarea(tarea, duracion)
+        print(operario_1)
 
         print("-----------------------------FIN-------------------------------------")
 
