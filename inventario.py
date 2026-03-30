@@ -2,14 +2,13 @@ from elemento import Elemento
 
 class Inventario:
     def __init__(self):
+        # Usamos diccionarios vacíos al instanciar el inventario
+        #usamos el objeto elemento como clave y la cantidad como valor
         self._stock_fisico = {} 
         self._stock_reservado = {}
-
-    def __str__(self):
-        return f"Inventario (Tipos de elementos en stock: {len(self._stock_fisico)} | Elementos reservados: {len(self._stock_reservado)})"   
-     
+        
     def consultar_stock(self, elem: Elemento) -> int:
-        return self._stock_fisico.get(elem,0) 
+        return self._stock_fisico.get(elem,0) #el get va a devolver la cantidad o 0 si el elemento no existe en el dict
         
     def reservar_stock(self, elem: Elemento, cant: int):
         stock_actual=self.consultar_stock(elem)
@@ -18,13 +17,10 @@ class Inventario:
         if stock_disponible>=cant:
             self._stock_reservado[elem]=reservado_actual+cant
             print(f"-> RESERVA: Se reservaron {cant} unidades de '{elem._nombre}'.")
-            return True
         else:
             print(f"->ALERTA: No hay stock suficiente para reservar {cant} de '{elem._nombre}'.")
-            return False
-
     def descontar_stock(self, elem: Elemento, cant: int):
-        
+        # se descuenta el fisico y la reserva cuando se arranca a producir
         if elem in self._stock_reservado and self._stock_reservado[elem]>=cant:
             self._stock_fisico[elem]-=cant 
             self._stock_reservado[elem]-=cant 
@@ -32,8 +28,16 @@ class Inventario:
         else:
             print(f"->ERROR: Intentando consumir '{elem._nombre} sin reserva previa.")
         
-    def ingresar_stock(self, elem: Elemento, cant: int):
+    def ingresar_stock(self, elem: Elemento, cant: int):#si lo hacemos con una tarea me parece q esto vuela
         if elem in self._stock_fisico:
             self._stock_fisico[elem]+=cant
         else: 
             self._stock_fisico[elem]=cant
+    
+    def hay_disponibilidad(self, elem: Elemento, cant_pedida: int) -> bool:
+        # El inventario hace su propia cuenta interna
+        stock_real = self.consultar_stock(elem)
+        reservado = self._stock_reservado.get(elem, 0)
+        return (stock_real - reservado) >= cant_pedida
+
+#aca en lo de ingresar stock que me ddecias que vuela , gemini me dijo q es mejor mantenerlo separado , pero lo vemos cuando lo hagamos 
