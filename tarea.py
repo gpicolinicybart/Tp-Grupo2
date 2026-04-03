@@ -19,6 +19,6 @@ class Tarea:
         return self._tiempo_por_unidad
     
     def get_costo(self) -> float:
-        costo_maquina = self._unidad_requerida.get_costo_operativo()
-        costo_total_hora = costo_maquina + (self._costo_mano_obra_hora * self._cant_colaboradores_req)
-        return self._tiempo_por_unidad * costo_total_hora
+        costo_maquina = self._unidad_requerida.get_costo_operativo() * self._tiempo_por_unidad
+        costo_personal = self._costo_mano_obra_hora * self._cant_colaboradores_req * self._tiempo_por_unidad
+        return costo_maquina + costo_personal
