@@ -8,42 +8,29 @@ class ArticuloFabricadoInternamente(Elemento):
         self._lista_tareas = lista_tareas 
 
     def get_costo_unitario(self) -> float:
-        costo_total = 0.0
+       # 1. Costo de Materiales (Recorre la lista de ItemBOMs)
+        costo_materiales = sum(bom.get_costo_total() for bom in self._bom)
         
-        # 1. Sumamos materiales (Recursivo)
-        for elemento, cantidad in self._bom.items():
-            costo_total += elemento.get_costo_unitario() * cantidad
-            
-        # 2. Sumamos tareas (Delegamos el cálculo a cada tarea)
-        for tarea in self._lista_tareas:
-            costo_total += tarea.get_costo()
-            
-        return costo_total
-    #Arriba se define el metodo para calcular el costo total del artículo sumando el costo de los materiales (usando get_costo_unitario de cada elemento) y el costo de las tareas (usando get_costo de cada tarea).
-    #respeta encapsulamiento porque cada clase se encarga de calcular su propio costo, no accede directamente a los atributos de otras clases, sino que llama a sus métodos públicos para obtener la información necesaria.
-
-
-
-
-        #Empezar en el producto actual.
-        #Mirar todos sus componentes en la BOM.
-        #Si alguno de esos componentes es el producto original, tira error de ciclo.
-        #Si no, revisar los componentes de los componentes (recursión profunda)
+        # 2. Costo de Manufactura (Delegado a Tarea)
+        costo_manufactura = sum(tarea.get_costo() for tarea in self._lista_tareas)
+        
+        return costo_materiales + costo_manufactura
+  
     def validar_ciclos(self, visitados=None) -> bool:
-        if visitados is None:
-            visitados = []
+        if camino_actual is None:
+            camino_actual = set()
+            
+        if self in camino_actual:
+            # Usamos raise para que el error corte toda la ejecución y avise qué pasó
+            raise ValueError(f"CICLO DETECTADO: El artículo '{self._nombre}' se requiere a sí mismo.")
+            
+        camino_actual.add(self)
         
-        # Si el ID ya está en la lista, lanzamos la excepción
-        if self._id in visitados:
-            raise ValueError(f"ERROR DE DISEÑO: Ciclo detectado. El artículo '{self._nombre}' (ID: {self._id}) se requiere a sí mismo en su propia cadena de producción.")
+        for bom in self._bom:
+            # bom es un objeto ItemBOM, accedemos a su diccionario
+            for elemento in bom.get_diccionario().keys():
+                if isinstance(elemento, ArticuloFabricadoInternamente):
+                    # Pasamos una copia del set para no ensuciar otras ramas
+                    elemento.validar_ciclos(camino_actual.copy())
         
-        nuevo_camino = visitados + [self._id]
-        
-        for elemento in self._bom.keys():
-            if isinstance(elemento, ArticuloFabricadoInternamente):
-                # La recursión sigue, y si un hijo lanza el raise, 
-                # este "sube" automáticamente hasta el nivel más alto.
-                elemento.validar_ciclos(nuevo_camino)
-        
-        return False # Si llega acá, es que todo está OK
-    
+        return True # Si termina todo el recorrido sin saltar el raise, está OK
