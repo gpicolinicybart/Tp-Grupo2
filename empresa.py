@@ -128,8 +128,8 @@ class Empresa:
                     # 2. Reservar Máquinas y Asignar Tareas a Colaboradores
                     for tarea, unidad, horas, colabs in asignaciones_pendientes:
                         unidad.reservar_horas(horas) 
-                    for colab in colabs:
-                        colab.asignar_tarea(tarea._habilidad_requerida, horas)
+                        for colab in colabs:
+                          colab.asignar_tarea(tarea._habilidad_requerida, horas)
                             
                     solicitud._estado = "Planificada"
                     print(f" -> Solicitud {solicitud.get_id()} PLANIFICADA CON ÉXITO.")
