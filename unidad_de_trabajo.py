@@ -25,3 +25,12 @@ class UnidadDeTrabajo:
             return True
         else:
             return False
+        
+    def reservar_horas(self, horas_necesarias: float) -> bool:
+            if self.verificar_disponibilidad(horas_necesarias):
+                self._horas_reservadas += horas_necesarias
+                print(f"-> CHECK: Se reservaron {horas_necesarias}hs en la Unidad #{self._id}.")
+                return True
+            else:
+                print(f"-> ERROR: La Unidad #{self._id} no tiene {horas_necesarias}hs disponibles.")
+                return False
