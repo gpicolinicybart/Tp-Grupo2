@@ -16,7 +16,7 @@ class ArticuloFabricadoInternamente(Elemento):
         
         return costo_materiales + costo_manufactura
   
-    def validar_ciclos(self, visitados=None) -> bool:
+    def validar_ciclos(self, camino_actual=None) -> bool:
         if camino_actual is None:
             camino_actual = set()
             
