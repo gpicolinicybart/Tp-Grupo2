@@ -18,6 +18,3 @@ class Elemento:
             self._nombre = nuevo_nombre
         else:
             print("Error: El nombre no puede estar vacío.")
-
-    def get_costo_unitario(self) -> float:
-        pass

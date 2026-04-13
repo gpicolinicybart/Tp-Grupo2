@@ -7,30 +7,38 @@ class ArticuloFabricadoInternamente(Elemento):
         self._bom = bom # Lista de elementos
         self._lista_tareas = lista_tareas 
 
-    def get_costo_unitario(self) -> float:
-       # 1. Costo de Materiales (Recorre la lista de ItemBOMs)
-        costo_materiales = sum(bom.get_costo_total() for bom in self._bom)
+    def __str__(self):
+        materiales = []
+        for bom in self._bom:
+            for elemento, cantidad in bom.get_diccionario().items():
+                materiales.append(f"{elemento.get_nombre()} (x{cantidad})")
+                
+        materiales_str = ", ".join(materiales)
         
-        # 2. Costo de Manufactura (Delegado a Tarea)
-        costo_manufactura = sum(tarea.get_costo() for tarea in self._lista_tareas)
         
-        return costo_materiales + costo_manufactura
+        return f"Artículo Fabricado -> {super().__str__()} | Componentes BOM: {len(self._bom)} | Tareas: {len(self._lista_tareas)} | Materiales: [{materiales_str}]"
+    
+    def get_costo_total(self) -> float:
+        # MAP + LAMBDA
+        return sum(map(lambda item: item[0].get_costo_unitario() * item[1], self._diccionario.items()))
   
     def validar_ciclos(self, camino_actual=None) -> bool:
-        if camino_actual is None:
-            camino_actual = set()
+            if camino_actual is None:
+                camino_actual = set() #usamos el set porque es un conjunto y no permite duplicados, lo que es ideal para detectar ciclos.
+                
+            if self in camino_actual:
+                raise ValueError(f"CICLO DETECTADO: El artículo '{self._nombre}' se requiere a sí mismo.")
+                
+            # Agregamos el artículo actual al rastro
+            camino_actual.add(self)
             
-        if self in camino_actual:
-            # Usamos raise para que el error corte toda la ejecución y avise qué pasó
-            raise ValueError(f"CICLO DETECTADO: El artículo '{self._nombre}' se requiere a sí mismo.")
+            for bom in self._bom:
+                # FILTER + LAMBDA: Nos quedamos únicamente con los componentes que son fabricados internamente
+                sub_articulos = filter(lambda elem: isinstance(elem, ArticuloFabricadoInternamente), bom.get_diccionario().keys())
+                
+                for elemento in sub_articulos:
+                    elemento.validar_ciclos(camino_actual)
             
-        camino_actual.add(self)
-        
-        for bom in self._bom:
-            # bom es un objeto ItemBOM, accedemos a su diccionario
-            for elemento in bom.get_diccionario().keys():
-                if isinstance(elemento, ArticuloFabricadoInternamente):
-                    # Pasamos una copia del set para no ensuciar otras ramas
-                    elemento.validar_ciclos(camino_actual.copy())
-        
-        return True # Si termina todo el recorrido sin saltar el raise, está OK
+            # Antes de terminar, borramos el conjunto para que quede vacio para la siguiente validación
+            camino_actual.remove(self)
+            return True

@@ -47,34 +47,35 @@ class Empresa:
                 print(f"\nProcesando Solicitud {solicitud.get_id()} -> Fabricar: {cantidad_pedida}x '{producto.get_nombre()}'")
                 
                 # ==========================================
-                # FASE 1: EXPLOSIÓN DE MATERIALES Y STOCK
+                # 1: EXPLOSIÓN DE MATERIALES Y STOCK
                 # ==========================================
                 materiales_necesarios = {}
                 for bom in producto.get_bom():
                     for componente, cant_unitaria in bom.get_diccionario().items():
                         total_necesario = cant_unitaria * cantidad_pedida
-                        if componente in materiales_necesarios:
-                            materiales_necesarios[componente] += total_necesario
-                        else:
-                            materiales_necesarios[componente] = total_necesario
+                        #  Suma lo nuevo a lo que ya había (o a 0 si es la primera vez) ese get es un metodo de 
+                        # diccionarios que devuelve el valor de la clave o un valor por defecto si no existe, en este caso 0
+                        materiales_necesarios[componente] = materiales_necesarios.get(componente, 0) + total_necesario
                 
-                todo_disponible = True
-                for componente, cant_necesaria in materiales_necesarios.items():
-                    if not self._inventario.hay_disponibilidad(componente, cant_necesaria):
-                        todo_disponible = False
-                        stock_real = self._inventario.consultar_stock(componente) - self._inventario._stock_reservado.get(componente, 0)
-                        faltante = cant_necesaria - stock_real
-                        
-                        print(f" [!] Faltan {faltante} unidades de '{componente.get_nombre()}'.")
-                        
-                        # Generación automática de órdenes
-                        if isinstance(componente, InsumoBasico):
-                            id_compra = len(self._compras_pendientes) + 1000
-                            self.registrar_compra(Compra_Insumo(id_compra, componente, faltante))
-                        elif isinstance(componente, ArticuloFabricadoInternamente):
-                            id_solicitud_hija = len(self._solicitudes) + 5000
-                            from solicitud_fabricacion import SolicitudDeFabricacion # Importación local para evitar ciclos
-                            self.crear_solicitud(SolicitudDeFabricacion(id_solicitud_hija, componente, faltante, False))
+                # FILTER + LAMBDA: Filtramos para quedarnos SOLO con los materiales que NO tienen stock suficiente
+                materiales_faltantes = list(filter(lambda item: not self._inventario.hay_disponibilidad(item[0], item[1]), materiales_necesarios.items()))
+                
+                # Si la lista de faltantes está vacía (longitud 0), significa que está todo disponible
+                todo_disponible = len(materiales_faltantes) == 0
+
+                # Recorremos solo los que detectamos que faltan
+                for componente, cant_necesaria in materiales_faltantes:
+                    stock_real = self._inventario.consultar_stock(componente) - self._inventario._stock_reservado.get(componente, 0)
+                    faltante = cant_necesaria - stock_real
+                    print(f" [!] Faltan {faltante} unidades de '{componente.get_nombre()}'.")
+                    # Generación automática de solicitudes de las ordenes de las cosas q faltan, 
+                    # dependiendo de si es insumo o algo que se fabrica
+                    if isinstance(componente, InsumoBasico):
+                        id_compra = len(self._compras_pendientes) + 1000
+                        self.registrar_compra(Compra_Insumo(id_compra, componente, faltante))
+                    elif isinstance(componente, ArticuloFabricadoInternamente):
+                        id_solicitud_hija = len(self._solicitudes) + 5000
+                        self.crear_solicitud(SolicitudDeFabricacion(id_solicitud_hija, componente, faltante, False))
                 
                 # Si faltan materiales, frenamos acá y pasamos a la siguiente solicitud
                 if not todo_disponible:
@@ -89,30 +90,31 @@ class Empresa:
                 asignaciones_pendientes = [] # Guardamos a quién elegimos antes de confirmar
 
                 for tarea in producto.get_lista_tareas():
-                    horas_totales = tarea.get_tiempo_por_unidad() * solicitud.get_cantidad_pedida()
+                    horas_totales = tarea.get_tiempo_por_unidad() * cantidad_pedida
                     unidad = tarea._unidad_requerida
 
-                    # 2A. Chequear Máquina (Unidad de Trabajo)
+                    # Chequear Máquina (Unidad de Trabajo)
                     if not unidad.verificar_disponibilidad(horas_totales):
                         print(f" [!] Falta capacidad en la Unidad #{unidad.get_id()} para la tarea '{tarea.get_descripcion()}'.")
                         recursos_disponibles = False
                         break 
 
-                    # 2B. Buscar Colaboradores
+                    # Buscar Colaboradores 
                     colabs_necesarios = tarea._cant_colaboradores_req
-                    colabs_encontrados = []
+                    
+                    # FILTER + LAMBDA: Nos quedamos solo con los que tienen la habilidad y el tiempo libre
+                    colabs_aptos = list(filter(lambda c: c.tiene_habilidad(tarea._habilidad_requerida) and c.verificar_disponibilidad(horas_totales), self._colaboradores))
 
-                    for colab in self._colaboradores:
-                        if colab.tiene_habilidad(tarea._habilidad_requerida) and colab.verificar_disponibilidad(horas_totales):
-                            colabs_encontrados.append(colab)
-                            if len(colabs_encontrados) == colabs_necesarios:
-                                break # Ya encontramos a todos los necesarios para esta tarea
+                    # SORTED + LAMBDA: Los ordenamos de menor a mayor salario por hora para ahorrar costos (agregado)
+                    colabs_ordenados_salario = sorted(colabs_aptos, key=lambda c: c.get_salario_hora())
 
-                    if len(colabs_encontrados) < colabs_necesarios:
+                    if len(colabs_ordenados_salario) < colabs_necesarios:
                         print(f" [!] No hay suficientes colaboradores con la habilidad '{tarea._habilidad_requerida}' y {horas_totales}hs libres.")
                         recursos_disponibles = False
                         break
                     else:
+                        # Agarramos de la lista ordenada exactamente la cantidad que necesitamos
+                        colabs_encontrados = colabs_ordenados_salario[:colabs_necesarios]
                         asignaciones_pendientes.append((tarea, unidad, horas_totales, colabs_encontrados))
 
                 # ==========================================
@@ -120,22 +122,21 @@ class Empresa:
                 # ==========================================
                 if recursos_disponibles:
                     print(f" -> Stock y Capacidad OK. Confirmando reservas...")
-                    
-                    # 1. Reservar Materiales
+                    # Reservamos Materiales
                     for componente, cant_necesaria in materiales_necesarios.items():
                         self._inventario.reservar_stock(componente, cant_necesaria)
                         
-                    # 2. Reservar Máquinas y Asignar Tareas a Colaboradores
                     for tarea, unidad, horas, colabs in asignaciones_pendientes:
                         unidad.reservar_horas(horas) 
                         for colab in colabs:
                           colab.asignar_tarea(tarea._habilidad_requerida, horas)
                             
-                    solicitud._estado = "Planificada"
-                    print(f" -> Solicitud {solicitud.get_id()} PLANIFICADA CON ÉXITO.")
+                    solicitud._estado = "Procesada y Planificada"
+                    print(f" -> Solicitud {solicitud.get_id()} PROCESADA CON ÉXITO.")
                 else:
                     solicitud._estado = "Demorada por falta de capacidad"
                     print(f" -> Solicitud {solicitud.get_id()} DEMORADA (Falta Capacidad).")
+
 
     def ejecutar_solicitud(self, id_solicitud: int):
         # Buscamos la solicitud por su ID
@@ -186,7 +187,7 @@ class Empresa:
 
     def detectar_cuello_botella(self):
         pass
-#estos dos no estan en el diagrama 
+
 
     def agregar_colaborador(self, nuevo_colaborador: Colaborador):
         self._colaboradores.append(nuevo_colaborador)
@@ -194,6 +195,7 @@ class Empresa:
 
     def agregar_unidad_trabajo(self, nueva_unidad: UnidadDeTrabajo):
         self._unidades.append(nueva_unidad)
+
     def registrar_producto_nuevo(self, producto: Elemento):
         """
         Punto de entrada para agregar cosas al catálogo. 
@@ -209,6 +211,7 @@ class Empresa:
             
         except ValueError as e:
             print(f"EMPRESA - ERROR AL REGISTRAR: {e}")
+
 
     def obtener_presupuesto(self, producto: Elemento, cantidad: int) -> float:
         """

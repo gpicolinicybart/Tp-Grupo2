@@ -28,7 +28,5 @@ class ItemBOM:
         return valor
         
     def get_costo_total(self) -> float:
-        costo_total = 0.0
-        for elemento, cantidad in self._diccionario.items():
-            costo_total += elemento.get_costo_unitario() * self.validar_entero_positivo(cantidad)
-        return costo_total
+        # MAP + LAMBDA: Transforma cada par (elemento, cantidad) en su costo en pesos, y SUM lo totaliza
+        return sum(map(lambda item: item[0].get_costo_unitario() * self.validar_entero_positivo(item[1]), self._diccionario.items()))

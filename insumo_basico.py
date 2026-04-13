@@ -9,7 +9,7 @@ class InsumoBasico(Elemento):
         self._costo_fijo = costo_fijo
         
     def __str__(self):
-        return f"Insumo Básico -> ID: {self._id} | Nombre: '{self._nombre}' | Costo Fijo: ${self._costo_fijo}"  
+        return f"Insumo Básico -> {super().__str__()} | Costo Fijo: ${self._costo_fijo}"
     
     def get_costo_fijo(self) -> float:
         return self._costo_fijo
