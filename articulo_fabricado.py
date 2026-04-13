@@ -18,9 +18,10 @@ class ArticuloFabricadoInternamente(Elemento):
         
         return f"Artículo Fabricado -> {super().__str__()} | Componentes BOM: {len(self._bom)} | Tareas: {len(self._lista_tareas)} | Materiales: [{materiales_str}]"
     
-    def get_costo_total(self) -> float:
-        # MAP + LAMBDA
-        return sum(map(lambda item: item[0].get_costo_unitario() * item[1], self._diccionario.items()))
+    def get_costo_unitario(self) -> float:
+        costo_materiales = sum(map(lambda bom: bom.get_costo_total(), self._bom))
+        costo_manufactura = sum(map(lambda tarea: tarea.get_costo(), self._lista_tareas))
+        return costo_materiales + costo_manufactura
   
     def validar_ciclos(self, camino_actual=None) -> bool:
             if camino_actual is None:

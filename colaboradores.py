@@ -5,8 +5,13 @@ class Colaborador:
         self._habilidades = habilidades
         self._horas_disponibles = horas_disponibles
         self._horas_asignadas = 0.0 
-        self._salario_hora = salario_hora
+        self._salario_hora = self.validar_salario(salario_hora)
 
+    def validar_salario(self, salario: float) -> bool:
+        if salario <= 0:
+            raise ValueError("Error: El salario por hora debe ser mayor a cero.")
+        return True
+    
     def __str__(self):
         horas_libres = self._horas_disponibles - self._horas_asignadas
         habilidades_str = ", ".join(self._habilidades) 
@@ -41,6 +46,8 @@ class Colaborador:
             return False
         
     def asignar_tarea(self, habilidad_requerida: str, duracion: float) -> bool:
+        if duracion <= 0:
+            raise ValueError("Error: La duración de la tarea debe ser mayor a cero.")
         if self.tiene_habilidad(habilidad_requerida) and self.verificar_disponibilidad(duracion):
             self._horas_asignadas += duracion
             print(f"-> CHECK: Tarea de {habilidad_requerida} asignada al Colaborador {self._id}.")
@@ -48,6 +55,8 @@ class Colaborador:
         else:
             print(f"-> ERROR: El Colaborador {self._id} no cumple los requisitos para {habilidad_requerida}.")
             return False
+    
+    
         
 #horas_libres se podria poner en un getter aparte y llamarlo desde str y verificar_disponibilidad, 
 # ya que se repite su uso. pero bueno por ahora esta bien asi, no es tan grave la repeticion.

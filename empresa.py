@@ -25,7 +25,7 @@ class Empresa:
         self._solicitudes = []
         self._unidades = []
         self._habilidades = [] 
-        self._colaboradores = []
+        self._colaboradores = {}
         self._compras_pendientes = []
         
     def registrar_compra(self,orden: Compra_Insumo):
@@ -103,7 +103,7 @@ class Empresa:
                     colabs_necesarios = tarea._cant_colaboradores_req
                     
                     # FILTER + LAMBDA: Nos quedamos solo con los que tienen la habilidad y el tiempo libre
-                    colabs_aptos = list(filter(lambda c: c.tiene_habilidad(tarea._habilidad_requerida) and c.verificar_disponibilidad(horas_totales), self._colaboradores))
+                    colabs_aptos = list(filter(lambda c: c.tiene_habilidad(tarea._habilidad_requerida) and c.verificar_disponibilidad(horas_totales), self._colaboradores.values()))
 
                     # SORTED + LAMBDA: Los ordenamos de menor a mayor salario por hora para ahorrar costos (agregado)
                     colabs_ordenados_salario = sorted(colabs_aptos, key=lambda c: c.get_salario_hora())
@@ -188,10 +188,22 @@ class Empresa:
     def detectar_cuello_botella(self):
         pass
 
+    def mostrar_colaboradores(self):
+        print("\n--- NÓMINA DE EMPLEADOS ---")
+        if not self._colaboradores.values():
+            print("No hay colaboradores registrados.")
+            return
+            
+        for colab in self._colaboradores.values():
+            print(colab) 
+        print("---------------------------\n")
 
-    def agregar_colaborador(self, nuevo_colaborador: Colaborador):
-        self._colaboradores.append(nuevo_colaborador)
-        print(f"EMPRESA: Colaborador ID:{nuevo_colaborador._id} agregado al equipo.")
+    def agregar_colaborador(self, nuevo_colaborador):
+        id_nuevo = nuevo_colaborador.get_id()
+        if id_nuevo in self._colaboradores:
+            raise ValueError("ID repetido")
+            
+        self._colaboradores[id_nuevo] = nuevo_colaborador
 
     def agregar_unidad_trabajo(self, nueva_unidad: UnidadDeTrabajo):
         self._unidades.append(nueva_unidad)

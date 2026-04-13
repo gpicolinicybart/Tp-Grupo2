@@ -11,6 +11,7 @@ class Inventario:
         return self._stock_fisico.get(elem,0) #el get va a devolver la cantidad o 0 si el elemento no existe en el dict
         
     def reservar_stock(self, elem: Elemento, cant: int):
+        self.validar_cantidad(elem, cant)
         stock_actual=self.consultar_stock(elem)
         reservado_actual=self._stock_reservado.get(elem,0)
         stock_disponible=stock_actual-reservado_actual
@@ -21,14 +22,16 @@ class Inventario:
             print(f"->ALERTA: No hay stock suficiente para reservar {cant} de '{elem._nombre}'.")
     def descontar_stock(self, elem: Elemento, cant: int):
         # se descuenta el fisico y la reserva cuando se arranca a producir
+        self.validar_cantidad(elem, cant)
         if elem in self._stock_reservado and self._stock_reservado[elem]>=cant:
             self._stock_fisico[elem]-=cant 
             self._stock_reservado[elem]-=cant 
             print(f"->CONSUMO: Se utilizaron {cant} unidades de '{elem._nombre}'.")
         else:
-            print(f"->ERROR: Intentando consumir '{elem._nombre} sin reserva previa.")
+            print(f"->ERROR: Intentando consumir '{elem._nombre}' sin reserva previa.")
         
-    def ingresar_stock(self, elem: Elemento, cant: int):#si lo hacemos con una tarea me parece q esto vuela
+    def ingresar_stock(self, elem: Elemento, cant: int):
+        self.validar_cantidad(elem, cant)
         if elem in self._stock_fisico:
             self._stock_fisico[elem]+=cant
         else: 
@@ -40,4 +43,7 @@ class Inventario:
         reservado = self._stock_reservado.get(elem, 0)
         return (stock_real - reservado) >= cant_pedida
 
-#aca en lo de ingresar stock que me ddecias que vuela , gemini me dijo q es mejor mantenerlo separado , pero lo vemos cuando lo hagamos 
+    def validar_cantidad(self, elem: Elemento, cant: int) -> bool:
+        if cant <= 0:
+            raise ValueError(f"Error: La cantidad debe ser mayor a cero.")
+        return True

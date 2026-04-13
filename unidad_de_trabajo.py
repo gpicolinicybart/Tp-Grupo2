@@ -4,7 +4,12 @@ class UnidadDeTrabajo:
         self._capacidad_max_horas = capacidad_max_horas
         self._limite_de_colab = limite_de_colab
         self._horas_reservadas = 0.0 
-        self._costo_operativo_por_hora = costo_operativo_por_hora 
+        self._costo_operativo_por_hora = self.validar_costo_operativo(costo_operativo_por_hora)
+    
+    def validar_costo_operativo(self, costo: float) -> bool:
+        if costo < 0:
+            raise ValueError("Error: El costo operativo por hora debe ser un valor no negativo.")
+        return True
 
     def __str__(self):
         return f"Unidad #{self._id} | Capacidad Max: {self._capacidad_max_horas}hs | Costo/hr: ${self._costo_operativo_por_hora}"  
