@@ -162,9 +162,6 @@ class Empresa:
             print(f"\n[Error] No se puede finalizar la solicitud {id_solicitud}. Estado actual: {solicitud.get_estado()}")
             return False
 
-    # =========================================================================
-    # MÉTODO DE TU COMPAÑERO (Mejorado y con el TO-DO resuelto)
-    # =========================================================================
     def detectar_cuello_botella(self):
         """
         Analiza la carga de todas las unidades de trabajo y reporta la más saturada.
