@@ -63,22 +63,22 @@ class Empresa:
                 # Si la lista de faltantes está vacía (longitud 0), significa que está todo disponible
                 todo_disponible = len(materiales_faltantes) == 0
 
-                # Recorremos solo los que detectamos que faltan
-                for componente, cant_necesaria in materiales_faltantes:
-                    stock_real = self._inventario.consultar_stock(componente) - self._inventario._stock_reservado.get(componente, 0)
-                    faltante = cant_necesaria - stock_real
-                    print(f" [!] Faltan {faltante} unidades de '{componente.get_nombre()}'.")
-                    # Generación automática de solicitudes de las ordenes de las cosas q faltan, 
-                    # dependiendo de si es insumo o algo que se fabrica
-                    if isinstance(componente, InsumoBasico):
-                        id_compra = len(self._compras_pendientes) + 1000
-                        self.registrar_compra(Compra_Insumo(id_compra, componente, faltante))
-                    elif isinstance(componente, ArticuloFabricadoInternamente):
-                        id_solicitud_hija = len(self._solicitudes) + 5000
-                        self.crear_solicitud(SolicitudDeFabricacion(id_solicitud_hija, componente, faltante, False))
-                
-                # Si faltan materiales, frenamos acá y pasamos a la siguiente solicitud
+                # Si faltan materiales, las procesamos y frenamos
                 if not todo_disponible:
+                    # Recorremos solo los que detectamos que faltan
+                    for componente, cant_necesaria in materiales_faltantes:
+                        stock_real = self._inventario.consultar_stock(componente) - self._inventario._stock_reservado.get(componente, 0)
+                        faltante = cant_necesaria - stock_real
+                        print(f" [!] Faltan {faltante} unidades de '{componente.get_nombre()}'.")
+                        # Generación automática de solicitudes de las ordenes de las cosas q faltan, 
+                        # dependiendo de si es insumo o algo que se fabrica
+                        if isinstance(componente, InsumoBasico):
+                            id_compra = len(self._compras_pendientes) + 1000
+                            self.registrar_compra(Compra_Insumo(id_compra, componente, faltante))
+                        elif isinstance(componente, ArticuloFabricadoInternamente):
+                            id_solicitud_hija = len(self._solicitudes) + 5000
+                            self.crear_solicitud(SolicitudDeFabricacion(id_solicitud_hija, componente, faltante, False))
+                    
                     solicitud._estado = "Demorada por falta de stock"
                     print(f" -> Solicitud {solicitud.get_id()} DEMORADA (Falta Stock).")
                     continue 
