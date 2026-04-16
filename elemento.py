@@ -14,7 +14,7 @@ class Elemento:
         return self._nombre
         
     def set_nombre(self, nuevo_nombre: str):
-        if nuevo_nombre != "":
-            self._nombre = nuevo_nombre
-        else:
-            print("Error: El nombre no puede estar vacío.")
+            if nuevo_nombre != "":
+                self._nombre = nuevo_nombre
+            else:
+                raise ValueError("Error: El nombre no puede estar vacío.")

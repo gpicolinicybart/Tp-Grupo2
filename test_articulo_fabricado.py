@@ -23,6 +23,3 @@ def test_detectar_ciclo_infinito():
     
     with pytest.raises(ValueError, match="CICLO DETECTADO"):  # al validar ciclos, debe saltar el error
         item_a.validar_ciclos()
-        
-        
-        # ESTE TIRA ERROR DESPUES LO REVISO ------ DEBE SER X EL VALUE ERROR
