@@ -39,3 +39,8 @@ class UnidadDeTrabajo:
             else:
                 print(f"-> ERROR: La Unidad #{self._id} no tiene {horas_necesarias}hs disponibles.")
                 return False
+    def get_porcentaje_uso(self) -> float:
+            if self._capacidad_max_horas == 0:
+                return 0.0
+            porcentaje = (self._horas_reservadas * 100) / self._capacidad_max_horas
+            return porcentaje
