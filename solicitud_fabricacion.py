@@ -17,7 +17,8 @@ class SolicitudDeFabricacion:
         return self._estado
     def get_cantidad(self):
         return self._cantidad
-    
+    def set_estado(self, nuevo_estado: str):
+        self._estado = nuevo_estado
     def __str__(self):
         return f"-> SOLICITUD: ID {self._id} | Estado:{self._estado} | Fabricar: {self._cantidad} unidades de '{self._item_solicitado._nombre}' | Colaboradores: {self._colaboradores_asignados}"
     

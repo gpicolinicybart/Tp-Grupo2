@@ -8,11 +8,12 @@ class Tarea:
         self._tiempo_por_unidad = tiempo_por_unidad
         self._habilidad_requerida = habilidad_requerida
         self._costo_mano_obra_hora = self.validar_costo_mano_obra(costo_mano_obra_hora)
-    
-    def validar_costo_mano_obra(self, costo: float) -> float:
+        
+    @staticmethod
+    def validar_costo_mano_obra(costo: float) -> float:
         if costo < 0:
             raise ValueError("Error: El costo de mano de obra por hora debe ser un valor no negativo.")
-        return costo # Devolvemos el costo real
+        return costo
 
     def __str__(self):
         return f"Tarea: '{self._descripcion}' | Requiere: {self._habilidad_requerida} | Tiempo: {self._tiempo_por_unidad}hs/unidad | Colab. Req: {self._cant_colaboradores_req} | Unidad: {self._unidad_requerida.get_id()} | Costo Mano Obra/hr: ${self._costo_mano_obra_hora}"

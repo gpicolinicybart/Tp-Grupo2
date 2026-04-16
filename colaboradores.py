@@ -7,7 +7,8 @@ class Colaborador:
         self._horas_asignadas = 0.0 
         self._salario_hora = self.validar_salario(salario_hora)
 
-    def validar_salario(self, salario: float) -> float:
+    @staticmethod
+    def validar_salario(salario: float) -> float:
         if salario <= 0:
             raise ValueError("Error: El salario por hora debe ser mayor a cero.")
         return salario 

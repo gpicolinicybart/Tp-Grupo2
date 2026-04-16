@@ -42,8 +42,8 @@ class Inventario:
         stock_real = self.consultar_stock(elem)
         reservado = self._stock_reservado.get(elem, 0)
         return (stock_real - reservado) >= cant_pedida
-
-    def validar_cantidad(self, elem: Elemento, cant: int) -> bool:
+    @staticmethod
+    def validar_cantidad(cant: int) -> bool:
         if cant <= 0:
             raise ValueError(f"Error: La cantidad debe ser mayor a cero.")
         return True

@@ -11,3 +11,7 @@ def test_recibir_materiales_llama_al_inventario():
     orden.recibir_materiales(inventario_mock)    # la orden de recibir materiales en el inventario de mentira
 # chequea que Compra_Insumo use bien los métodos de Inventario
     inventario_mock.ingresar_stock.assert_called_once_with(acero, 10)
+    
+    
+    # XQ NO TIENE ASSERTIONS? PORQUE EL MAGICMOCK YA VERIFICA QUE SE LLAMÓ CON LOS ARGUMENTOS 
+    # CORRECTOS, SI NO SE LLAMA O SE LLAMA CON ARGUMENTOS DISTINTOS, EL TEST FALLA AUTOMATICAMENTE.

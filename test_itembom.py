@@ -1,5 +1,4 @@
 import pytest
-from unittest.mock import MagicMock
 from itembom import ItemBOM
 from insumo_basico import InsumoBasico
 
