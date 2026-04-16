@@ -1,0 +1,3 @@
+no usamos mas for, usamos map
+para ver mutabilidad,
+cambiar funciones que tenemos a alto orden.

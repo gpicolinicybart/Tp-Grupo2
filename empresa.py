@@ -186,7 +186,34 @@ class Empresa:
 
 
     def detectar_cuello_botella(self):
-        pass
+            """
+            Analiza la carga de todas las unidades de trabajo y reporta la más saturada.
+            """
+            print("\n" + "="*40)
+            print("   REPORTE DE ESTADO DE PLANTA")
+            print("="*40)
+        
+            if not self._unidadesTrabajo:
+                print("No hay unidades de trabajo registradas para analizar.")
+                return
+
+            unidad_critica = None
+            max_porcentaje = -1.0
+
+            for unidad in self._unidadesTrabajo:
+            # Acá respetamos el encapsulamiento: le pedimos el resultado final
+                porcentaje = unidad.get_porcentaje_uso() 
+            
+                print(f"Unidad #{unidad.get_id()}: {porcentaje:.1f}% de ocupación.")
+
+                if porcentaje > max_porcentaje:
+                    max_porcentaje = porcentaje
+                    unidad_critica = unidad
+
+            if unidad_critica and max_porcentaje > 0:
+                print(f"\n>>> ALERTA CUELLO DE BOTELLA: Unidad #{unidad_critica.get_id()} al {max_porcentaje:.1f}%")
+            else:
+                print("\nLa planta se encuentra sin carga de trabajo actual.")# TO DO: Agregregar tambien si el cuello de botella se debe a que te faltan elementos que se esten fabricando y no a la falta de capacidad de las unidades, o sea diferenciar entre cuello de botella por falta de stock o por falta de capacidad. Para eso se podria agregar un metodo en solicitud que diga si esta demorada por falta de stock o por falta de capacidad, y en base a eso el reporte de cuello de botella va a decir "ALERTA CUELLO DE BOTELLA: Unidad #X al Y% (Demora por falta de capacidad)" o "ALERTA CUELLO DE BOTELLA: Unidad #X al Y% (Demora por falta de stock)". Esto es importante para que la empresa sepa si tiene que invertir en mas capacidad o en mejorar su gestión de stock.
 
     def mostrar_colaboradores(self):
         print("\n--- NÓMINA DE EMPLEADOS ---")
