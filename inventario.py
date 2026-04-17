@@ -11,7 +11,7 @@ class Inventario:
         return self._stock_fisico.get(elem,0) #el get va a devolver la cantidad o 0 si el elemento no existe en el dict
         
     def reservar_stock(self, elem: Elemento, cant: int):
-        self.validar_cantidad(elem, cant)
+        self.validar_cantidad(cant)
         stock_actual=self.consultar_stock(elem)
         reservado_actual=self._stock_reservado.get(elem,0)
         stock_disponible=stock_actual-reservado_actual
@@ -22,7 +22,7 @@ class Inventario:
             print(f"->ALERTA: No hay stock suficiente para reservar {cant} de '{elem._nombre}'.")
     def descontar_stock(self, elem: Elemento, cant: int):
         # se descuenta el fisico y la reserva cuando se arranca a producir
-        self.validar_cantidad(elem, cant)
+        self.validar_cantidad(cant)
         if elem in self._stock_reservado and self._stock_reservado[elem]>=cant:
             self._stock_fisico[elem]-=cant 
             self._stock_reservado[elem]-=cant 
@@ -31,7 +31,7 @@ class Inventario:
             print(f"->ERROR: Intentando consumir '{elem._nombre}' sin reserva previa.")
         
     def ingresar_stock(self, elem: Elemento, cant: int):
-        self.validar_cantidad(elem, cant)
+        self.validar_cantidad(cant)
         if elem in self._stock_fisico:
             self._stock_fisico[elem]+=cant
         else: 
@@ -42,6 +42,13 @@ class Inventario:
         stock_real = self.consultar_stock(elem)
         reservado = self._stock_reservado.get(elem, 0)
         return (stock_real - reservado) >= cant_pedida
+    
+    def obtener_stock_disponible(self, elem: Elemento) -> int:
+        """Retorna el stock disponible (físico - reservado) sin acceso directo a atributos privados"""
+        stock_real = self.consultar_stock(elem)
+        reservado = self._stock_reservado.get(elem, 0)
+        return stock_real - reservado
+    
     @staticmethod
     def validar_cantidad(cant: int) -> bool:
         if cant <= 0:

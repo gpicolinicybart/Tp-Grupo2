@@ -18,3 +18,10 @@ class Elemento:
                 self._nombre = nuevo_nombre
             else:
                 raise ValueError("Error: El nombre no puede estar vacío.")
+        
+    def get_tipo_reabastecimiento(self) -> str:
+        """Obliga a las clases hijas a decir cómo se consiguen"""
+        raise NotImplementedError("Debe implementarse en las clases hijas")
+    #Aca hice un getter que se refiere a lo que nos dijo lean. 
+    # las clases hijas deben decir como se consguien, si en un futuro agregamos compra de paraguay ejemplo esta funcion se encarga de verificar si lo dice la clase hija o no. Si no lo dice, tira un error.
+    # Esto es polimorfismo, cada clase hija tiene su propia implementación de esta función.

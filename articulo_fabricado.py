@@ -43,3 +43,10 @@ class ArticuloFabricadoInternamente(Elemento):
             # Antes de terminar, borramos el conjunto para que quede vacio para la siguiente validación
             camino_actual.remove(self)
             return True
+    def get_tipo_reabastecimiento(self) -> str:
+        return "FABRICAR"
+    def get_bom(self):
+        return self._bom
+        
+    def get_lista_tareas(self):
+        return self._lista_tareas

@@ -22,3 +22,5 @@ class InsumoBasico(Elemento):
 
     def get_costo_unitario(self):
         return self._costo_fijo
+    def get_tipo_reabastecimiento(self) -> str:
+        return "COMPRAR"

@@ -1,8 +1,8 @@
 class UnidadDeTrabajo:
-    def __init__(self, id_unidad: int, capacidad_max_horas: float, limite_de_colab: int, costo_operativo_por_hora: float):
+    def __init__(self, id_unidad: int, nombre: str, capacidad_max_horas: float, costo_operativo_por_hora: float):
         self._id = id_unidad
-        self._capacidad_max_horas = capacidad_max_horas
-        self._limite_de_colab = limite_de_colab
+        self._nombre = nombre
+        self._capacidad_max_horas = float(capacidad_max_horas)
         self._horas_reservadas = 0.0 
         self._costo_operativo_por_hora = self.validar_costo_operativo(costo_operativo_por_hora)
     
@@ -12,10 +12,13 @@ class UnidadDeTrabajo:
         return costo
 
     def __str__(self):
-        return f"Unidad #{self._id} | Capacidad Max: {self._capacidad_max_horas}hs | Costo/hr: ${self._costo_operativo_por_hora}"  
+        return f"Unidad #{self._id} ({self._nombre}) | Capacidad Max: {self._capacidad_max_horas}hs | Costo/hr: ${self._costo_operativo_por_hora}"  
 
     def get_id(self) -> int:
         return self._id
+    
+    def get_nombre(self) -> str:
+        return self._nombre
         
     def get_costo_operativo(self) -> float:
         return self._costo_operativo_por_hora
