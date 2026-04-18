@@ -2,8 +2,8 @@
 from elemento import Elemento
 
 class ArticuloFabricadoInternamente(Elemento):
-    def __init__(self, id_elemento: int, nombre: str, bom: list, lista_tareas: list):
-        super().__init__(id_elemento, nombre)
+    def __init__(self, nombre: str, bom: list, lista_tareas: list):
+        super().__init__(nombre)
         self._bom = bom # Lista de elementos
         self._lista_tareas = lista_tareas 
 
@@ -43,8 +43,13 @@ class ArticuloFabricadoInternamente(Elemento):
             # Antes de terminar, borramos el conjunto para que quede vacio para la siguiente validación
             camino_actual.remove(self)
             return True
-    def get_tipo_reabastecimiento(self) -> str:
-        return "FABRICAR"
+    
+    def gestionar_reabastecimiento(self, empresa, cantidad_faltante: int):
+            from solicitud_fabricacion import SolicitudDeFabricacion
+            nueva_solicitud = SolicitudDeFabricacion( self, cantidad_faltante, False)
+            empresa.crear_solicitud(nueva_solicitud)
+            return f"Se ha generado una solicitud de fabricación para reabastecer {cantidad_faltante} unidades de '{self.get_nombre()}'. (Solicitud ID: {nueva_solicitud.get_id()})"
+    
     def get_bom(self):
         return self._bom
         

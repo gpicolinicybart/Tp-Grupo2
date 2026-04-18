@@ -1,7 +1,9 @@
 
 class Elemento:
-    def __init__(self, id_elemento: int, nombre: str):
-        self._id = id_elemento
+    id=0
+    def __init__(self, nombre: str):
+        Elemento.id += 1
+        self._id = Elemento.id
         self._nombre = nombre
         
     def __str__(self):
@@ -20,8 +22,5 @@ class Elemento:
                 raise ValueError("Error: El nombre no puede estar vacío.")
         
     def get_tipo_reabastecimiento(self) -> str:
-        """Obliga a las clases hijas a decir cómo se consiguen"""
-        raise NotImplementedError("Debe implementarse en las clases hijas")
-    #Aca hice un getter que se refiere a lo que nos dijo lean. 
-    # las clases hijas deben decir como se consguien, si en un futuro agregamos compra de paraguay ejemplo esta funcion se encarga de verificar si lo dice la clase hija o no. Si no lo dice, tira un error.
-    # Esto es polimorfismo, cada clase hija tiene su propia implementación de esta función.
+        pass
+ 

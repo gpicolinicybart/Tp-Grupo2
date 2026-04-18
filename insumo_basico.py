@@ -1,8 +1,7 @@
 from elemento import Elemento
-
 class InsumoBasico(Elemento):
-    def __init__(self, id_elemento: int, nombre: str, costo_fijo: float):
-        super().__init__(id_elemento, nombre)
+    def __init__(self, nombre: str, costo_fijo: float):
+        super().__init__(nombre)
         self._costo_fijo = costo_fijo
         if costo_fijo < 0:
             raise ValueError("Error: El costo fijo inicial no puede ser negativo.")
@@ -22,5 +21,10 @@ class InsumoBasico(Elemento):
 
     def get_costo_unitario(self):
         return self._costo_fijo
-    def get_tipo_reabastecimiento(self) -> str:
-        return "COMPRAR"
+    
+
+    def gestionar_reabastecimiento(self, empresa, cantidad_faltante: int):
+        from compra_insumo import Compra_Insumo
+        nueva_compra = Compra_Insumo(self, cantidad_faltante)
+        empresa.registrar_compra(nueva_compra)
+        return f"Se ha generado una orden de compra para reabastecer {cantidad_faltante} unidades de '{self.get_nombre()}'. (Orden ID: {nueva_compra.get_id()})"

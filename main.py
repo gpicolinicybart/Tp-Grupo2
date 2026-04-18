@@ -16,10 +16,7 @@ class SistemaGestion:
         self.productos = {}
         self.unidades = {}
         self.colaboradores = {}
-        self.solicitudes = {}
         self.contador_id = {
-            "insumo": 100,
-            "producto": 500,
             "unidad": 1,
             "colab": 700,
             "solicitud": 5000,
@@ -33,278 +30,232 @@ class SistemaGestion:
         print("1. Crear Insumo Básico")
         print("2. Crear Producto (Artículo Fabricado)")
         print("3. Agregar Unidad de Trabajo (Máquina)")
-        print("4. Agregar Colaborador (Operario)")
+        print("4. Agregar Colaborador (Personal)")
         print("5. Crear Solicitud de Fabricación")
-        print("6. Procesar Solicitud")
-        print("7. Ejecutar Solicitud")
-        print("8. Finalizar Solicitud")
-        print("9. Ver Estado del Sistema")
-        print("10. Cargar Demo Completo")
+        print("6. Procesar Solicitudes (Planificación)")
+        print("7. Ejecutar Solicitud (Producción)")
+        print("8. Finalizar Solicitud (Cierre)")
+        print("9. Ver Estado General del Sistema")
+        print("10. Cargar Escenario de Prueba (Demo)")
         print("0. Salir")
         print("="*60)
-    
+
     def crear_insumo(self):
-        print("\n--- CREAR INSUMO BÁSICO ---")
+        print("\n--- REGISTRO DE INSUMO BÁSICO ---")
         try:
             nombre = input("Nombre del insumo: ").strip()
             costo = float(input("Costo unitario: $"))
-            id_insumo = self.contador_id["insumo"]
-            self.contador_id["insumo"] += 1
             
-            insumo = InsumoBasico(id_insumo, nombre, costo)
+            # El ID se genera solo en la clase Elemento
+            insumo = InsumoBasico(nombre, costo)
+            id_insumo = insumo.get_id()
+            
             self.insumos[id_insumo] = insumo
-            self.empresa._catalogo_elementos.append(insumo)
-            print(f"✓ Insumo '{nombre}' creado (ID: {id_insumo})")
-        except ValueError:
-            print("✗ Error: Ingresa valores válidos")
-    
+            self.empresa.registrar_producto_nuevo(insumo)
+            print(f"CONFIRMACIÓN: Insumo '{nombre}' registrado con ID: {id_insumo}")
+        except ValueError as e:
+            print(f"ERROR: Datos inválidos. {e}")
+
     def crear_producto(self):
-        print("\n--- CREAR PRODUCTO FABRICADO ---")
+        print("\n--- REGISTRO DE PRODUCTO FABRICADO ---")
         if not self.insumos:
-            print("✗ Primero debes crear insumos")
+            print("AVISO: Debe registrar insumos antes de crear un producto.")
             return
         
         try:
             nombre = input("Nombre del producto: ").strip()
             
-            # Seleccionar insumos para BOM
-            print("\nInsumos disponibles:")
+            print("\nInsumos disponibles para la receta (BOM):")
             for id_ins, ins in self.insumos.items():
-                print(f"  {id_ins}: {ins._nombre} (${ins._costo_unitario})")
+                print(f"  ID {id_ins}: {ins.get_nombre()}")
             
             bom_dict = {}
             while True:
-                id_ins = int(input("\nID del insumo (0 para terminar): "))
-                if id_ins == 0:
-                    break
+                entrada = input("\nIngrese ID del insumo (o '0' para finalizar): ")
+                if entrada == "0": break
+                
+                id_ins = int(entrada)
                 if id_ins in self.insumos:
-                    cantidad = int(input(f"Cantidad de {self.insumos[id_ins]._nombre}: "))
+                    cantidad = int(input(f"Cantidad de '{self.insumos[id_ins].get_nombre()}': "))
                     bom_dict[self.insumos[id_ins]] = cantidad
                 else:
-                    print("✗ ID no válido")
+                    print("ID no encontrado en el catálogo.")
             
-            # Crear BOM
+            if not bom_dict:
+                print("ERROR: Un producto requiere al menos un componente.")
+                return
+
             id_bom = self.contador_id["tarea"]
             self.contador_id["tarea"] += 1
-            bom = ItemBOM(id_bom, f"BOM {nombre}", bom_dict)
+            bom = ItemBOM(id_bom, f"Receta {nombre}", bom_dict)
             
-            # Crear lista de tareas vacía (se pueden agregar después)
-            id_producto = self.contador_id["producto"]
-            self.contador_id["producto"] += 1
+            # El ID se genera solo en la clase Elemento
+            producto = ArticuloFabricadoInternamente(nombre, [bom], [])
+            id_producto = producto.get_id()
             
-            producto = ArticuloFabricadoInternamente(id_producto, nombre, [bom], [])
             self.productos[id_producto] = producto
-            self.empresa._catalogo_elementos.append(producto)
-            print(f"✓ Producto '{nombre}' creado (ID: {id_producto})")
-        except (ValueError, KeyError):
-            print("✗ Error en la creación del producto")
-    
+            self.empresa.registrar_producto_nuevo(producto)
+            print(f"CONFIRMACIÓN: Producto '{nombre}' registrado con ID: {id_producto}")
+        except ValueError as e:
+            print(f"ERROR: {e}")
+
     def agregar_unidad_trabajo(self):
-        print("\n--- AGREGAR UNIDAD DE TRABAJO ---")
+        print("\n--- REGISTRO DE UNIDAD DE TRABAJO ---")
         try:
-            nombre = input("Nombre de la máquina: ").strip()
-            horas_disponibles = float(input("Horas disponibles por mes: "))
-            costo_operativo = float(input("Costo operativo por hora: $"))
+            id_u = self.contador_id["unidad"]
+            nombre = input("Descripción de la unidad (ej. Prensa): ").strip()
+            capacidad = float(input("Capacidad máxima de horas: "))
+            costo = float(input("Costo operativo por hora: $"))
             
-            id_unidad = self.contador_id["unidad"]
-            self.contador_id["unidad"] += 1
-            
-            unidad = UnidadDeTrabajo(id_unidad, nombre, horas_disponibles, costo_operativo)
-            self.unidades[id_unidad] = unidad
+            unidad = UnidadDeTrabajo(id_u, nombre, capacidad, costo)
             self.empresa.agregar_unidad_trabajo(unidad)
-            print(f"✓ Unidad '{nombre}' agregada (ID: {id_unidad})")
-        except ValueError:
-            print("✗ Error: Ingresa valores válidos")
-    
+            self.unidades[id_u] = unidad
+            self.contador_id["unidad"] += 1
+            print(f"CONFIRMACIÓN: Unidad registrada exitosamente.")
+        except ValueError as e:
+            print(f"ERROR: {e}")
+
     def agregar_colaborador(self):
-        print("\n--- AGREGAR COLABORADOR ---")
+        print("\n--- REGISTRO DE COLABORADOR ---")
         try:
-            nombre = input("Nombre del colaborador: ").strip()
-            habilidades_str = input("Habilidades (separadas por coma): ").strip()
-            habilidades = [h.strip() for h in habilidades_str.split(",")]
-            horas_disponibles = float(input("Horas disponibles: "))
-            salario_hora = float(input("Salario por hora: $"))
+            id_c = int(input("Ingrese ID del colaborador: "))
+            habilidades = input("Habilidades (separadas por coma): ").split(",")
+            habilidades = [h.strip() for h in habilidades]
+            horas = float(input("Horas de disponibilidad: "))
+            salario = float(input("Salario por hora: $"))
             
-            id_colab = self.contador_id["colab"]
-            self.contador_id["colab"] += 1
-            
-            colab = Colaborador(id_colab, habilidades, horas_disponibles, salario_hora)
-            self.colaboradores[id_colab] = colab
+            colab = Colaborador(id_c, habilidades, horas, salario)
             self.empresa.agregar_colaborador(colab)
-            print(f"✓ Colaborador '{nombre}' agregado (ID: {id_colab})")
-        except ValueError:
-            print("✗ Error: Ingresa valores válidos")
-    
+            self.colaboradores[id_c] = colab
+            print(f"CONFIRMACIÓN: Colaborador {id_c} agregado a la nómina.")
+        except ValueError as e:
+            print(f"ERROR: {e}")
+
     def crear_solicitud(self):
-        print("\n--- CREAR SOLICITUD DE FABRICACIÓN ---")
+        print("\n--- NUEVA SOLICITUD DE FABRICACIÓN ---")
         if not self.productos:
-            print("✗ Primero debes crear productos")
+            print("AVISO: No hay productos fabricados en el catálogo.")
             return
-        
-        try:
-            print("\nProductos disponibles:")
-            for id_prod, prod in self.productos.items():
-                print(f"  {id_prod}: {prod._nombre}")
             
-            id_producto = int(input("\nID del producto a fabricar: "))
-            if id_producto not in self.productos:
-                print("✗ Producto no encontrado")
+        try:
+            print("Productos disponibles:")
+            for id_p, p in self.productos.items():
+                print(f"  ID {id_p}: {p.get_nombre()}")
+            
+            id_p = int(input("\nID del producto a fabricar: "))
+            if id_p not in self.productos:
+                print("ID inválido.")
                 return
+                
+            cantidad = int(input("Cantidad de unidades: "))
+            id_s = self.contador_id["solicitud"]
             
-            cantidad = int(input("Cantidad a solicitar: "))
-            id_solicitud = self.contador_id["solicitud"]
-            self.contador_id["solicitud"] += 1
-            
-            solicitud = SolicitudDeFabricacion(id_solicitud, self.productos[id_producto], cantidad, True)
-            self.solicitudes[id_solicitud] = solicitud
+            solicitud = SolicitudDeFabricacion(id_s, self.productos[id_p], cantidad, True)
             self.empresa.crear_solicitud(solicitud)
-            print(f"✓ Solicitud #{id_solicitud} creada")
-        except ValueError:
-            print("✗ Error en la solicitud")
-    
+            self.contador_id["solicitud"] += 1
+            print(f"CONFIRMACIÓN: Solicitud #{id_s} creada.")
+        except ValueError as e:
+            print(f"ERROR: {e}")
+
     def procesar_solicitud(self):
-        print("\n--- PROCESAR SOLICITUDES ---")
-        if not self.solicitudes:
-            print("✗ No hay solicitudes")
-            return
-        
+        print("\n--- PROCESANDO PLANIFICACIÓN DE PRODUCCIÓN ---")
         self.empresa.procesar_solicitud()
-        
-        for id_sol, sol in self.solicitudes.items():
-            estado = sol.get_estado()
-            print(f"Solicitud #{id_sol}: {estado}")
-    
+
     def ejecutar_solicitud(self):
-        print("\n--- EJECUTAR SOLICITUD ---")
         try:
-            id_solicitud = int(input("ID de la solicitud a ejecutar: "))
-            self.empresa.ejecutar_solicitud(id_solicitud)
+            id_s = int(input("\nIngrese ID de la solicitud a ejecutar: "))
+            self.empresa.ejecutar_solicitud(id_s)
         except ValueError:
-            print("✗ ID inválido")
-    
+            print("ID inválido.")
+
     def finalizar_solicitud(self):
-        print("\n--- FINALIZAR SOLICITUD ---")
         try:
-            id_solicitud = int(input("ID de la solicitud a finalizar: "))
-            self.empresa.finalizar_solicitud(id_solicitud)
+            id_s = int(input("\nIngrese ID de la solicitud a finalizar: "))
+            self.empresa.finalizar_solicitud(id_s)
         except ValueError:
-            print("✗ ID inválido")
-    
+            print("ID inválido.")
+
     def ver_estado(self):
         print("\n" + "="*60)
-        print("               ESTADO DEL SISTEMA")
+        print("               ESTADO ACTUAL DEL SISTEMA")
         print("="*60)
         
-        print(f"\n📦 Insumos registrados: {len(self.insumos)}")
+        print(f"\nCATÁLOGO DE INSUMOS: {len(self.insumos)}")
         for id_ins, ins in self.insumos.items():
-            stock = self.empresa._inventario.consultar_stock(ins)
-            print(f"   {id_ins}: {ins._nombre} - Stock: {stock} unidades")
+            disponible = self.empresa._inventario.obtener_stock_disponible(ins)
+            print(f"  ID {id_ins}: {ins.get_nombre()} | Stock Disponible: {disponible}")
         
-        print(f"\n🏭 Productos: {len(self.productos)}")
+        print(f"\nPRODUCTOS REGISTRADOS: {len(self.productos)}")
         for id_prod, prod in self.productos.items():
-            print(f"   {id_prod}: {prod._nombre}")
+            print(f"  ID {id_prod}: {prod.get_nombre()}")
         
-        print(f"\n⚙️ Unidades de Trabajo: {len(self.unidades)}")
-        for id_unit, unit in self.unidades.items():
-            print(f"   {id_unit}: {unit._nombre}")
+        print(f"\nUNIDADES DE TRABAJO: {len(self.unidades)}")
+        for unit in self.unidades.values():
+            print(f"  {unit}")
         
-        print(f"\n👤 Colaboradores: {len(self.colaboradores)}")
-        for id_col, col in self.colaboradores.items():
-            print(f"   {id_col}: ID={id_col}, Habilidades={col._habilidades}")
-        
-        print(f"\n📋 Solicitudes activas: {len(self.empresa._solicitudes)}")
+        print("\nSOLICITUDES EN EL SISTEMA:")
         self.empresa.mostrar_solicitudes()
-    
+        print("="*60)
+
     def cargar_demo(self):
-        print("\n--- CARGANDO ESCENARIO DEMO ---")
+        print("\n--- CARGANDO ESCENARIO DEMO E INDUSTRIAL ---")
         
-        # Insumos
-        acero = InsumoBasico(100, "Plancha de Acero", 500.0)
-        tornillos = InsumoBasico(101, "Tornillo 10mm", 5.0)
-        self.insumos[100] = acero
-        self.insumos[101] = tornillos
-        self.empresa._catalogo_elementos.extend([acero, tornillos])
+        # 1. Insumos
+        acero = InsumoBasico("Plancha de Acero", 500.0)
+        tornillos = InsumoBasico("Tornillo 10mm", 5.0)
+        self.insumos[acero.get_id()] = acero
+        self.insumos[tornillos.get_id()] = tornillos
+        self.empresa.registrar_producto_nuevo(acero)
+        self.empresa.registrar_producto_nuevo(tornillos)
         
-        # Agregar stock inicial
-        orden_acero = Compra_Insumo(1001, acero, 10)
-        orden_tornillos = Compra_Insumo(1002, tornillos, 50)
-        orden_acero.recibir_materiales(self.empresa._inventario)
-        orden_tornillos.recibir_materiales(self.empresa._inventario)
+        # 2. Carga inicial de Stock
+        self.empresa._inventario.ingresar_stock(acero, 50)
+        self.empresa._inventario.ingresar_stock(tornillos, 200)
         
-        # Unidad de trabajo
+        # 3. Unidad y Colaborador
         prensa = UnidadDeTrabajo(1, "Prensa Hidráulica", 40.0, 1500.0)
         self.unidades[1] = prensa
         self.empresa.agregar_unidad_trabajo(prensa)
         
-        # Colaborador
-        soldador = Colaborador(700, ["Soldadura"], 40.0, 1000.0)
-        self.colaboradores[700] = soldador
-        self.empresa.agregar_colaborador(soldador)
+        operario = Colaborador(701, ["Soldadura", "Montaje"], 40.0, 1200.0)
+        self.colaboradores[701] = operario
+        self.empresa.agregar_colaborador(operario)
         
-        # Tarea
-        tarea = Tarea("Soldadura y Ensamblaje", prensa, 1, 2.0, "Soldadura", 1000.0)
+        # 4. Tarea y Producto
+        tarea = Tarea("Ensamblaje Estructural", prensa, 1, 2.5, "Montaje", 1000.0)
+        bom = ItemBOM(2001, "BOM Mesa", {acero: 1, tornillos: 4})
+        mesa = ArticuloFabricadoInternamente("Mesa Industrial", [bom], [tarea])
         
-        # Producto
-        bom = ItemBOM(2000, "BOM Mesa", {acero: 1, tornillos: 4})
-        mesa = ArticuloFabricadoInternamente(500, "Mesa Metálica", [bom], [tarea])
-        self.productos[500] = mesa
-        self.empresa._catalogo_elementos.append(mesa)
+        self.productos[mesa.get_id()] = mesa
+        self.empresa.registrar_producto_nuevo(mesa)
         
-        # Solicitud
-        solicitud = SolicitudDeFabricacion(5000, mesa, 2, True)
-        self.solicitudes[5000] = solicitud
-        self.empresa.crear_solicitud(solicitud)
-        
-        self.contador_id = {"insumo": 102, "producto": 501, "unidad": 2, "colab": 701, "solicitud": 5001, "tarea": 2001}
-        
-        print("✓ Demo cargada exitosamente")
-        print("\nPuedes ahora:")
-        print("  6. Procesar la solicitud")
-        print("  7. Ejecutar la solicitud")
-        print("  8. Finalizar la solicitud")
-        print("  9. Ver Estado del Sistema")
-
-def main():
-    print("\n" + "="*60)
-    print("  BIENVENIDO AL SISTEMA DE GESTIÓN DE MANUFACTURA")
-    print("="*60)
-    
-    sistema = SistemaGestion()
-    
-    while True:
-        sistema.mostrar_menu_principal()
-        opcion = input("Selecciona una opción: ").strip()
-        
-        if opcion == "1":
-            sistema.crear_insumo()
-        elif opcion == "2":
-            sistema.crear_producto()
-        elif opcion == "3":
-            sistema.agregar_unidad_trabajo()
-        elif opcion == "4":
-            sistema.agregar_colaborador()
-        elif opcion == "5":
-            sistema.crear_solicitud()
-        elif opcion == "6":
-            sistema.procesar_solicitud()
-        elif opcion == "7":
-            sistema.ejecutar_solicitud()
-        elif opcion == "8":
-            sistema.finalizar_solicitud()
-        elif opcion == "9":
-            sistema.ver_estado()
-        elif opcion == "10":
-            sistema.cargar_demo()
-        elif opcion == "0":
-            print("\n👋 ¡Hasta luego!")
-            break
-        else:
-            print("✗ Opción no válida")
+        print("CONFIRMACIÓN: Escenario demo cargado exitosamente.")
 
 if __name__ == "__main__":
     try:
-        main()
+        sistema = SistemaGestion()
+        
+        while True:
+            sistema.mostrar_menu_principal()
+            opcion = input("Seleccione una opción: ").strip()
+            
+            if opcion == "1": sistema.crear_insumo()
+            elif opcion == "2": sistema.crear_producto()
+            elif opcion == "3": sistema.agregar_unidad_trabajo()
+            elif opcion == "4": sistema.agregar_colaborador()
+            elif opcion == "5": sistema.crear_solicitud()
+            elif opcion == "6": sistema.procesar_solicitud()
+            elif opcion == "7": sistema.ejecutar_solicitud()
+            elif opcion == "8": sistema.finalizar_solicitud()
+            elif opcion == "9": sistema.ver_estado()
+            elif opcion == "10": sistema.cargar_demo()
+            elif opcion == "0":
+                print("\nCerrando sistema de gestión manufacturera. Hasta luego.")
+                break
+            else:
+                print("Opción no válida.")
+                
     except KeyboardInterrupt:
-        print("\n\n⚠️ Programa interrumpido por el usuario")
+        print("\n\n[!] Programa interrumpido por el usuario (Ctrl+C).")
     except Exception as e:
-        print(f"\n[ERROR CRÍTICO]: {e}")
+        print(f"\n[!] Error crítico en el sistema: {e}")

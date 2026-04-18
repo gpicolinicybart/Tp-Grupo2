@@ -88,16 +88,7 @@ class Empresa:
             print(f" [!] Faltan {faltante} unidades de '{componente.get_nombre()}'.")
             
             # POLIMORFISMO PURO: La empresa no pregunta qué es, solo ejecuta su método de reabastecimiento
-            accion = componente.get_tipo_reabastecimiento()
-            
-            if accion == "COMPRAR":
-                id_compra = self._contador_id_compras
-                self._contador_id_compras += 1
-                self.registrar_compra(Compra_Insumo(id_compra, componente, faltante))
-            elif accion == "FABRICAR":
-                id_solicitud_hija = self._contador_id_solicitudes_hijas
-                self._contador_id_solicitudes_hijas += 1
-                self.crear_solicitud(SolicitudDeFabricacion(id_solicitud_hija, componente, faltante, False))
+            componente.gestionar_reabastecimiento(self, faltante)
         
         solicitud.set_estado("Demorada por falta de stock")
         print(f" -> Solicitud {solicitud.get_id()} DEMORADA (Falta Stock).")

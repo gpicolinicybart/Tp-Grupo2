@@ -2,8 +2,10 @@
 from insumo_basico import InsumoBasico
 
 class Compra_Insumo:
-    def __init__(self, id_orden: int, insumo: InsumoBasico, cantidad: int):
-        self._id = id_orden
+    id = 0
+    def __init__(self, insumo: InsumoBasico, cantidad: int):
+        Compra_Insumo.id += 1
+        self._id = Compra_Insumo.id
         self._insumo = insumo
         self._cantidad = cantidad
         
