@@ -113,15 +113,16 @@ class SistemaGestion:
     def agregar_colaborador(self):
         print("\n--- REGISTRO DE COLABORADOR ---")
         try:
-            id_c = int(input("Ingrese ID del colaborador: "))
+        
             habilidades = input("Habilidades (separadas por coma): ").split(",")
             habilidades = [h.strip() for h in habilidades]
             horas = float(input("Horas de disponibilidad: "))
             salario = float(input("Salario por hora: $"))
             
-            colab = Colaborador(id_c, habilidades, horas, salario)
+            colab = Colaborador(habilidades, horas, salario)
+            id_c=Colaborador.get_id()
             self.empresa.agregar_colaborador(colab)
-            self.colaboradores[id_c] = colab
+
             print(f"CONFIRMACIÓN: Colaborador {id_c} agregado a la nómina.")
         except ValueError as e:
             print(f"ERROR: {e}")
@@ -145,9 +146,9 @@ class SistemaGestion:
             cantidad = int(input("Cantidad de unidades: "))
             id_s = self.contador_id["solicitud"]
             
-            solicitud = SolicitudDeFabricacion(id_s, self.productos[id_p], cantidad, True)
+            solicitud = SolicitudDeFabricacion(self.productos[id_p], cantidad, True)
+            id_s= solicitud.get_id()
             self.empresa.crear_solicitud(solicitud)
-            self.contador_id["solicitud"] += 1
             print(f"CONFIRMACIÓN: Solicitud #{id_s} creada.")
         except ValueError as e:
             print(f"ERROR: {e}")
@@ -198,8 +199,10 @@ class SistemaGestion:
         # 1. Insumos
         acero = InsumoBasico("Plancha de Acero", 500.0)
         tornillos = InsumoBasico("Tornillo 10mm", 5.0)
+
         self.insumos[acero.get_id()] = acero
         self.insumos[tornillos.get_id()] = tornillos
+
         self.empresa.registrar_producto_nuevo(acero)
         self.empresa.registrar_producto_nuevo(tornillos)
         
@@ -208,17 +211,17 @@ class SistemaGestion:
         self.empresa._inventario.ingresar_stock(tornillos, 200)
         
         # 3. Unidad y Colaborador
-        prensa = UnidadDeTrabajo(1, "Prensa Hidráulica", 40.0, 1500.0)
-        self.unidades[1] = prensa
+        prensa = UnidadDeTrabajo("Prensa Hidráulica", 40.0, 1500.0)
+        self.unidades[prensa.get_id()] = prensa
         self.empresa.agregar_unidad_trabajo(prensa)
         
-        operario = Colaborador(701, ["Soldadura", "Montaje"], 40.0, 1200.0)
-        self.colaboradores[701] = operario
+        operario = Colaborador(["Soldadura", "Montaje"], 40.0, 1200.0)
+        self.colaboradores[operario.get_id()] = operario
         self.empresa.agregar_colaborador(operario)
         
         # 4. Tarea y Producto
         tarea = Tarea("Ensamblaje Estructural", prensa, 1, 2.5, "Montaje", 1000.0)
-        bom = ItemBOM(2001, "BOM Mesa", {acero: 1, tornillos: 4})
+        bom = ItemBOM("BOM Mesa", {acero: 1, tornillos: 4})
         mesa = ArticuloFabricadoInternamente("Mesa Industrial", [bom], [tarea])
         
         self.productos[mesa.get_id()] = mesa

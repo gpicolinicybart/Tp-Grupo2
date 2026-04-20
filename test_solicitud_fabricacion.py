@@ -14,7 +14,7 @@ def test_solicitud_estado_inicial_y_getters(bom_mock):
     
     assert solicitud.get_estado() == "Creada"
     assert solicitud.get_cantidad() == 50
-    assert solicitud.get_id() == 10
+    assert solicitud.get_id() == 1
 
 def test_solicitud_rechaza_cantidades_invalidas(bom_mock):
     # Falla si es negativo (ValueError)
