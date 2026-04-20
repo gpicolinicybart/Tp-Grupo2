@@ -3,8 +3,8 @@ from itembom import ItemBOM
 from insumo_basico import InsumoBasico
 
 def test_itembom_calculo_costo_basico():
-    madera = InsumoBasico(101, "Madera", 100.0)  # creo un insumo real para probar el cálculo
-    bom = ItemBOM(201, "BOM Tabla", {madera: 2}) # requiere 2 maderas
+    madera = InsumoBasico("Madera", 100.0)  # creo un insumo real para probar el cálculo
+    bom = ItemBOM("BOM Tabla", {madera: 2}) # requiere 2 maderas
     assert bom.get_costo_total() == 200.0 # verifico q vale 200 (100*2)
 
 def test_itembom_cantidades_invalidas_lanzan_error():

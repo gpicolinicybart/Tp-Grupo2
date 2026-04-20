@@ -1,7 +1,9 @@
 
 class Colaborador:
-    def __init__(self, id_colaborador: int, habilidades: list, horas_disponibles: float, salario_hora: float):
-        self._id = id_colaborador
+    id_colaborador=0
+    def __init__(self, habilidades: list, horas_disponibles: float, salario_hora: float):
+        Colaborador.id_colaborador += 1
+        self._id = Colaborador.id_colaborador
         self._habilidades = habilidades
         self._horas_disponibles = horas_disponibles
         self._horas_asignadas = 0.0 

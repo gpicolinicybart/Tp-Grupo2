@@ -5,7 +5,7 @@ from insumo_basico import InsumoBasico
 @pytest.fixture
 def inv_con_acero():
     inv = Inventario()
-    acero = InsumoBasico(101, "Acero", 50.0)
+    acero = InsumoBasico("Acero", 50.0)
     inv.ingresar_stock(acero, 100) # Ingresamos 100 unidades al inventario
     return inv, acero
 

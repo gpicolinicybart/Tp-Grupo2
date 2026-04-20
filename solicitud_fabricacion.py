@@ -1,8 +1,10 @@
 from itembom import ItemBOM
 
 class SolicitudDeFabricacion:
-    def __init__(self, id_solicitud: int, item_solicitado: ItemBOM, cantidad: int, es_para_cliente: bool):
-        self._id = id_solicitud
+    id_solicitud=0
+    def __init__(self, item_solicitado: ItemBOM, cantidad: int, es_para_cliente: bool):
+        SolicitudDeFabricacion.id_solicitud += 1
+        self._id = SolicitudDeFabricacion.id_solicitud
         self._item_solicitado = item_solicitado
         self._cantidad =self.validar_entero_positivo(cantidad)
         self._estado = "Creada" # estado inicial, despues tendria q variar entre en proceso, demorada, entregada,etc

@@ -16,13 +16,8 @@ class SistemaGestion:
         self.productos = {}
         self.unidades = {}
         self.colaboradores = {}
-        self.contador_id = {
-            "unidad": 1,
-            "colab": 700,
-            "solicitud": 5000,
-            "tarea": 2000
-        }
-    
+
+        
     def mostrar_menu_principal(self):
         print("\n" + "="*60)
         print("     SISTEMA DE GESTIÓN DE MANUFACTURA - MENÚ PRINCIPAL")
@@ -102,16 +97,16 @@ class SistemaGestion:
     def agregar_unidad_trabajo(self):
         print("\n--- REGISTRO DE UNIDAD DE TRABAJO ---")
         try:
-            id_u = self.contador_id["unidad"]
+        
             nombre = input("Descripción de la unidad (ej. Prensa): ").strip()
             capacidad = float(input("Capacidad máxima de horas: "))
             costo = float(input("Costo operativo por hora: $"))
             
-            unidad = UnidadDeTrabajo(id_u, nombre, capacidad, costo)
+            unidad = UnidadDeTrabajo(nombre, capacidad, costo)
+            id_asignado=unidad.get_id()
+            self.unidades[id_asignado] = unidad
             self.empresa.agregar_unidad_trabajo(unidad)
-            self.unidades[id_u] = unidad
-            self.contador_id["unidad"] += 1
-            print(f"CONFIRMACIÓN: Unidad registrada exitosamente.")
+            print(f"CONFIRMACIÓN: Unidad '{nombre}' registrada exitosamente con ID: {id_asignado}")
         except ValueError as e:
             print(f"ERROR: {e}")
 

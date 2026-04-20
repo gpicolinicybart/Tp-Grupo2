@@ -1,7 +1,9 @@
 
 class ItemBOM:
-    def __init__(self, id_item: int, nombre: str, diccionario_elementos: dict):
-        self._id = id_item
+    id_item=0
+    def __init__(self,nombre: str, diccionario_elementos: dict):
+        ItemBOM.id_item += 1
+        self._id = ItemBOM.id_item
         self._nombre = nombre
         for cantidad in diccionario_elementos.values():
             self.validar_entero_positivo(cantidad)

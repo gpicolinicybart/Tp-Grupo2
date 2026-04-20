@@ -10,7 +10,7 @@ def bom_mock():
     return mock
 
 def test_solicitud_estado_inicial_y_getters(bom_mock):
-    solicitud = SolicitudDeFabricacion(10, bom_mock, 50, True)
+    solicitud = SolicitudDeFabricacion(bom_mock, 50, True)
     
     assert solicitud.get_estado() == "Creada"
     assert solicitud.get_cantidad() == 50
@@ -19,8 +19,8 @@ def test_solicitud_estado_inicial_y_getters(bom_mock):
 def test_solicitud_rechaza_cantidades_invalidas(bom_mock):
     # Falla si es negativo (ValueError)
     with pytest.raises(ValueError):
-        SolicitudDeFabricacion(11, bom_mock, -5, True)
+        SolicitudDeFabricacion(bom_mock, -5, True)
         
     # Falla si es texto (TypeError)
     with pytest.raises(TypeError):
-        SolicitudDeFabricacion(12, bom_mock, "veinte", True)
+        SolicitudDeFabricacion(bom_mock, "veinte", True)

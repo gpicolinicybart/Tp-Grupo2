@@ -4,7 +4,7 @@ from unidad_de_trabajo import UnidadDeTrabajo
 @pytest.fixture
 def fresadora():
     #Prepara una unidad con 20 horas de capacidad máxima
-    return UnidadDeTrabajo(501, "Fresadora", 20.0, 1500.0)
+    return UnidadDeTrabajo("Fresadora", 20.0, 1500.0)
 def test_reserva_de_horas_correcta(fresadora):
     # reservo 15hs
     reserva = fresadora.reservar_horas(15.0)

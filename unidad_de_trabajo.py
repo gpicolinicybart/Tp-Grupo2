@@ -1,6 +1,8 @@
 class UnidadDeTrabajo:
-    def __init__(self, id_unidad: int, nombre: str, capacidad_max_horas: float, costo_operativo_por_hora: float):
-        self._id = id_unidad
+    id_unidad=0
+    def __init__(self, nombre: str, capacidad_max_horas: float, costo_operativo_por_hora: float):
+        UnidadDeTrabajo.id_unidad += 1
+        self._id = UnidadDeTrabajo.id_unidad
         self._nombre = nombre
         self._capacidad_max_horas = float(capacidad_max_horas)
         self._horas_reservadas = 0.0 

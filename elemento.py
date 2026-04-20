@@ -21,6 +21,6 @@ class Elemento:
             else:
                 raise ValueError("Error: El nombre no puede estar vacío.")
         
-    def get_tipo_reabastecimiento(self) -> str:
+    def gestionar_reabastecimiento(self) -> str:
         pass
  
