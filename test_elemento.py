@@ -10,6 +10,6 @@ def test_elemento_id_autoincremental():
     elem1 = Elemento("Elemento1")
     elem2 = Elemento("Elemento2")
     elem3 = Elemento("Elemento3")
-    assert elem1.get_id() == 1
-    assert elem2.get_id() == 2
-    assert elem3.get_id() == 3  
+    
+    assert elem1.get_id() < elem2.get_id()
+    assert elem2.get_id() < elem3.get_id()

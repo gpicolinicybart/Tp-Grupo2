@@ -34,7 +34,7 @@ class SolicitudDeFabricacion:
         else:
             estado_visual = f"Estado: {self._estado}"
             
-        return f"-> SOLICITUD: ID {self._id} ({fecha_str}) | Estado:{estado_visual} | Fabricar: {self._cantidad} unidades de '{self._item_solicitado._nombre}' | Colaboradores: {self._colaboradores_asignados}"
+        return f"-> SOLICITUD: ID {self._id} ({fecha_str}) | {estado_visual} | Fabricar: {self._cantidad} unidades de '{self._item_solicitado._nombre}' | Colaboradores: {self._colaboradores_asignados}"
     
     def validar_entero_positivo(self, cantidad: int):
         if not isinstance(cantidad, int):
