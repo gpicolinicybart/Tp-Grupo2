@@ -1,5 +1,6 @@
 from itembom import ItemBOM
 from datetime import datetime
+
 class SolicitudDeFabricacion:
     id_solicitud=0
     def __init__(self, item_solicitado: ItemBOM, cantidad: int, es_para_cliente: bool):
@@ -34,7 +35,7 @@ class SolicitudDeFabricacion:
         else:
             estado_visual = f"Estado: {self._estado}"
             
-        return f"-> SOLICITUD: ID {self._id} ({fecha_str}) | {estado_visual} | Fabricar: {self._cantidad} unidades de '{self._item_solicitado._nombre}' | Colaboradores: {self._colaboradores_asignados}"
+        return f"-> SOLICITUD: ID {self._id} ({fecha_str}) | {estado_visual} | Fabricar: {self._cantidad} unidades de '{self._item_solicitado.get_nombre()}' | Colaboradores: {self._colaboradores_asignados}"
     
     def validar_entero_positivo(self, cantidad: int):
         if not isinstance(cantidad, int):

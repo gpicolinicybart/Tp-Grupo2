@@ -24,7 +24,10 @@ class UnidadDeTrabajo:
     
     def get_nombre(self) -> str:
         return self._nombre
-        
+    
+    def get_capacidad_max_horas(self) -> float:
+        return self._capacidad_max_horas
+    
     def get_costo_operativo(self) -> float:
         return self._costo_operativo_por_hora
         

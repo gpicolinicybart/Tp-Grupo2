@@ -32,9 +32,7 @@ class Empresa:
         self._solicitudes[solicitud.get_id()] = solicitud
         print(f"EMPRESA: Se registró una nueva solicitud de fabricación (ID:{solicitud.get_id()})")
 
-    # ==========================================
-    # PROCESAMIENTO MODULARIZADO
-    # ==========================================
+
     def procesar_solicitud(self):
         print("\n--- PROCESANDO PLANIFICACIÓN DE PRODUCCIÓN ---")
         for solicitud in list(self._solicitudes.values()): 
@@ -131,9 +129,7 @@ class Empresa:
         solicitud.set_estado("Procesada y Planificada")
         print(f" -> Solicitud {solicitud.get_id()} PROCESADA CON ÉXITO.")
 
-    # ==========================================
-    # EJECUCIÓN Y FINALIZACIÓN
-    # ==========================================
+   
     def ejecutar_solicitud(self):
         print("\n--- EJECUTANDO ÓRDENES PLANIFICADAS ---")
         contador_ejecutadas = 0
