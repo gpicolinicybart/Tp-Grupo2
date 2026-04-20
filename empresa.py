@@ -5,10 +5,11 @@
 from inventario import Inventario
 from compra_insumo import Compra_Insumo
 from solicitud_fabricacion import SolicitudDeFabricacion
-
 from unidad_de_trabajo import UnidadDeTrabajo
 from elemento import Elemento
 from articulo_fabricado import ArticuloFabricadoInternamente
+from datetime import datetime
+import csv
 
 # como la empresa confia en lo que colaboradores y insumo basico le devuelven al preguntar por su tipo de reabastecimiento, no es necesario importar la clase de cada uno, con importar el padre (Elemento) alcanza para que la empresa pueda preguntar por el tipo de reabastecimiento sin necesidad de saber si es un insumo o un articulo fabricado. Esto es polimorfismo puro.
 class Empresa:
@@ -195,7 +196,100 @@ class Empresa:
     # ==========================================
     # REPORTES Y OTROS MÉTODOS
     # ==========================================
-    def detectar_cuello_botella(self):
+
+
+
+    #consigna de implementacion 
+
+    def generar_reporte_materiales_criticos(self, producto, cantidad_pedida: int):
+        necesidades = producto.calcular_materiales_necesarios(cantidad_pedida)
+        criticos = self._inventario.obtener_materiales_criticos(necesidades)
+        
+        if not criticos:
+            print(f"-> [INFO] Reporte : NO hay materiales críticos para '{producto.get_nombre()}'. El stock se encuentra en niveles aceptables.")
+            return
+            
+        nombre_archivo = f"criticos_{producto.get_id()}.csv"
+        try:
+            with open(nombre_archivo, mode='w', newline='', encoding='utf-8') as archivo:
+                writer = csv.writer(archivo)
+                writer.writerow(["ID Insumo", "Nombre", "Cant. Necesaria", "Stock Actual", "Cobertura"])
+                
+                for insumo, cant_nec in criticos:
+                    stock = self._inventario.consultar_stock(insumo)
+                    
+                    if cant_nec > 0:
+                        porcentaje = (stock / cant_nec) * 100    #el porcentaje es el porcentaje de la cantidad necesaria que nuestro stock actual cubre
+                        cobertura = f"{porcentaje:.1f}%"
+                    else:
+                        cobertura = "0%"
+                        
+                    writer.writerow([insumo.get_id(), insumo.get_nombre(), cant_nec, stock, cobertura])
+                    
+            print(f"-> [CSV OK] Reporte de críticos generado en: '{nombre_archivo}'.")
+                
+        except IOError as e:
+            print(f"-> [ERROR] Falló la escritura del archivo: {e}")
+
+    
+    def generar_reporte_estado_planta(self, lista_unidades: list):
+        print("\n" + "="*55)
+        print("   REPORTE GLOBAL DE ESTADO DE PLANTA Y CUELLOS DE BOTELLA")
+        print("="*55)
+        
+        print("\n[1] ESTADO DE MÁQUINAS:")
+        if not lista_unidades:
+            print("  No hay unidades registradas.")
+        else:
+            unidad_critica = max(lista_unidades, key=lambda x: x.get_porcentaje_uso())
+            for x in lista_unidades:
+                print(f"  - Unidad #{x.get_id()} ({x.get_nombre()}): {x.get_porcentaje_uso():.1f}% de ocupación.")
+            
+            if unidad_critica.get_porcentaje_uso() > 0:
+                print(f"  >>> MÁQUINA MÁS EXIGIDA: {unidad_critica.get_nombre()}")
+
+       
+        print("\n[2] ANÁLISIS DE DEMORAS (CUELLOS DE BOTELLA):")
+        
+        d_stock = len(list(filter(lambda t: t.get_estado() == "Demorada por falta de stock", self._solicitudes.values())))
+        d_capacidad = len(list(filter(lambda t: t.get_estado() == "Demorada por falta de capacidad", self._solicitudes.values())))
+        d_personal = len(list(filter(lambda t: t.get_estado() == "Demorada por falta de colaboradores", self._solicitudes.values())))
+        
+        print(f"  - Frenadas por FALTA DE INSUMOS: {d_stock}")
+        print(f"  - Frenadas por CAPACIDAD DE MÁQUINA: {d_capacidad}")
+        print(f"  - Frenadas por ESCASEZ DE COLABORADORES: {d_personal}")
+        
+        demoras = {
+            "FALTA DE INSUMOS": d_stock,
+            "SOBRECARGA DE MÁQUINAS": d_capacidad,
+            "ESCASEZ DE COLABORADORES": d_personal
+        }
+        
+        cuello_principal = max(demoras, key=demoras.get)
+        
+        if demoras[cuello_principal] > 0:
+            print(f"\n>>> CONCLUSIÓN: El cuello de botella principal del sistema es {cuello_principal}.")
+        else:
+            print("\n>>> CONCLUSIÓN: Flujo perfecto. No hay cuellos de botella activos.")
+        
+    def calcular_sobrecarga_maquina(self, unidad, producto, cantidad: int):
+        carga_necesaria = producto.calcular_horas_en_unidad(unidad, cantidad)
+        capacidad_max = unidad.get_capacidad_max_horas()
+
+        print(f"\n--- CÁLCULO DE SOBRECARGA PREDICTIVA: {unidad.get_nombre()} ---")
+        print(f"Carga requerida: {carga_necesaria:.2f} hs | Capacidad instalada: {capacidad_max:.2f} hs")
+
+        if carga_necesaria > capacidad_max:
+            sobrecarga = carga_necesaria - capacidad_max
+            print(f">>> ALERTA: Sobrecarga detectada. La máquina colapsará por un exceso de {sobrecarga:.2f} hs.")
+        else:
+            print(">>> OK: La máquina tiene capacidad suficiente para absorber este pedido.")
+
+
+    #codigo de detectar cuello de botella que estaba antes (lo dejo por las dudas por ahora despues veanlo y decidan si lo dejamos o no)
+    #yo trate de combinarlo con lo nuevo  de arriba pero por las dudas no lo borre, lo dejo comentado 
+
+    '''def detectar_cuello_botella(self):
         print("\n" + "="*45)
         print("   REPORTE DE ESTADO DE PLANTA Y CUELLOS")
         print("="*45)
@@ -244,7 +338,7 @@ class Empresa:
             print("\n>>> CONCLUSIÓN: Hay demoras críticas tanto en stock como en capacidad operativa.")
         else:
             print("\n>>> CONCLUSIÓN: Flujo perfecto. No hay demoras detectadas.")
-        print("="*45 + "\n")
+        print("="*45 + "\n")'''
 
     def mostrar_solicitudes(self):
         print("\n--- RESUMEN DE SOLICITUDES ---")
@@ -255,16 +349,6 @@ class Empresa:
         for solicitud in self._solicitudes.values():
             print(solicitud)
         print("-----------------------------\n")
-
-    def mostrar_colaboradores(self):
-        print("\n--- NÓMINA DE EMPLEADOS ---")
-        if not self._colaboradores:
-            print("No hay colaboradores registrados.")
-            return
-            
-        for colab in self._colaboradores.values():
-            print(colab) 
-        print("---------------------------\n")
 
     def agregar_colaborador(self, nuevo_colaborador):
         id_nuevo = nuevo_colaborador.get_id()
@@ -283,9 +367,3 @@ class Empresa:
             print(f"EMPRESA: '{producto.get_nombre()}' registrado exitosamente en el catálogo.")
         except ValueError as e:
             print(f"EMPRESA - ERROR AL REGISTRAR: {e}")
-
-    def obtener_presupuesto(self, producto: Elemento, cantidad: int) -> float:
-        costo_unitario = producto.get_costo_unitario()
-        total = costo_unitario * cantidad
-        print(f"PRESUPUESTO: Fabricar {cantidad} unidades de '{producto.get_nombre()}' cuesta ${total:.2f}")
-        return total

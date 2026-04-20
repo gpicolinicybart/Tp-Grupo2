@@ -54,3 +54,8 @@ class Inventario:
         if cant <= 0:
             raise ValueError(f"Error: La cantidad debe ser mayor a cero.")
         return True
+    
+    def obtener_materiales_criticos(self, necesidades: dict) -> list:
+        
+        es_critico = lambda item: self.consultar_stock(item[0]) < (0.20 * item[1])   #calcula los materiales cuyo stock disponible es menor al 20% de la cantidad necesaria
+        return list(filter(es_critico, necesidades.items()))

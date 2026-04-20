@@ -55,3 +55,15 @@ class ArticuloFabricadoInternamente(Elemento):
         
     def get_lista_tareas(self):
         return self._lista_tareas
+    
+    def calcular_materiales_necesarios(self, cantidad_pedida: int) -> dict:
+        necesidades = {}
+        for bom in self.get_bom():
+            for insumo, cant_unitaria in bom.get_diccionario().items():
+                necesidades[insumo] = necesidades.get(insumo, 0) + (cant_unitaria * cantidad_pedida)
+        return necesidades
+    
+    def calcular_horas_en_unidad(self, unidad, cantidad: int) -> float:
+        es_tarea_de_unidad = lambda x: x.get_unidad_requerida().get_id() == unidad.get_id()
+        tareas_unidad = filter(es_tarea_de_unidad, self._lista_tareas)
+        return sum(map(lambda x: x.get_tiempo_por_unidad() * cantidad, tareas_unidad))

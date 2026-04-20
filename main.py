@@ -33,6 +33,8 @@ class SistemaGestion:
         print("9. Ver Estado General del Sistema")
         print("10. Cargar Escenario de Prueba (Demo)")
         print("11. Dar de baja a un Colaborador")
+        print("12. Generar Reporte CSV de Materiales Críticos")
+        print("13. Generar Reporte de Planta y Cuellos de Botella")
         print("0. Salir")
         print("="*60)
 
@@ -202,6 +204,60 @@ class SistemaGestion:
         except ValueError:
             print("ERROR: Debe ingresar un número entero válido.")
 
+
+    def generar_reporte_criticos(self):
+        print("\n--- REPORTE DE MATERIALES CRÍTICOS ---")
+        if not self.productos:
+            return print("No hay productos registrados.")
+        
+        print("\nCatálogo de Productos:")
+        for id_prod, producto in self.productos.items():
+            print(f"  - ID: {id_prod} | {producto.get_nombre()}")   
+        try:
+            id_p = int(input("Ingrese el ID del producto a evaluar: "))
+            if id_p not in self.productos: return print("Error: ID no encontrado.")
+            
+            cantidad = int(input("Ingrese la cantidad a simular: "))
+            if cantidad <= 0: 
+                return print("Error: La cantidad debe ser positiva.")
+            
+            self.empresa.generar_reporte_materiales_criticos(self.productos[id_p], cantidad)
+
+        except ValueError:
+            print("ERROR: Ingrese números enteros válidos.")
+
+    def emitir_reporte_y_sobrecarga(self):
+        lista_maquinas = list(self.unidades.values())
+        self.empresa.generar_reporte_estado_planta(lista_maquinas)
+        
+        print("\n¿Desea calcular la sobrecarga para un pedido específico?")
+        if input("Ingrese 'S' para calcular o 'N' para salir: ").strip().upper() == 'S':
+            if not self.unidades or not self.productos:
+                return print("Faltan datos base para el cálculo.")
+            
+            print("\nMáquinas Disponibles:")
+            for id_u, unidad in self.unidades.items():
+                print(f"  - ID: {id_u} | {unidad.get_nombre()}")
+                
+            print("\nProductos Disponibles:")
+            for id_p, producto in self.productos.items():
+                print(f"  - ID: {id_p} | {producto.get_nombre()}") 
+                
+            try:
+                id_u = int(input("\nIngrese el ID de la Máquina: "))
+                id_p = int(input("Ingrese el ID del Producto: "))
+                
+                if id_u in self.unidades and id_p in self.productos:
+                    cant = int(input("Cantidad a fabricar: "))
+                    if cant > 0:
+                        self.empresa.calcular_sobrecarga_maquina(self.unidades[id_u], self.productos[id_p], cant)
+                    else:
+                        print("La cantidad debe ser mayor a 0.")
+                else:
+                    print("IDs no encontrados.")
+            except ValueError:
+                print("Error: Ingrese números enteros válidos.")
+
     def cargar_demo(self):
         print("\n--- CARGANDO ESCENARIO DEMO E INDUSTRIAL ---")
         
@@ -257,6 +313,8 @@ if __name__ == "__main__":
             elif opcion == "9": sistema.ver_estado()
             elif opcion == "10": sistema.cargar_demo()
             elif opcion == "11": sistema.dar_baja_colaborador()
+            elif opcion == "12": sistema.generar_reporte_criticos()
+            elif opcion == "13": sistema.emitir_reporte_y_sobrecarga()
             elif opcion == "0":
                 print("\nCerrando sistema de gestión manufacturera. Hasta luego.")
                 break
