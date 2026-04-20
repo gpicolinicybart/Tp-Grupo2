@@ -26,10 +26,6 @@ class SolicitudDeFabricacion:
         self._estado = nuevo_estado
 
     def __str__(self):
-        fecha_str = self._fecha_creacion.strftime("%d/%m/%Y %H:%M")
-        return f"-> SOLICITUD: ID {self._id} ({fecha_str}) | Estado:{self._estado} | Fabricar: {self._cantidad} unidades de '{self._item_solicitado._nombre}' | Colaboradores: {self._colaboradores_asignados}"
-    
-    def __str__(self):
         fecha_str= self._fecha_creacion.strftime("%d/%m/%Y %H:%M")
         
         if self._estado == "Terminada" and self._fecha_finalizacion:

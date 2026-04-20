@@ -164,29 +164,7 @@ class Empresa:
         else:
             print(f"-> RESUMEN: {contador_ejecutadas} solicitudes han iniciado su producción.")
 
-    def finalizar_solicitud(self, id_solicitud: int):
-        solicitud = self._solicitudes.get(id_solicitud)
-        
-        if not solicitud:
-            print(f"[Error] Solicitud {id_solicitud} no encontrada.")
-            return False
-
-        if solicitud.get_estado() == "En curso":
-            print(f"\n[Empresa] Finalizando solicitud {id_solicitud}. Producción terminada.")
-            producto = solicitud.get_item_solicitado()
-            cantidad_pedida = float(solicitud.get_cantidad())
-            
-            self._inventario.ingresar_stock(producto, cantidad_pedida)
-            solicitud.set_estado("Terminada")
-            
-            # FUNCION DE ALTO ORDEN: Limpiar el diccionario eliminando las solicitudes "Terminadas"
-            self._solicitudes = dict(filter(lambda item: item[1].get_estado() != "Terminada", self._solicitudes.items()))
-            print(f"[Sistema] Limpieza: Solicitud {id_solicitud} borrada de la memoria activa.")
-            
-            return True
-        else:
-            print(f"\n[Error] No se puede finalizar la solicitud {id_solicitud}. Estado actual: {solicitud.get_estado()}")
-            return False
+    
     def finalizar_solicitud(self):
         
         print("\n--- FINALIZANDO ÓRDENES EN PRODUCCIÓN ---")
@@ -201,7 +179,7 @@ class Empresa:
                     
                     self._inventario.ingresar_stock(producto, cantidad_pedida)
                     
-                    solicitud.set_estado("Terminada")
+                    solicitud.marcar_como_terminada()
                     print(f"-> ÉXITO: Solicitud #{id_solicitud} terminada. {cantidad_pedida}x '{producto.get_nombre()}' sumados al stock.")
                     contador_finalizadas += 1
                 except Exception as e:
