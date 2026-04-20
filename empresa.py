@@ -35,7 +35,7 @@ class Empresa:
     # PROCESAMIENTO MODULARIZADO
     # ==========================================
     def procesar_solicitud(self):
-        """Itera sobre las solicitudes pendientes y llama al procesador individual"""
+        print("\n--- PROCESANDO PLANIFICACIÓN DE PRODUCCIÓN ---")
         for solicitud in list(self._solicitudes.values()): 
             estado = solicitud.get_estado()
             if estado == "Creada" or estado.startswith("Demorada"):
@@ -133,28 +133,36 @@ class Empresa:
     # ==========================================
     # EJECUCIÓN Y FINALIZACIÓN
     # ==========================================
-    def ejecutar_solicitud(self, id_solicitud: int):
-        solicitud = self._solicitudes.get(id_solicitud)
+    def ejecutar_solicitud(self):
+        print("\n--- EJECUTANDO ÓRDENES PLANIFICADAS ---")
+        contador_ejecutadas = 0
         
-        if not solicitud:
-            print(f"[Error] Solicitud {id_solicitud} no encontrada.")
-            return False
+        for id_solicitud, solicitud in self._solicitudes.items():
+            
+            # Solo actuamos sobre las que están listas
+            if solicitud.get_estado() == "Procesada y Planificada":
+                try:
+                    producto = solicitud.get_item_solicitado()
+                    cantidad_pedida = solicitud.get_cantidad()
 
-        if solicitud.get_estado() == "Procesada y Planificada" or solicitud.get_estado() == "Planificada":
-            print(f"\n[Empresa] Ejecutando solicitud {id_solicitud}. La producción arranca...")
-            producto = solicitud.get_item_solicitado()
-            cantidad_pedida = solicitud.get_cantidad()
-            
-            for bom in producto.get_bom():
-                for componente, cant_unitaria in bom.get_diccionario().items():
-                    total_a_descontar = float(cant_unitaria) * float(cantidad_pedida)
-                    self._inventario.descontar_stock(componente, int(total_a_descontar))
-            
-            solicitud.set_estado("En curso")
-            return True
+                    materiales_necesarios = self._explotar_bom(producto, cantidad_pedida)
+                    
+                    for componente, cant_necesaria in materiales_necesarios.items():
+                        self._inventario.descontar_stock(componente, cant_necesaria)
+
+                    solicitud.set_estado("En Ejecución")
+                    print(f"-> ÉXITO: Solicitud #{id_solicitud} ('{producto.get_nombre()}') enviada a producción.")
+                    contador_ejecutadas += 1
+                    
+                except Exception as e:
+                    print(f"-> ERROR CRÍTICO en Solicitud #{id_solicitud}: {e}")
+                    solicitud.set_estado("Demorada por Error Interno")
+
+        
+        if contador_ejecutadas == 0:
+            print("-> AVISO: No se encontraron solicitudes en estado 'Procesada y Planificada' para ejecutar.")
         else:
-            print(f"\n[Error] No se puede ejecutar la solicitud {id_solicitud}. Estado actual: {solicitud.get_estado()}")
-            return False
+            print(f"-> RESUMEN: {contador_ejecutadas} solicitudes han iniciado su producción.")
 
     def finalizar_solicitud(self, id_solicitud: int):
         solicitud = self._solicitudes.get(id_solicitud)
@@ -179,7 +187,33 @@ class Empresa:
         else:
             print(f"\n[Error] No se puede finalizar la solicitud {id_solicitud}. Estado actual: {solicitud.get_estado()}")
             return False
+    def finalizar_solicitud(self):
+        
+        print("\n--- FINALIZANDO ÓRDENES EN PRODUCCIÓN ---")
+        contador_finalizadas = 0
+        
+        for id_solicitud, solicitud in list(self._solicitudes.items()):
+            
+            if solicitud.get_estado() == "En Ejecución": 
+                try:
+                    producto = solicitud.get_item_solicitado()
+                    cantidad_pedida = int(solicitud.get_cantidad())
+                    
+                    self._inventario.ingresar_stock(producto, cantidad_pedida)
+                    
+                    solicitud.set_estado("Terminada")
+                    print(f"-> ÉXITO: Solicitud #{id_solicitud} terminada. {cantidad_pedida}x '{producto.get_nombre()}' sumados al stock.")
+                    contador_finalizadas += 1
+                except Exception as e:
+                    print(f"-> ERROR al finalizar Solicitud #{id_solicitud}: {e}")
 
+        
+        if contador_finalizadas > 0:
+            self._solicitudes = dict(filter(lambda item: item[1].get_estado() != "Terminada", self._solicitudes.items()))
+            print(f"-> SISTEMA: Limpieza de memoria. {contador_finalizadas} solicitudes históricas archivadas/borradas.")
+        else:
+            print("-> AVISO: No hay solicitudes en producción para finalizar.")
+            
     # ==========================================
     # REPORTES Y OTROS MÉTODOS
     # ==========================================

@@ -1,5 +1,5 @@
 from itembom import ItemBOM
-
+from datetime import datetime
 class SolicitudDeFabricacion:
     id_solicitud=0
     def __init__(self, item_solicitado: ItemBOM, cantidad: int, es_para_cliente: bool):
@@ -7,10 +7,13 @@ class SolicitudDeFabricacion:
         self._id = SolicitudDeFabricacion.id_solicitud
         self._item_solicitado = item_solicitado
         self._cantidad =self.validar_entero_positivo(cantidad)
-        self._estado = "Creada" # estado inicial, despues tendria q variar entre en proceso, demorada, entregada,etc
-        self._es_para_cliente = es_para_cliente #esto tenemos q hablarlo si cuando se solicita una mesa se generan automaticamente solicitudes de patas
-        #o el programa internamente avanza con la creacion de patas sin que se generen solicitudes
-        self._colaboradores_asignados = [] # es necesario?#guille: yo no creo.#nico: es necesario para mostrar la info de los colabs y pasarle la info a las tareas.
+        self._estado = "Creada" 
+        self._es_para_cliente = es_para_cliente 
+        self._colaboradores_asignados = [] 
+        self._fecha_creacion = datetime.now()
+        self._fecha_finalizacion = None
+
+
     def get_id(self):
         return self._id
     def get_item_solicitado(self):
@@ -21,8 +24,21 @@ class SolicitudDeFabricacion:
         return self._cantidad
     def set_estado(self, nuevo_estado: str):
         self._estado = nuevo_estado
+
     def __str__(self):
-        return f"-> SOLICITUD: ID {self._id} | Estado:{self._estado} | Fabricar: {self._cantidad} unidades de '{self._item_solicitado._nombre}' | Colaboradores: {self._colaboradores_asignados}"
+        fecha_str = self._fecha_creacion.strftime("%d/%m/%Y %H:%M")
+        return f"-> SOLICITUD: ID {self._id} ({fecha_str}) | Estado:{self._estado} | Fabricar: {self._cantidad} unidades de '{self._item_solicitado._nombre}' | Colaboradores: {self._colaboradores_asignados}"
+    
+    def __str__(self):
+        fecha_str= self._fecha_creacion.strftime("%d/%m/%Y %H:%M")
+        
+        if self._estado == "Terminada" and self._fecha_finalizacion:
+            fin_str = self._fecha_finalizacion.strftime("%d/%m/%Y %H:%M")
+            estado_visual = f"TERMINADA el {fin_str}, Tiempo transcurrido: {(self._fecha_finalizacion - self._fecha_creacion).total_seconds()/3600:.2f} horas"
+        else:
+            estado_visual = f"Estado: {self._estado}"
+            
+        return f"-> SOLICITUD: ID {self._id} ({fecha_str}) | Estado:{estado_visual} | Fabricar: {self._cantidad} unidades de '{self._item_solicitado._nombre}' | Colaboradores: {self._colaboradores_asignados}"
     
     def validar_entero_positivo(self, cantidad: int):
         if not isinstance(cantidad, int):
@@ -31,3 +47,6 @@ class SolicitudDeFabricacion:
             raise ValueError(f"Error: La cantidad debe ser mayor a cero. Ingresaste: {cantidad}.")
         return cantidad
 
+    def marcar_como_terminada(self):
+        self._estado = "Terminada"
+        self._fecha_finalizacion = datetime.now()

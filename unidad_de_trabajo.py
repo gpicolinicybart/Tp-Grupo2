@@ -1,3 +1,4 @@
+from datetime import datetime
 class UnidadDeTrabajo:
     id_unidad=0
     def __init__(self, nombre: str, capacidad_max_horas: float, costo_operativo_por_hora: float):
@@ -7,6 +8,7 @@ class UnidadDeTrabajo:
         self._capacidad_max_horas = float(capacidad_max_horas)
         self._horas_reservadas = 0.0 
         self._costo_operativo_por_hora = self.validar_costo_operativo(costo_operativo_por_hora)
+        self._fecha_instalacion = datetime.now()
     
     def validar_costo_operativo(self, costo: float) -> float:
         if costo < 0:
@@ -14,7 +16,8 @@ class UnidadDeTrabajo:
         return costo
 
     def __str__(self):
-        return f"Unidad #{self._id} ({self._nombre}) | Capacidad Max: {self._capacidad_max_horas}hs | Costo/hr: ${self._costo_operativo_por_hora}"  
+        fecha_str = self._fecha_instalacion.strftime("%d/%m/%Y")
+        return f"Unidad #{self._id} ({self._nombre}) | Capacidad Max: {self._capacidad_max_horas}hs | Costo/hr: ${self._costo_operativo_por_hora} | Fecha de instalación: {fecha_str}"
 
     def get_id(self) -> int:
         return self._id

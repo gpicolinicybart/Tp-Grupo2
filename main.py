@@ -32,6 +32,7 @@ class SistemaGestion:
         print("8. Finalizar Solicitud (Cierre)")
         print("9. Ver Estado General del Sistema")
         print("10. Cargar Escenario de Prueba (Demo)")
+        print("11. Dar de baja a un Colaborador")
         print("0. Salir")
         print("="*60)
 
@@ -80,9 +81,8 @@ class SistemaGestion:
                 print("ERROR: Un producto requiere al menos un componente.")
                 return
 
-            id_bom = self.contador_id["tarea"]
-            self.contador_id["tarea"] += 1
-            bom = ItemBOM(id_bom, f"Receta {nombre}", bom_dict)
+           
+            bom = ItemBOM(f"Receta {nombre}", bom_dict)
             
             # El ID se genera solo en la clase Elemento
             producto = ArticuloFabricadoInternamente(nombre, [bom], [])
@@ -120,7 +120,7 @@ class SistemaGestion:
             salario = float(input("Salario por hora: $"))
             
             colab = Colaborador(habilidades, horas, salario)
-            id_c=Colaborador.get_id()
+            id_c=colab.get_id()
             self.empresa.agregar_colaborador(colab)
 
             print(f"CONFIRMACIÓN: Colaborador {id_c} agregado a la nómina.")
@@ -144,32 +144,22 @@ class SistemaGestion:
                 return
                 
             cantidad = int(input("Cantidad de unidades: "))
-            id_s = self.contador_id["solicitud"]
             
             solicitud = SolicitudDeFabricacion(self.productos[id_p], cantidad, True)
-            id_s= solicitud.get_id()
             self.empresa.crear_solicitud(solicitud)
-            print(f"CONFIRMACIÓN: Solicitud #{id_s} creada.")
+            print(f"CONFIRMACIÓN: Solicitud #{solicitud.get_id()} creada.")
         except ValueError as e:
             print(f"ERROR: {e}")
 
     def procesar_solicitud(self):
-        print("\n--- PROCESANDO PLANIFICACIÓN DE PRODUCCIÓN ---")
         self.empresa.procesar_solicitud()
 
     def ejecutar_solicitud(self):
-        try:
-            id_s = int(input("\nIngrese ID de la solicitud a ejecutar: "))
-            self.empresa.ejecutar_solicitud(id_s)
-        except ValueError:
-            print("ID inválido.")
+        self.empresa.ejecutar_solicitud()
+   
 
     def finalizar_solicitud(self):
-        try:
-            id_s = int(input("\nIngrese ID de la solicitud a finalizar: "))
-            self.empresa.finalizar_solicitud(id_s)
-        except ValueError:
-            print("ID inválido.")
+        self.empresa.finalizar_solicitud()
 
     def ver_estado(self):
         print("\n" + "="*60)
@@ -192,6 +182,25 @@ class SistemaGestion:
         print("\nSOLICITUDES EN EL SISTEMA:")
         self.empresa.mostrar_solicitudes()
         print("="*60)
+
+    def dar_baja_colaborador(self):
+        print("\n--- BAJA DE PERSONAL ---")
+        if not self.colaboradores:
+            print("No hay colaboradores registrados.")
+            return
+            
+        try:
+            id_baja = int(input("Ingrese el ID del colaborador a dar de baja: "))
+            if id_baja in self.colaboradores:
+                colab = self.colaboradores[id_baja]
+                
+                colab.dar_de_baja()
+                print(f"\n[ÉXITO] El colaborador {id_baja} ha sido dado de baja correctamente.")
+                print(colab) 
+            else:
+                print("ID no encontrado.")
+        except ValueError:
+            print("ERROR: Debe ingresar un número entero válido.")
 
     def cargar_demo(self):
         print("\n--- CARGANDO ESCENARIO DEMO E INDUSTRIAL ---")
@@ -247,6 +256,7 @@ if __name__ == "__main__":
             elif opcion == "8": sistema.finalizar_solicitud()
             elif opcion == "9": sistema.ver_estado()
             elif opcion == "10": sistema.cargar_demo()
+            elif opcion == "11": sistema.dar_baja_colaborador()
             elif opcion == "0":
                 print("\nCerrando sistema de gestión manufacturera. Hasta luego.")
                 break
