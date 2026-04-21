@@ -10,6 +10,7 @@ from elemento import Elemento
 from articulo_fabricado import ArticuloFabricadoInternamente
 from datetime import datetime
 import csv
+import os
 
 # como la empresa confia en lo que colaboradores y insumo basico le devuelven al preguntar por su tipo de reabastecimiento, no es necesario importar la clase de cada uno, con importar el padre (Elemento) alcanza para que la empresa pueda preguntar por el tipo de reabastecimiento sin necesidad de saber si es un insumo o un articulo fabricado. Esto es polimorfismo puro.
 class Empresa:
@@ -42,7 +43,7 @@ class Empresa:
 
     def _procesar_solicitud_individual(self, solicitud):
         producto = solicitud.get_item_solicitado()
-        cantidad_pedida = float(solicitud.get_cantidad()) 
+        cantidad_pedida = int(solicitud.get_cantidad()) 
         print(f"\nProcesando Solicitud {solicitud.get_id()} -> Fabricar: {cantidad_pedida}x '{producto.get_nombre()}'")
         
         # 1: EXPLOSIÓN DE MATERIALES
@@ -66,12 +67,12 @@ class Empresa:
         materiales_necesarios = {}
         for bom in producto.get_bom():
             for componente, cant_unitaria in bom.get_diccionario().items():
-                total_necesario = float(cant_unitaria) * float(cantidad_pedida)
+                total_necesario = int(cant_unitaria) * int(cantidad_pedida)
                 materiales_necesarios[componente] = materiales_necesarios.get(componente, 0) + total_necesario
         return materiales_necesarios
 
     def _gestionar_stock(self, solicitud, materiales_necesarios) -> bool:
-        # Función de alto orden para filtrar faltantes
+        # filtrar faltantes
         materiales_faltantes = list(filter(lambda item: not self._inventario.hay_disponibilidad(item[0], item[1]), materiales_necesarios.items()))
         
         if not materiales_faltantes:
@@ -83,10 +84,9 @@ class Empresa:
 
         for componente, cant_necesaria in materiales_faltantes:
             stock_disponible = self._inventario.obtener_stock_disponible(componente)
-            faltante = cant_necesaria - stock_disponible
+            faltante = int(cant_necesaria) - int(stock_disponible)
             print(f" [!] Faltan {faltante} unidades de '{componente.get_nombre()}'.")
-            
-            # POLIMORFISMO PURO: La empresa no pregunta qué es, solo ejecuta su método de reabastecimiento
+            # la empresa ejecuta metodo de reabastecimiento
             componente.gestionar_reabastecimiento(self, faltante)
         
         solicitud.set_estado("Demorada por falta de stock")
@@ -95,39 +95,44 @@ class Empresa:
 
     def _gestionar_capacidad(self, producto, cantidad_pedida) -> tuple:
         asignaciones_pendientes = [] 
-        for tarea in producto.get_lista_tareas():
-            # DELEGACIÓN: La tarea hace sus propios cálculos
+        lista_tareas = producto.get_lista_tareas()
+
+        #Si no hay tareas, frena la planificación
+        if not lista_tareas:
+            print(f" [!] ERROR: El producto '{producto.get_nombre()}' no tiene tareas asignadas para su fabricación.")
+            return False, []
+
+        for tarea in lista_tareas:
+            # la tarea hace sus propios calculos
             horas_totales = tarea.calcular_horas_totales(cantidad_pedida)
             unidad = tarea.get_unidad_requerida()
-
             if not unidad.verificar_disponibilidad(horas_totales):
                 print(f" [!] Falta capacidad en la Unidad #{unidad.get_id()} para la tarea '{tarea.get_descripcion()}'.")
-                return False, []
-
+                return False, [] # hay q poner esa lista vacia xq es tuple y tiene q tener si o si 2 variables de retorno aunque no se usen
             colabs_necesarios = tarea.get_cant_colaboradores_req()
-            # DELEGACIÓN Y ALTA ORDEN: La tarea filtra a los empleados aptos
             colabs_aptos = tarea.filtrar_colaboradores_aptos(self._colaboradores, horas_totales)
-
             if len(colabs_aptos) < colabs_necesarios:
                 print(f" [!] No hay suficientes colaboradores con la habilidad '{tarea.get_habilidad_requerida()}' y {horas_totales}hs libres.")
                 return False, []
-            
             colabs_encontrados = colabs_aptos[:colabs_necesarios]
             asignaciones_pendientes.append((tarea, horas_totales, colabs_encontrados))
-            
         return True, asignaciones_pendientes
 
     def _confirmar_reservas(self, solicitud, materiales_necesarios, asignaciones_pendientes):
-        print(" -> Stock y Capacidad OK. Confirmando reservas...")
-        for componente, cant_necesaria in materiales_necesarios.items():
-            self._inventario.reservar_stock(componente, cant_necesaria)
-            
-        for tarea, horas, colabs in asignaciones_pendientes:
-            # DELEGACIÓN: La tarea ejecuta sus reservas internamente
-            tarea.ejecutar_reservas(horas, colabs)
+            print(" -> Stock y Capacidad OK. Confirmando reservas...")
+            for componente, cant_necesaria in materiales_necesarios.items():
+                self._inventario.reservar_stock(componente, cant_necesaria)
                 
-        solicitud.set_estado("Procesada y Planificada")
-        print(f" -> Solicitud {solicitud.get_id()} PROCESADA CON ÉXITO.")
+            for tarea, horas, colabs in asignaciones_pendientes:
+                # la tarea ejecuta sus reservas internamente
+                tarea.ejecutar_reservas(horas, colabs)
+                
+                # anoto a los colaboradores en la solicitud ---
+                for colab in colabs:
+                    solicitud.agregar_colaborador(colab.get_id())
+                    
+            solicitud.set_estado("Procesada y Planificada")
+            print(f" -> Solicitud {solicitud.get_id()} PROCESADA CON ÉXITO.")
 
    
     def ejecutar_solicitud(self):
@@ -166,6 +171,7 @@ class Empresa:
         
         print("\n--- FINALIZANDO ÓRDENES EN PRODUCCIÓN ---")
         contador_finalizadas = 0
+        solicitudes_a_archivar = []
         
         for id_solicitud, solicitud in list(self._solicitudes.items()):
             
@@ -184,11 +190,56 @@ class Empresa:
 
         
         if contador_finalizadas > 0:
+            self._guardar_historial_csv(solicitudes_a_archivar) #archivo las solicitudes que voy a borrar
             self._solicitudes = dict(filter(lambda item: item[1].get_estado() != "Terminada", self._solicitudes.items()))
             print(f"-> SISTEMA: Limpieza de memoria. {contador_finalizadas} solicitudes históricas archivadas/borradas.")
         else:
             print("-> AVISO: No hay solicitudes en producción para finalizar.")
+
+
+    def _guardar_historial_csv(self, solicitudes_terminadas: list): #agarra la lista de solicitudes terminadas y las appendea al historial CSV
+        nombre_archivo = "historial_solicitudes.csv"
+        # veo si el archivo ya existe para sobreescribirle
+        archivo_existe = os.path.isfile(nombre_archivo) # Devuelve True si el archivo existe en el disco, False si no existe
+        
+        try:
+            with open(nombre_archivo, mode='a', newline='', encoding='utf-8') as archivo:
+                writer = csv.writer(archivo)
+                # Si es la primera vez que se crea el archivo, le ponemos los títulos a las columnas
+                if not archivo_existe:
+                    writer.writerow(["ID Solicitud", "Producto", "Cantidad", "Fecha Creacion", "Fecha Finalizacion", "Tiempo Transcurrido (Horas)"])
+                # Escribimos una fila por cada solicitud terminada
+                for sol in solicitudes_terminadas:
+                    id_sol = sol.get_id()
+                    producto = sol.get_item_solicitado().get_nombre()
+                    cantidad = sol.get_cantidad()
+                    
+                    # no hace falta pero formateo las fechas para que se vean bien, si no queda en un formato raro
+                    fecha_creacion = sol._fecha_creacion.strftime("%d/%m/%Y %H:%M")
+                    if sol._fecha_finalizacion:
+                        fecha_fin = sol._fecha_finalizacion.strftime("%d/%m/%Y %H:%M")
+                        # Calculamos las horas que tardó en producirse
+                        tiempo_hs = round((sol._fecha_finalizacion - sol._fecha_creacion).total_seconds() / 3600, 2)
+                    else:
+                        fecha_fin = "N/A"
+                        tiempo_hs = "N/A"
+                        
+                    writer.writerow([id_sol, producto, cantidad, fecha_creacion, fecha_fin, tiempo_hs])
+                    
+        except IOError as e:
+            print(f"-> [ERROR] Falló la escritura del historial CSV: {e}")
             
+    def recibir_compras(self):
+            #recorre las órdenes y actualiza el inventario
+            pendientes = list(filter(lambda orden: orden._fecha_recepcion is None, self._compras_pendientes))
+            if not pendientes:
+                return 0
+            for orden in pendientes:
+                orden.recibir_materiales(self._inventario)
+                
+            return len(pendientes)  
+        
+        
     # ==========================================
     # REPORTES Y OTROS MÉTODOS
     # ==========================================
@@ -233,7 +284,7 @@ class Empresa:
         print("   REPORTE GLOBAL DE ESTADO DE PLANTA Y CUELLOS DE BOTELLA")
         print("="*55)
         
-        print("\n[1] ESTADO DE MÁQUINAS:")
+        print("\n[1] ESTADO DE UNIDADES DE TRABAJO:")
         if not lista_unidades:
             print("  No hay unidades registradas.")
         else:
@@ -242,7 +293,7 @@ class Empresa:
                 print(f"  - Unidad #{x.get_id()} ({x.get_nombre()}): {x.get_porcentaje_uso():.1f}% de ocupación.")
             
             if unidad_critica.get_porcentaje_uso() > 0:
-                print(f"  >>> MÁQUINA MÁS EXIGIDA: {unidad_critica.get_nombre()}")
+                print(f"  >>> UNIDAD DE TRABAJO MÁS EXIGIDA: {unidad_critica.get_nombre()}")
 
        
         print("\n[2] ANÁLISIS DE DEMORAS (CUELLOS DE BOTELLA):")
@@ -252,12 +303,12 @@ class Empresa:
         d_personal = len(list(filter(lambda t: t.get_estado() == "Demorada por falta de colaboradores", self._solicitudes.values())))
         
         print(f"  - Frenadas por FALTA DE INSUMOS: {d_stock}")
-        print(f"  - Frenadas por CAPACIDAD DE MÁQUINA: {d_capacidad}")
+        print(f"  - Frenadas por CAPACIDAD DE UNIDADES DE TRABAJO: {d_capacidad}")
         print(f"  - Frenadas por ESCASEZ DE COLABORADORES: {d_personal}")
         
         demoras = {
             "FALTA DE INSUMOS": d_stock,
-            "SOBRECARGA DE MÁQUINAS": d_capacidad,
+            "SOBRECARGA DE UNIDADES DE TRABAJO": d_capacidad,
             "ESCASEZ DE COLABORADORES": d_personal
         }
         
@@ -268,7 +319,7 @@ class Empresa:
         else:
             print("\n>>> CONCLUSIÓN: Flujo perfecto. No hay cuellos de botella activos.")
         
-    def calcular_sobrecarga_maquina(self, unidad, producto, cantidad: int):
+    def calcular_sobrecarga_unidad_trabajo(self, unidad, producto, cantidad: int):
         carga_necesaria = producto.calcular_horas_en_unidad(unidad, cantidad)
         capacidad_max = unidad.get_capacidad_max_horas()
 
@@ -277,9 +328,9 @@ class Empresa:
 
         if carga_necesaria > capacidad_max:
             sobrecarga = carga_necesaria - capacidad_max
-            print(f">>> ALERTA: Sobrecarga detectada. La máquina colapsará por un exceso de {sobrecarga:.2f} hs.")
+            print(f">>> ALERTA: Sobrecarga detectada. La unidad colapsará por un exceso de {sobrecarga:.2f} hs.")
         else:
-            print(">>> OK: La máquina tiene capacidad suficiente para absorber este pedido.")
+            print(">>> OK: La unidad tiene capacidad suficiente para absorber este pedido.")
 
 
     #codigo de detectar cuello de botella que estaba antes (lo dejo por las dudas por ahora despues veanlo y decidan si lo dejamos o no)

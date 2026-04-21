@@ -8,6 +8,8 @@ from unidad_de_trabajo import UnidadDeTrabajo
 from tarea import Tarea
 from itembom import ItemBOM
 from articulo_fabricado import ArticuloFabricadoInternamente
+import os
+import csv
 
 class SistemaGestion:
     def __init__(self):
@@ -24,7 +26,7 @@ class SistemaGestion:
         print("="*60)
         print("1. Crear Insumo Básico")
         print("2. Crear Producto (Artículo Fabricado)")
-        print("3. Agregar Unidad de Trabajo (Máquina)")
+        print("3. Agregar Unidad de Trabajo (Sector/Taller/Máquina)")
         print("4. Agregar Colaborador (Personal)")
         print("5. Crear Solicitud de Fabricación")
         print("6. Procesar Solicitudes (Planificación)")
@@ -35,6 +37,8 @@ class SistemaGestion:
         print("11. Dar de baja a un Colaborador")
         print("12. Generar Reporte CSV de Materiales Críticos")
         print("13. Generar Reporte de Planta y Cuellos de Botella")
+        print("14. Recibir Órdenes de Compra (Ingresar Stock de Insumos)")
+        print("15. Ver Historial de Producción (Auditoría)")
         print("0. Salir")
         print("="*60)
 
@@ -55,47 +59,93 @@ class SistemaGestion:
             print(f"ERROR: Datos inválidos. {e}")
 
     def crear_producto(self):
-        print("\n--- REGISTRO DE PRODUCTO FABRICADO ---")
-        if not self.insumos:
-            print("AVISO: Debe registrar insumos antes de crear un producto.")
-            return
-        
-        try:
-            nombre = input("Nombre del producto: ").strip()
+            print("\n--- REGISTRO DE PRODUCTO FABRICADO ---")
             
-            print("\nInsumos disponibles para la receta (BOM):")
-            for id_ins, ins in self.insumos.items():
-                print(f"  ID {id_ins}: {ins.get_nombre()}")
-            
-            bom_dict = {}
-            while True:
-                entrada = input("\nIngrese ID del insumo (o '0' para finalizar): ")
-                if entrada == "0": break
-                
-                id_ins = int(entrada)
-                if id_ins in self.insumos:
-                    cantidad = int(input(f"Cantidad de '{self.insumos[id_ins].get_nombre()}': "))
-                    bom_dict[self.insumos[id_ins]] = cantidad
-                else:
-                    print("ID no encontrado en el catálogo.")
-            
-            if not bom_dict:
-                print("ERROR: Un producto requiere al menos un componente.")
+            # primero veo que hayan creado unidades e insumos asi no queda uno incompleto que no se puede editar despues
+            if not self.unidades:
+                print(" [!] ERROR: No se puede crear un producto fabricado si no existen Unidades de Trabajo.")
+                print("     Primero registre las máquinas (Opción 3).")
                 return
-
-           
-            bom = ItemBOM(f"Receta {nombre}", bom_dict)
+                
+            if not self.insumos:
+                print(" [!] ERROR: No hay insumos registrados para armar la receta.")
+                print("     Primero registre los insumos básicos (Opción 1).")
+                return
             
-            # El ID se genera solo en la clase Elemento
-            producto = ArticuloFabricadoInternamente(nombre, [bom], [])
-            id_producto = producto.get_id()
-            
-            self.productos[id_producto] = producto
-            self.empresa.registrar_producto_nuevo(producto)
-            print(f"CONFIRMACIÓN: Producto '{nombre}' registrado con ID: {id_producto}")
-        except ValueError as e:
-            print(f"ERROR: {e}")
+            try:
+                nombre = input("Nombre del producto: ").strip()
+                
+                # insumo basicos
+                print("\nInsumos disponibles para la receta (BOM):")
+                for id_ins, ins in self.insumos.items():
+                    print(f"  ID {id_ins}: {ins.get_nombre()}")
+                
+                bom_dict = {}
+                while True:
+                    entrada = input("\nIngrese ID del insumo (o '0' para finalizar receta): ")
+                    if entrada == "0": break
+                    
+                    id_ins = int(entrada)
+                    if id_ins in self.insumos:
+                        cantidad = int(input(f"Cantidad de '{self.insumos[id_ins].get_nombre()}': "))
+                        bom_dict[self.insumos[id_ins]] = cantidad
+                    else: print("ID no encontrado.")
+                
+                if not bom_dict:
+                    print(" [!] CANCELADO: Un producto requiere al menos un insumo.")
+                    return
 
+                bom = ItemBOM(f"Receta {nombre}", bom_dict)
+                
+                # tareas, unidad de trab
+                print("\n--- ASIGNACIÓN DE TAREAS ---")
+                tareas_producto = []
+                
+                while True:
+                    agregar = input("¿Desea agregar una Tarea? (S/N): ").strip().upper()
+                    if agregar != 'S': 
+                        break
+                    
+                    desc_tarea = input("Descripción de la Tarea: ")
+                    
+                    print("\n Unidades de trabajo disponibles:")
+                    for id_u, u in self.unidades.items():
+                        print(f"  ID {id_u}: {u.get_nombre()}")
+                        
+                    id_unidad = int(input("Ingrese ID de la unidad de trabajo: "))
+                    if id_unidad not in self.unidades:
+                        print("ERROR: Unidad de trabajo no encontrada.")
+                        continue
+                    
+                    habilidad = input("Habilidad requerida: ").strip()
+                    empleados_aptos = [c for c in self.colaboradores.values() if c.tiene_habilidad(habilidad)]
+                    
+                    if empleados_aptos:
+                        suma_sueldos = sum(c.get_salario_hora() for c in empleados_aptos)
+                        costo_mo = suma_sueldos / len(empleados_aptos)
+                        cant_colabs = int(input("Cantidad de operarios: "))
+                        tiempo = float(input("Tiempo (hs/unidad): "))
+                        nueva_tarea = Tarea(desc_tarea, self.unidades[id_unidad], cant_colabs, tiempo, habilidad, costo_mo)
+                        tareas_producto.append(nueva_tarea)
+                        print("-> Tarea añadida.")
+                    else:
+                        print(f" [!] ERROR: No hay personal con habilidad '{habilidad}'. Tarea descartada.")
+
+                #¿Se cargó al menos una tarea? x lo mismo que antes, si dice que no requiere nignuna tarea tiene q tirar error 
+                if not tareas_producto:
+                    print(f" [!] ERROR CRÍTICO: No se puede registrar '{nombre}' sin un proceso de manufactura.")
+                    print("     El registro ha sido abortado para evitar errores en la producción.")
+                    return
+
+                # Si pasó todos los filtros, recién ahí lo creamos
+                producto = ArticuloFabricadoInternamente(nombre, [bom], tareas_producto)
+                self.productos[producto.get_id()] = producto
+                self.empresa.registrar_producto_nuevo(producto)
+                print(f"\nCONFIRMACIÓN: Producto '{nombre}' (ID: {producto.get_id()}) registrado con éxito.")
+                
+            except ValueError as e:
+                print(f"ERROR: Datos inválidos. {e}")
+            
     def agregar_unidad_trabajo(self):
         print("\n--- REGISTRO DE UNIDAD DE TRABAJO ---")
         try:
@@ -162,6 +212,15 @@ class SistemaGestion:
 
     def finalizar_solicitud(self):
         self.empresa.finalizar_solicitud()
+    
+    def recibir_compras_pendientes(self):
+        print("\n--- RECEPCIÓN DE ÓRDENES DE COMPRA ---")
+        cantidad = self.empresa.recibir_compras()
+        if cantidad > 0:
+            print(f"\n-> ÉXITO: Se ingresaron {cantidad} órdenes al inventario.")
+            print("-> AVISO: Podés volver a presionar '6' para que las solicitudes demoradas retomen su curso.")
+        else:
+            print("No hay órdenes de compra en tránsito para recibir.")
 
     def ver_estado(self):
         print("\n" + "="*60)
@@ -204,6 +263,31 @@ class SistemaGestion:
         except ValueError:
             print("ERROR: Debe ingresar un número entero válido.")
 
+    def ver_historial_produccion(self):            
+            print("\n" + "="*70)
+            print("              HISTORIAL DE PRODUCCIÓN TERMINADA")
+            print("="*70)
+            
+            nombre_archivo = "historial_solicitudes.csv"
+            if not os.path.isfile(nombre_archivo):
+                print("Todavía no hay un historial. Finalizá alguna solicitud primero.")
+                return
+            try:
+                with open(nombre_archivo, mode='r', encoding='utf-8') as archivo:
+                    lector = csv.reader(archivo)
+                    encabezados = next(lector) # primera fila (títulos)
+                    # los títulos los pongo con un formato espaciado para que parezca una tabla
+                    print(f"{encabezados[0]:<15} | {encabezados[1]:<20} | {encabezados[2]:<8} | {encabezados[5]:<15}")
+                    print("-" * 70)
+                    filas = 0
+                    for fila in lector:
+                        # Fila 0=ID, Fila 1=Producto, Fila 2=Cantidad, Fila 5=Tiempo
+                        print(f"#{fila[0]:<14} | {fila[1]:<20} | {fila[2]:<8} | {fila[5]:<15} hs")
+                        filas += 1
+                    print("-" * 70)
+                    print(f"Total de registros históricos: {filas}")
+            except Exception as e:
+                print(f"-> [ERROR] No se pudo leer el archivo: {e}")
 
     def generar_reporte_criticos(self):
         print("\n--- REPORTE DE MATERIALES CRÍTICOS ---")
@@ -227,15 +311,15 @@ class SistemaGestion:
             print("ERROR: Ingrese números enteros válidos.")
 
     def emitir_reporte_y_sobrecarga(self):
-        lista_maquinas = list(self.unidades.values())
-        self.empresa.generar_reporte_estado_planta(lista_maquinas)
+        lista_unidades = list(self.unidades.values())
+        self.empresa.generar_reporte_estado_planta(lista_unidades)
         
         print("\n¿Desea calcular la sobrecarga para un pedido específico?")
         if input("Ingrese 'S' para calcular o 'N' para salir: ").strip().upper() == 'S':
             if not self.unidades or not self.productos:
                 return print("Faltan datos base para el cálculo.")
             
-            print("\nMáquinas Disponibles:")
+            print("\nUnidades de Trabajo Disponibles:")
             for id_u, unidad in self.unidades.items():
                 print(f"  - ID: {id_u} | {unidad.get_nombre()}")
                 
@@ -244,13 +328,13 @@ class SistemaGestion:
                 print(f"  - ID: {id_p} | {producto.get_nombre()}") 
                 
             try:
-                id_u = int(input("\nIngrese el ID de la Máquina: "))
+                id_u = int(input("\nIngrese el ID de la Unidad de Trabajo: "))
                 id_p = int(input("Ingrese el ID del Producto: "))
                 
                 if id_u in self.unidades and id_p in self.productos:
                     cant = int(input("Cantidad a fabricar: "))
                     if cant > 0:
-                        self.empresa.calcular_sobrecarga_maquina(self.unidades[id_u], self.productos[id_p], cant)
+                        self.empresa.calcular_sobrecarga_unidad_trabajo(self.unidades[id_u], self.productos[id_p], cant)
                     else:
                         print("La cantidad debe ser mayor a 0.")
                 else:
@@ -315,6 +399,8 @@ if __name__ == "__main__":
             elif opcion == "11": sistema.dar_baja_colaborador()
             elif opcion == "12": sistema.generar_reporte_criticos()
             elif opcion == "13": sistema.emitir_reporte_y_sobrecarga()
+            elif opcion == "14": sistema.recibir_compras_pendientes()
+            elif opcion == "15": sistema.ver_historial_produccion()
             elif opcion == "0":
                 print("\nCerrando sistema de gestión manufacturera. Hasta luego.")
                 break

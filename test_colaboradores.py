@@ -4,7 +4,7 @@ from colaboradores import Colaborador
 @pytest.fixture
 def operario_soldador():
     #fixture que prepara un colaborador con 10 horas libres
-    return Colaborador(701, ["Soldadura", "Corte"], 10.0, 3000.0)
+    return Colaborador(["Soldadura", "Corte"], 10.0, 3000.0)
 
 def test_verificar_habilidades(operario_soldador):
 # veo que detecte correctamente lo que sabe hacer
@@ -30,3 +30,8 @@ def test_asignar_tarea_sin_tiempo(operario_soldador):
     # trato de asignar 11 horas cuando solo tiene 10
     exito = operario_soldador.asignar_tarea("Soldadura", 11.0)
     assert exito is False
+    
+def test_colaborador_id_autoincremental():
+    c1 = Colaborador(["Pintura"], 40.0, 1000.0)
+    c2 = Colaborador(["Ensamblaje"], 40.0, 1200.0)
+    assert c1.get_id() < c2.get_id()

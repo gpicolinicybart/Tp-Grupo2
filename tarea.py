@@ -18,7 +18,6 @@ class Tarea:
     def __str__(self):
         return f"Tarea: '{self._descripcion}' | Requiere: {self._habilidad_requerida} | Tiempo: {self._tiempo_por_unidad}hs/unidad | Colab. Req: {self._cant_colaboradores_req} | Unidad: {self._unidad_requerida.get_id()} | Costo Mano Obra/hr: ${self._costo_mano_obra_hora}"
     
-    # --- GETTERS ORIGINALES Y FALTANTES ---
     def get_descripcion(self) -> str:
         return self._descripcion
         
@@ -39,7 +38,7 @@ class Tarea:
         costo_personal = self._costo_mano_obra_hora * self._cant_colaboradores_req * self._tiempo_por_unidad
         return costo_maquina + costo_personal
 
-    # --- NUEVOS MÉTODOS: DELEGACIÓN Y ALTA ORDEN ---
+
     def calcular_horas_totales(self, cantidad_pedida: float) -> float:
         """Calcula el tiempo total necesario multiplicando por la cantidad pedida"""
         return float(self._tiempo_por_unidad) * float(cantidad_pedida)
