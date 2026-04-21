@@ -12,7 +12,10 @@ from datetime import datetime
 import csv
 import os
 
-# como la empresa confia en lo que colaboradores y insumo basico le devuelven al preguntar por su tipo de reabastecimiento, no es necesario importar la clase de cada uno, con importar el padre (Elemento) alcanza para que la empresa pueda preguntar por el tipo de reabastecimiento sin necesidad de saber si es un insumo o un articulo fabricado. Esto es polimorfismo puro.
+# como la empresa confia en lo que colaboradores y insumo basico le devuelven al preguntar por 
+# su tipo de reabastecimiento, no es necesario importar la clase de cada uno, con importar el padre (Elemento)
+# alcanza para que la empresa pueda preguntar por el tipo de reabastecimiento sin necesidad de saber si es un 
+# insumo o un articulo fabricado.
 class Empresa:
     def __init__(self, inventario: Inventario):
         self._inventario = inventario
@@ -39,31 +42,31 @@ class Empresa:
         for solicitud in list(self._solicitudes.values()): 
             estado = solicitud.get_estado()
             if estado == "Creada" or estado.startswith("Demorada"):
-                self._procesar_solicitud_individual(solicitud)
+                self.procesar_solicitud_individual(solicitud)
 
-    def _procesar_solicitud_individual(self, solicitud):
+    def procesar_solicitud_individual(self, solicitud):
         producto = solicitud.get_item_solicitado()
         cantidad_pedida = int(solicitud.get_cantidad()) 
         print(f"\nProcesando Solicitud {solicitud.get_id()} -> Fabricar: {cantidad_pedida}x '{producto.get_nombre()}'")
         
         # 1: EXPLOSIÓN DE MATERIALES
-        materiales_necesarios = self._explotar_bom(producto, cantidad_pedida)
+        materiales_necesarios = self.explotar_bom(producto, cantidad_pedida)
         
         # 2: VERIFICAR STOCK (Si falta stock, frena y retorna)
-        if not self._gestionar_stock(solicitud, materiales_necesarios):
+        if not self.gestionar_stock(solicitud, materiales_necesarios):
             return 
 
         # 3: VERIFICAR CAPACIDAD (Delegación a Tarea)
-        exito_capacidad, asignaciones_pendientes = self._gestionar_capacidad(producto, cantidad_pedida)
+        exito_capacidad, asignaciones_pendientes = self.gestionar_capacidad(producto, cantidad_pedida)
         if not exito_capacidad:
             solicitud.set_estado("Demorada por falta de capacidad")
             print(f" -> Solicitud {solicitud.get_id()} DEMORADA (Falta Capacidad).")
             return
 
         # 4: CONFIRMACIÓN Y RESERVA
-        self._confirmar_reservas(solicitud, materiales_necesarios, asignaciones_pendientes)
+        self.confirmar_reservas(solicitud, materiales_necesarios, asignaciones_pendientes)
 
-    def _explotar_bom(self, producto, cantidad_pedida) -> dict:
+    def explotar_bom(self, producto, cantidad_pedida) -> dict:
         materiales_necesarios = {}
         for bom in producto.get_bom():
             for componente, cant_unitaria in bom.get_diccionario().items():
@@ -71,7 +74,7 @@ class Empresa:
                 materiales_necesarios[componente] = materiales_necesarios.get(componente, 0) + total_necesario
         return materiales_necesarios
 
-    def _gestionar_stock(self, solicitud, materiales_necesarios) -> bool:
+    def gestionar_stock(self, solicitud, materiales_necesarios) -> bool:
         # filtrar faltantes
         materiales_faltantes = list(filter(lambda item: not self._inventario.hay_disponibilidad(item[0], item[1]), materiales_necesarios.items()))
         
@@ -93,7 +96,7 @@ class Empresa:
         print(f" -> Solicitud {solicitud.get_id()} DEMORADA (Falta Stock).")
         return False
 
-    def _gestionar_capacidad(self, producto, cantidad_pedida) -> tuple:
+    def gestionar_capacidad(self, producto, cantidad_pedida) -> tuple:
         asignaciones_pendientes = [] 
         lista_tareas = producto.get_lista_tareas()
 
@@ -118,7 +121,7 @@ class Empresa:
             asignaciones_pendientes.append((tarea, horas_totales, colabs_encontrados))
         return True, asignaciones_pendientes
 
-    def _confirmar_reservas(self, solicitud, materiales_necesarios, asignaciones_pendientes):
+    def confirmar_reservas(self, solicitud, materiales_necesarios, asignaciones_pendientes):
             print(" -> Stock y Capacidad OK. Confirmando reservas...")
             for componente, cant_necesaria in materiales_necesarios.items():
                 self._inventario.reservar_stock(componente, cant_necesaria)
@@ -147,7 +150,7 @@ class Empresa:
                     producto = solicitud.get_item_solicitado()
                     cantidad_pedida = solicitud.get_cantidad()
 
-                    materiales_necesarios = self._explotar_bom(producto, cantidad_pedida)
+                    materiales_necesarios = self.explotar_bom(producto, cantidad_pedida)
                     
                     for componente, cant_necesaria in materiales_necesarios.items():
                         self._inventario.descontar_stock(componente, cant_necesaria)
@@ -190,14 +193,14 @@ class Empresa:
 
         
         if contador_finalizadas > 0:
-            self._guardar_historial_csv(solicitudes_a_archivar) #archivo las solicitudes que voy a borrar
+            self.guardar_historial_csv(solicitudes_a_archivar) #archivo las solicitudes que voy a borrar
             self._solicitudes = dict(filter(lambda item: item[1].get_estado() != "Terminada", self._solicitudes.items()))
             print(f"-> SISTEMA: Limpieza de memoria. {contador_finalizadas} solicitudes históricas archivadas/borradas.")
         else:
             print("-> AVISO: No hay solicitudes en producción para finalizar.")
 
 
-    def _guardar_historial_csv(self, solicitudes_terminadas: list): #agarra la lista de solicitudes terminadas y las appendea al historial CSV
+    def guardar_historial_csv(self, solicitudes_terminadas: list): #agarra la lista de solicitudes terminadas y las appendea al historial CSV
         nombre_archivo = "historial_solicitudes.csv"
         # veo si el archivo ya existe para sobreescribirle
         archivo_existe = os.path.isfile(nombre_archivo) # Devuelve True si el archivo existe en el disco, False si no existe
@@ -239,13 +242,7 @@ class Empresa:
                 
             return len(pendientes)  
         
-        
-    # ==========================================
-    # REPORTES Y OTROS MÉTODOS
-    # ==========================================
-
-
-
+#==============================================================================================================
     #consigna de implementacion 
 
     def generar_reporte_materiales_criticos(self, producto, cantidad_pedida: int):

@@ -25,6 +25,7 @@ class SolicitudDeFabricacion:
         return self._cantidad
     def set_estado(self, nuevo_estado: str):
         self._estado = nuevo_estado
+    
     def agregar_colaborador(self, id_colaborador: int):
         if id_colaborador not in self._colaboradores_asignados:
             self._colaboradores_asignados.append(id_colaborador)
