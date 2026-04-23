@@ -23,8 +23,7 @@ class Empresa:
         self._unidades = []
         self._colaboradores = {}
         self._compras_pendientes = []
-        self._contador_id_compras = 1000
-        self._contador_id_solicitudes_hijas = 5000
+
         
     def registrar_compra(self, orden: Compra_Insumo):
         self._compras_pendientes.append(orden)
