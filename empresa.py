@@ -50,7 +50,7 @@ class Empresa:
         print(f"\nProcesando Solicitud {solicitud.get_id()} -> Fabricar: {cantidad_pedida}x '{producto.get_nombre()}'")
         
         # 1: EXPLOSIÓN DE MATERIALES
-        materiales_necesarios = self.explotar_bom(producto, cantidad_pedida)
+        materiales_necesarios =self.explotar_bom(producto, cantidad_pedida)
         
         # 2: VERIFICAR STOCK (Si falta stock, frena y retorna)
         if not self.gestionar_stock(solicitud, materiales_necesarios):
@@ -65,6 +65,7 @@ class Empresa:
 
         # 4: CONFIRMACIÓN Y RESERVA
         self.confirmar_reservas(solicitud, materiales_necesarios, asignaciones_pendientes)
+
 
     def explotar_bom(self, producto, cantidad_pedida) -> dict:
         materiales_necesarios = {}
@@ -260,7 +261,7 @@ class Empresa:
                         porcentaje = (stock / cant_nec) * 100  # se puede calcular directo xq cant_nec siempre es > 0
                         cobertura = f"{porcentaje:.1f}%"
                         writer.writerow([insumo.get_id(), insumo.get_nombre(), cant_nec, stock, cobertura])
-            print(f"-> [CSV OK] Reporte de críticos generado en: '{nombre_archivo}'.")
+            print(f"-> Reporte de críticos generado en: '{nombre_archivo}'.")
                 
         except IOError as e:
             print(f"-> [ERROR] Falló la escritura del archivo: {e}")
@@ -318,61 +319,6 @@ class Empresa:
             print(f">>> ALERTA: Sobrecarga detectada. La unidad colapsará por un exceso de {sobrecarga:.2f} hs.")
         else:
             print(">>> OK: La unidad tiene capacidad suficiente para absorber este pedido.")
-
-
-    #codigo de detectar cuello de botella que estaba antes (lo dejo por las dudas por ahora despues veanlo y decidan si lo dejamos o no)
-    #yo trate de combinarlo con lo nuevo  de arriba pero por las dudas no lo borre, lo dejo comentado 
-
-    '''def detectar_cuello_botella(self):
-        print("\n" + "="*45)
-        print("   REPORTE DE ESTADO DE PLANTA Y CUELLOS")
-        print("="*45)
-        
-        if not self._unidades:
-            print("No hay unidades de trabajo registradas para analizar.")
-        else:
-            unidad_critica = None
-            max_porcentaje = -1.0
-
-            for unidad in self._unidades:
-                try:
-                    porcentaje = unidad.get_porcentaje_uso() 
-                    print(f"Unidad #{unidad.get_id()}: {porcentaje:.1f}% de ocupación.")
-
-                    if porcentaje > max_porcentaje:
-                        max_porcentaje = porcentaje
-                        unidad_critica = unidad
-                except AttributeError:
-                    print(f"Unidad #{unidad.get_id()}: (Falta método get_porcentaje_uso)")
-
-            if unidad_critica and max_porcentaje > 0:
-                print(f"\n>>> ALERTA CAPACIDAD MÁQUINA: Unidad #{unidad_critica.get_id()} al {max_porcentaje:.1f}%")
-            else:
-                print("\nLa planta se encuentra sin carga de trabajo en las máquinas.")
-
-        print("\n--- DIAGNÓSTICO DE DEMORAS GLOBALES ---")
-        demoras_stock = 0
-        demoras_capacidad = 0
-        
-        for solicitud in self._solicitudes.values():
-            estado = solicitud.get_estado()
-            if estado == "Demorada por falta de stock":
-                demoras_stock += 1
-            elif estado == "Demorada por falta de capacidad":
-                demoras_capacidad += 1
-                
-        print(f"  - Solicitudes frenadas por STOCK: {demoras_stock}")
-        print(f"  - Solicitudes frenadas por CAPACIDAD: {demoras_capacidad}")
-        
-        if demoras_stock > demoras_capacidad and demoras_stock > 0:
-            print("\n>>> CONCLUSIÓN: El cuello de botella principal es la GESTIÓN DE COMPRAS/STOCK.")
-        elif demoras_capacidad > demoras_stock and demoras_capacidad > 0:
-            print("\n>>> CONCLUSIÓN: El cuello de botella principal es la CAPACIDAD OPERATIVA (Invertir en máquinas/personal).")
-        elif demoras_stock == demoras_capacidad and demoras_stock > 0:
-            print("\n>>> CONCLUSIÓN: Hay demoras críticas tanto en stock como en capacidad operativa.")
-        else:
-            print("\n>>> CONCLUSIÓN: Flujo perfecto. No hay demoras detectadas.")
-        print("="*45 + "\n")'''
 
     def mostrar_solicitudes(self):
         print("\n--- RESUMEN DE SOLICITUDES ---")

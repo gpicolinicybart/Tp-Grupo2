@@ -66,7 +66,7 @@ class ArticuloFabricadoInternamente(Elemento):
                 # la cantidad total necesaria de ese componente. Esto se hace de forma recursiva hasta llegar a los insumos básicos.
                 componente.acumular_necesidades(cant_total, necesidades)
             
-    def calcular_materiales_necesarios(self, cantidad_pedida: int, necesidades: dict = None) -> dict:
+    def calcular_materiales_necesarios(self, cantidad_pedida: int) -> dict:
         necesidades = {}
         #arranca la reaccion en cadena
         self.acumular_necesidades(cantidad_pedida, necesidades)
