@@ -52,3 +52,46 @@ def test_calcular_materiales_necesarios_recursivo():
     # y verificamos que la pata no esté en la lista final, para ver si se explotó el componente
     assert pata not in necesidades
     #conviene separarlos xq si falla alguno es mas facil identificar donde esta el problema
+
+def test_calcular_horas_en_unidad_funcional():
+    unidad_corte = MagicMock()
+    unidad_corte.get_id.return_value = 1
+    
+    unidad_pintura = MagicMock()
+    unidad_pintura.get_id.return_value = 2
+
+    tarea_corte_1 = MagicMock()
+    tarea_corte_1.get_unidad_requerida.return_value = unidad_corte
+    tarea_corte_1.get_tiempo_por_unidad.return_value = 2.0  
+
+    tarea_corte_2 = MagicMock()
+    tarea_corte_2.get_unidad_requerida.return_value = unidad_corte
+    tarea_corte_2.get_tiempo_por_unidad.return_value = 1.5  
+
+    # esta es la tramposa que deberia ignorar el sistema porque no es de la unidad de corte, sino de pintura
+    tarea_pintura = MagicMock()
+    tarea_pintura.get_unidad_requerida.return_value = unidad_pintura
+    tarea_pintura.get_tiempo_por_unidad.return_value = 5.0  
+
+    # el arituclo tiene as 3 mezcladas
+    articulo = ArticuloFabricadoInternamente("Mueble", [], [tarea_corte_1, tarea_corte_2, tarea_pintura])
+
+    # quiero saber la cantidad de horass en la unidad de corte solamente 
+    horas_totales = articulo.calcular_horas_en_unidad(unidad_corte, 10)
+
+    # Verificamos que el sistema haya filtrado y sumado correctamente
+    assert horas_totales == 35.0
+
+
+def test_gestionar_reabastecimiento_crea_solicitud_hija():
+    pata = ArticuloFabricadoInternamente("Pata de Mesa", [], [])
+    empresa_mock = MagicMock()
+
+    # simulamos que faltan 50 patas para cumplir un pedido y queremos generar una solicitud de fabricación para reabastecer ese faltante
+    mensaje_alerta = pata.gestionar_reabastecimiento(empresa_mock, 50)
+    # Le preguntamos al mock exactamente cuántas veces se ejecutó su método 'crear_solicitud'
+    cantidad_llamadas = empresa_mock.crear_solicitud.call_count 
+    #verificamos que se haya llamado una vez a crear solicitud en empresa, y que el mensaje tenga los datos correctos
+    assert cantidad_llamadas == 1
+    assert "50" in mensaje_alerta
+    assert "Pata de Mesa" in mensaje_alerta
