@@ -163,21 +163,19 @@ class SistemaGestion:
             print(f"ERROR: {e}")
 
     def agregar_colaborador(self):
-        print("\n--- REGISTRO DE COLABORADOR ---")
-        try:
-        
-            habilidades = input("Habilidades (separadas por coma): ").split(",")
-            habilidades = [h.strip() for h in habilidades]
-            horas = float(input("Horas de disponibilidad: "))
-            salario = float(input("Salario por hora: $"))
-            
-            colab = Colaborador(habilidades, horas, salario)
-            id_c=colab.get_id()
-            self.empresa.agregar_colaborador(colab)
-
-            print(f"CONFIRMACIÓN: Colaborador {id_c} agregado a la nómina.")
-        except ValueError as e:
-            print(f"ERROR: {e}")
+            print("\n--- REGISTRO DE COLABORADOR ---")
+            try:
+                habilidades = input("Habilidades (separadas por coma): ").split(",")
+                habilidades = [h.strip() for h in habilidades]
+                horas = float(input("Horas de disponibilidad: "))
+                salario = float(input("Salario por hora: $"))
+                colab = Colaborador(habilidades, horas, salario)
+                id_c=colab.get_id()
+                self.colaboradores[id_c] = colab # anoto el colaborador en el diccionario del menu
+                self.empresa.agregar_colaborador(colab)
+                print(f"CONFIRMACIÓN: Colaborador {id_c} agregado a la nómina.")
+            except ValueError as e:
+                print(f"ERROR: {e}")
 
     def crear_solicitud(self):
         print("\n--- NUEVA SOLICITUD DE FABRICACIÓN ---")

@@ -171,33 +171,31 @@ class Empresa:
 
     
     def finalizar_solicitud(self):
-        
-        print("\n--- FINALIZANDO ÓRDENES EN PRODUCCIÓN ---")
-        contador_finalizadas = 0
-        solicitudes_a_archivar = []
-        
-        for id_solicitud, solicitud in list(self._solicitudes.items()):
             
-            if solicitud.get_estado() == "En Ejecución": 
-                try:
-                    producto = solicitud.get_item_solicitado()
-                    cantidad_pedida = int(solicitud.get_cantidad())
-                    
-                    self._inventario.ingresar_stock(producto, cantidad_pedida)
-                    
-                    solicitud.marcar_como_terminada()
-                    print(f"-> ÉXITO: Solicitud #{id_solicitud} terminada. {cantidad_pedida}x '{producto.get_nombre()}' sumados al stock.")
-                    contador_finalizadas += 1
-                except Exception as e:
-                    print(f"-> ERROR al finalizar Solicitud #{id_solicitud}: {e}")
-
-        
-        if contador_finalizadas > 0:
-            self.guardar_historial_csv(solicitudes_a_archivar) #archivo las solicitudes que voy a borrar
-            self._solicitudes = dict(filter(lambda item: item[1].get_estado() != "Terminada", self._solicitudes.items()))
-            print(f"-> SISTEMA: Limpieza de memoria. {contador_finalizadas} solicitudes históricas archivadas/borradas.")
-        else:
-            print("-> AVISO: No hay solicitudes en producción para finalizar.")
+            print("\n--- FINALIZANDO ÓRDENES EN PRODUCCIÓN ---")
+            contador_finalizadas = 0
+            solicitudes_a_archivar = []
+            
+            for id_solicitud, solicitud in list(self._solicitudes.items()):
+                
+                if solicitud.get_estado() == "En Ejecución": 
+                    try:
+                        producto = solicitud.get_item_solicitado()
+                        cantidad_pedida = int(solicitud.get_cantidad())
+                        self._inventario.ingresar_stock(producto, cantidad_pedida)
+                        solicitud.marcar_como_terminada()
+                        print(f"-> ÉXITO: Solicitud #{id_solicitud} terminada. {cantidad_pedida}x '{producto.get_nombre()}' sumados al stock.")
+                        solicitudes_a_archivar.append(solicitud)
+                        contador_finalizadas += 1
+                    except Exception as e:
+                        print(f"-> ERROR al finalizar Solicitud #{id_solicitud}: {e}")
+                                    
+            if contador_finalizadas > 0:
+                self.guardar_historial_csv(solicitudes_a_archivar) # archivo las solicitudes que voy a borrar
+                self._solicitudes = dict(filter(lambda item: item[1].get_estado() != "Terminada", self._solicitudes.items()))
+                print(f"-> SISTEMA: Limpieza de memoria. {contador_finalizadas} solicitudes históricas archivadas/borradas.")
+            else:
+                print("-> AVISO: No hay solicitudes en producción para finalizar.")
 
 
     def guardar_historial_csv(self, solicitudes_terminadas: list): #agarra la lista de solicitudes terminadas y las appendea al historial CSV
@@ -248,28 +246,20 @@ class Empresa:
     def generar_reporte_materiales_criticos(self, producto, cantidad_pedida: int):
         necesidades = producto.calcular_materiales_necesarios(cantidad_pedida)
         criticos = self._inventario.obtener_materiales_criticos(necesidades)
-        
-        if not criticos:
-            print(f"-> [INFO] Reporte : NO hay materiales críticos para '{producto.get_nombre()}'. El stock se encuentra en niveles aceptables.")
-            return
-            
         nombre_archivo = f"criticos_{producto.get_id()}.csv"
         try:
             with open(nombre_archivo, mode='w', newline='', encoding='utf-8') as archivo:
                 writer = csv.writer(archivo)
                 writer.writerow(["ID Insumo", "Nombre", "Cant. Necesaria", "Stock Actual", "Cobertura"])
-                
-                for insumo, cant_nec in criticos:
-                    stock = self._inventario.consultar_stock(insumo)
-                    
-                    if cant_nec > 0:
-                        porcentaje = (stock / cant_nec) * 100    #el porcentaje es el porcentaje de la cantidad necesaria que nuestro stock actual cubre
+                if not criticos:
+    #si no hay críticos, solo avisamos por consola (la consigna pide q se cree igual el archivo)
+                    print(f"-> [INFO] Reporte: NO hay materiales críticos para '{producto.get_nombre()}'. Stock en niveles aceptables.")
+                else:
+                    for insumo, cant_nec in criticos:
+                        stock = self._inventario.consultar_stock(insumo)
+                        porcentaje = (stock / cant_nec) * 100  # se puede calcular directo xq cant_nec siempre es > 0
                         cobertura = f"{porcentaje:.1f}%"
-                    else:
-                        cobertura = "0%"
-                        
-                    writer.writerow([insumo.get_id(), insumo.get_nombre(), cant_nec, stock, cobertura])
-                    
+                        writer.writerow([insumo.get_id(), insumo.get_nombre(), cant_nec, stock, cobertura])
             print(f"-> [CSV OK] Reporte de críticos generado en: '{nombre_archivo}'.")
                 
         except IOError as e:
