@@ -27,4 +27,6 @@ class Elemento:
         
     def gestionar_reabastecimiento(self) -> str:
         pass
- 
+        
+    def validar_ciclos(self, camino_actual=None) -> bool:
+        pass

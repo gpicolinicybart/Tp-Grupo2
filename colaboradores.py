@@ -6,7 +6,7 @@ class Colaborador:
         Colaborador.id_colaborador += 1
         self._id = Colaborador.id_colaborador
         self._habilidades = habilidades
-        self._horas_disponibles = horas_disponibles
+        self._horas_disponibles = self.validar_horas_disponibles(horas_disponibles)
         self._horas_asignadas = 0.0 
         self._salario_hora = self.validar_salario(salario_hora)
         self._fecha_alta=datetime.now()
@@ -18,6 +18,12 @@ class Colaborador:
             raise ValueError("Error: El salario por hora debe ser mayor a cero.")
         return salario 
     
+    @staticmethod
+    def validar_horas_disponibles(horas: float) -> float:
+        if horas < 0:
+            raise ValueError("Error: Las horas disponibles no pueden ser negativas.")
+        return horas
+    
     def __str__(self):
         alta_str = self._fecha_alta.strftime("%d/%m/%Y")
         
@@ -25,12 +31,13 @@ class Colaborador:
             baja_str = self._fecha_baja.strftime("%d/%m/%Y")
             estado = f"BAJA ({baja_str})"
         else:
-            estado = "ACTIVO"
+            estado = f"ACTIVO desde {alta_str}"
             
         horas_libres = self._horas_disponibles - self._horas_asignadas
         habilidades_str = ", ".join(self._habilidades) 
         
-        return f"Colaborador #{self._id} [{estado} desde {alta_str}] | Disp: {horas_libres}hs | Habilidades: [{habilidades_str}]"
+        return f"Colaborador #{self._id} [{estado}] | Disp: {horas_libres}hs | Habilidades: [{habilidades_str}]"
+    
     def get_fecha_baja(self):
         return self._fecha_baja
     

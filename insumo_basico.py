@@ -32,3 +32,7 @@ class InsumoBasico(Elemento):
     def acumular_necesidades(self, cantidad: int, necesidades: dict):
         #insumo basico solo suma su cantidad al diccionario de necesidades, no baja más niveles porque no tiene componentes
         necesidades[self] = necesidades.get(self, 0) + cantidad
+
+    def validar_ciclos(self, camino_actual=None) -> bool:
+        # es el ultimo eslabon asi que no va a generar ciclos, siempre retorna True
+        return True
