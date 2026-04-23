@@ -280,7 +280,8 @@ class Empresa:
         print("\n[1] ESTADO DE UNIDADES DE TRABAJO:")
         if not lista_unidades:
             print("  No hay unidades registradas.")
-        else:
+        else: # para encontrar la maquina más saturada de la planta uso max() y lambda como clave (key)
+            # busco el objeto mas grande de la lista ejecutando get_porcentaje_uso()
             unidad_critica = max(lista_unidades, key=lambda x: x.get_porcentaje_uso())
             for x in lista_unidades:
                 print(f"  - Unidad #{x.get_id()} ({x.get_nombre()}): {x.get_porcentaje_uso():.1f}% de ocupación.")
@@ -290,7 +291,8 @@ class Empresa:
 
        
         print("\n[2] ANÁLISIS DE DEMORAS (CUELLOS DE BOTELLA):")
-        
+        #ponemos en listas las solicitudes que estan demoradas por cada tipo de cuello de botella
+        # y contamos cuantas hay de c/u
         d_stock = len(list(filter(lambda t: t.get_estado() == "Demorada por falta de stock", self._solicitudes.values())))
         d_capacidad = len(list(filter(lambda t: t.get_estado() == "Demorada por falta de capacidad", self._solicitudes.values())))
         d_personal = len(list(filter(lambda t: t.get_estado() == "Demorada por falta de colaboradores", self._solicitudes.values())))
