@@ -39,6 +39,7 @@ class SistemaGestion:
         print("13. Generar Reporte de Planta y Cuellos de Botella")
         print("14. Recibir Órdenes de Compra (Ingresar Stock de Insumos)")
         print("15. Ver Historial de Producción (Auditoría)")
+        print("16. Generar Orden de Compra Manual para Insumo")
         print("0. Salir")
         print("="*60)
 
@@ -340,41 +341,80 @@ class SistemaGestion:
             except ValueError:
                 print("Error: Ingrese números enteros válidos.")
 
+    def comprar_insumos_manual(self):
+        print("\n=== GENERADOR DE ÓRDENES DE COMPRA MANUAL ===")
+        if not self.insumos:
+            return print("ERROR: No hay insumos registrados en el sistema.")
+
+        print("\nCatálogo de Insumos Básicos y Stock Disponible:")
+        for id_ins, ins in self.insumos.items():
+            stock_actual = self.empresa._inventario.obtener_stock_disponible(ins)
+            print(f"  - ID: {id_ins} | {ins.get_nombre()} | Stock: {stock_actual} unid.")
+
+        try:
+            id_insumo = int(input("\nIngrese el ID del Insumo a reponer: "))
+            
+            if id_insumo in self.insumos:
+                cantidad = int(input("Ingrese la cantidad que desea comprar: "))
+                if cantidad > 0:
+                    insumo_seleccionado = self.insumos[id_insumo]
+                    
+                    insumo_seleccionado.gestionar_reabastecimiento(self.empresa, cantidad)
+                    
+                    print("\n-> AVISO: El pedido se encuentra en tránsito.")
+                    print("-> Recuerde usar la Opción 14 cuando el camión llegue a la fábrica para ingresar el stock físico.")
+                else:
+                    print("ERROR: La cantidad a comprar debe ser mayor a 0.")
+            else:
+                print("ERROR: El ID ingresado no corresponde a ningún insumo básico de la lista.")
+        except ValueError:
+            print("ERROR: Por favor ingrese números enteros válidos.")
+
     def cargar_demo(self):
-        print("\n--- CARGANDO ESCENARIO DEMO E INDUSTRIAL ---")
+        print("\n--- CARGANDO DEMO INDUSTRIAL ---")
         
-        # 1. Insumos
-        acero = InsumoBasico("Plancha de Acero", 500.0)
-        tornillos = InsumoBasico("Tornillo 10mm", 5.0)
+        # 1.  insumos basicos
+        madera = InsumoBasico("Tablón de Madera", 5000.0)
+        tornillos = InsumoBasico("Tornillos 10mm", 5.0)
 
-        self.insumos[acero.get_id()] = acero
-        self.insumos[tornillos.get_id()] = tornillos
+        for insumo in [madera, tornillos]:
+            self.insumos[insumo.get_id()] = insumo
+            self.empresa.registrar_producto_nuevo(insumo)
+            self.empresa._inventario.ingresar_stock(insumo, 1000)
+        
+        # 2. unidades de trabajo y personal
+        ensambladora = UnidadDeTrabajo("Mesa de Ensamblaje", 80.0, 500.0)
+        self.unidades[ensambladora.get_id()] = ensambladora
+        self.empresa.agregar_unidad_trabajo(ensambladora)
+        
+        carpintero = Colaborador(["Armado"], 40.0, 2500.0)
+        self.colaboradores[carpintero.get_id()] = carpintero
+        self.empresa.agregar_colaborador(carpintero)
 
-        self.empresa.registrar_producto_nuevo(acero)
-        self.empresa.registrar_producto_nuevo(tornillos)
+        #mostramos la recursividad de manera simple: el producto final requiere un sub-ensamble 
+        # que a su vez requiere insumos básicos. El sistema va a poder calcular automáticamente 
+        # los materiales necesarios para fabricar la mesa completa, multiplicando por 4 las patas
+        #  y sumando los materiales de cada una. Además, al generar el reporte de materiales críticos,
+        #  va a detectar si falta stock de alguno de los componentes, incluso si es un sub-ensamble.
+
+        tarea_pata = Tarea("Armado de Pata", ensambladora, 1, 0.5, "Armado", 1000.0)
+        bom_pata = ItemBOM("Receta Pata", {madera: 1, tornillos: 4})
         
-        # 2. Carga inicial de Stock
-        self.empresa._inventario.ingresar_stock(acero, 50)
-        self.empresa._inventario.ingresar_stock(tornillos, 200)
+        #sub-ensamble simple
+        pata = ArticuloFabricadoInternamente("Pata de Mesa", [bom_pata], [tarea_pata])
+        self.productos[pata.get_id()] = pata
+        self.empresa.registrar_producto_nuevo(pata)
+
+        #producto final que requiere el sub-ensamble
+        tarea_mesa = Tarea("Ensamblaje Final Mesa", ensambladora, 1, 1.5, "Armado", 2500.0)
+        bom_mesa = ItemBOM("Receta Mesa", {madera: 1, pata: 4})  
         
-        # 3. Unidad y Colaborador
-        prensa = UnidadDeTrabajo("Prensa Hidráulica", 40.0, 1500.0)
-        self.unidades[prensa.get_id()] = prensa
-        self.empresa.agregar_unidad_trabajo(prensa)
-        
-        operario = Colaborador(["Soldadura", "Montaje"], 40.0, 1200.0)
-        self.colaboradores[operario.get_id()] = operario
-        self.empresa.agregar_colaborador(operario)
-        
-        # 4. Tarea y Producto
-        tarea = Tarea("Ensamblaje Estructural", prensa, 1, 2.5, "Montaje", 1000.0)
-        bom = ItemBOM("BOM Mesa", {acero: 1, tornillos: 4})
-        mesa = ArticuloFabricadoInternamente("Mesa Industrial", [bom], [tarea])
-        
+        mesa = ArticuloFabricadoInternamente("Mesa Completa", [bom_mesa], [tarea_mesa])
         self.productos[mesa.get_id()] = mesa
         self.empresa.registrar_producto_nuevo(mesa)
         
-        print("CONFIRMACIÓN: Escenario demo cargado exitosamente.")
+        print("\n-> [ÉXITO] Demo cargada con éxito.")
+
 
 if __name__ == "__main__":
     try:
@@ -399,6 +439,7 @@ if __name__ == "__main__":
             elif opcion == "13": sistema.emitir_reporte_y_sobrecarga()
             elif opcion == "14": sistema.recibir_compras_pendientes()
             elif opcion == "15": sistema.ver_historial_produccion()
+            elif opcion == "16": sistema.comprar_insumos_manual()
             elif opcion == "0":
                 print("\nCerrando sistema de gestión manufacturera. Hasta luego.")
                 break

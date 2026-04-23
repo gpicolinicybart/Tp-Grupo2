@@ -56,21 +56,20 @@ class ArticuloFabricadoInternamente(Elemento):
     def get_lista_tareas(self):
         return self._lista_tareas
         
-    def calcular_materiales_necesarios(self, cantidad_pedida: int, necesidades: dict = None) -> dict:
-        #Explota el BOM de forma recursiva hasta llegar a los insumos básicos.
-        #Si un componente es otro ArticuloFabricadoInternamente, baja un nivel más.
-        #Si es un InsumoBasico, lo suma al diccionario de necesidades
-        if necesidades is None:
-            necesidades = {}
+    def acumular_necesidades(self, cantidad: int, necesidades: dict):
+        #articulo fabricado acumula sus necesidades multiplicando la cantidad pedida por la cantidad unitaria de cada componente en su bom.
         for bom in self.get_bom():
             for componente, cant_unitaria in bom.get_diccionario().items():
-                cant_total = cant_unitaria * cantidad_pedida
-                if isinstance(componente, ArticuloFabricadoInternamente):
-                    # Baja un nivel: explota el sub-artículo y acumula en el mismo diccionario
-                    componente.calcular_materiales_necesarios(cant_total, necesidades)
-                else:
-                    # Caso base: es un InsumoBasico, lo acumulo para el reporte
-                    necesidades[componente] = necesidades.get(componente, 0) + cant_total
+                cant_total = cant_unitaria * cantidad
+                
+                # Si es Insumo se suma, si es Artículo vuelve a bajar un nivel y acumula sus componentes multiplicados por 
+                # la cantidad total necesaria de ese componente. Esto se hace de forma recursiva hasta llegar a los insumos básicos.
+                componente.acumular_necesidades(cant_total, necesidades)
+            
+    def calcular_materiales_necesarios(self, cantidad_pedida: int, necesidades: dict = None) -> dict:
+        necesidades = {}
+        #arranca la reaccion en cadena
+        self.acumular_necesidades(cantidad_pedida, necesidades)
         return necesidades
 
     def calcular_horas_en_unidad(self, unidad, cantidad: int) -> float:
