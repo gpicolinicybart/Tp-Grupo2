@@ -36,13 +36,18 @@ class Empresa:
         self._solicitudes[solicitud.get_id()] = solicitud
         print(f"EMPRESA: Se registró una nueva solicitud de fabricación (ID:{solicitud.get_id()})")
 
-
     def procesar_solicitud(self):
         print("\n--- PROCESANDO PLANIFICACIÓN DE PRODUCCIÓN ---")
-        for solicitud in list(self._solicitudes.values()): 
-            estado = solicitud.get_estado()
-            if estado == "Creada" or estado.startswith("Demorada"):
-                self.procesar_solicitud_individual(solicitud)
+        elegibles = [s for s in self._solicitudes.values() 
+                 if s.get_estado() == "Creada" or s.get_estado().startswith("Demorada")]
+    
+        if not elegibles:
+            print("-> AVISO: No hay solicitudes para procesar. Creá una con la opción 5 o esperá a que lleguen insumos (opción 14) si hay demoradas.")
+            return
+    
+        for solicitud in elegibles:
+            self.procesar_solicitud_individual(solicitud)
+
 
     def procesar_solicitud_individual(self, solicitud):
         producto = solicitud.get_item_solicitado()

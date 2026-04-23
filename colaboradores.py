@@ -31,6 +31,8 @@ class Colaborador:
         habilidades_str = ", ".join(self._habilidades) 
         
         return f"Colaborador #{self._id} [{estado} desde {alta_str}] | Disp: {horas_libres}hs | Habilidades: [{habilidades_str}]"
+    def get_fecha_baja(self):
+        return self._fecha_baja
     
     def get_id(self) -> int:
         return self._id

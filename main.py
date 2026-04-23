@@ -248,7 +248,18 @@ class SistemaGestion:
         if not self.colaboradores:
             print("No hay colaboradores registrados.")
             return
-            
+        
+        print("\nColaboradores Activos:")
+        hay_activos = False
+        for id_col, colab in self.colaboradores.items():
+            if colab.get_fecha_baja() is None:
+                print(f"  ID {id_col}: {colab}")
+                hay_activos = True
+
+        if not hay_activos:
+            print("No hay colaboradores activos en este momento.")
+            return
+
         try:
             id_baja = int(input("Ingrese el ID del colaborador a dar de baja: "))
             if id_baja in self.colaboradores:
