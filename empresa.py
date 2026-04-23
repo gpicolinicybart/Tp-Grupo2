@@ -8,7 +8,6 @@ from solicitud_fabricacion import SolicitudDeFabricacion
 from unidad_de_trabajo import UnidadDeTrabajo
 from elemento import Elemento
 from articulo_fabricado import ArticuloFabricadoInternamente
-from datetime import datetime
 import csv
 import os
 

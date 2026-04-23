@@ -50,10 +50,10 @@ class Colaborador:
             print("Error: El salario debe ser mayor a cero.")
 
     def tiene_habilidad(self, habilidad: str) -> bool:
-        if habilidad in self._habilidades:
-            return True
-        else:
-            return False
+        habilidad_buscada = habilidad.strip().lower()
+        habilidades_empleado=[hab.strip().lower() for hab in self._habilidades]
+        
+        return habilidad_buscada in habilidades_empleado
         
     def verificar_disponibilidad(self, horas_necesarias: float) -> bool:
         horas_libres=self._horas_disponibles-self._horas_asignadas

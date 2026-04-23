@@ -19,7 +19,7 @@ class Compra_Insumo:
             estado = f"RECIBIDA el {rec_str}"
         else:
             estado = "EN TRÁNSITO"
-        return f"Orden de Compra #{self._id} -> {self._cantidad}x {self._insumo.get_nombre()} ({estado})"    
+        return f"Orden de Compra #{self._id} -> {self._cantidad}x {self._insumo.get_nombre()} ({estado} | Emitida: {emision_str})"    
     
     def get_id(self) -> int:
         return self._id
