@@ -178,23 +178,23 @@ class Empresa:
     
     def finalizar_solicitud(self):
             
-            print("\n--- FINALIZANDO ÓRDENES EN PRODUCCIÓN ---")
-            contador_finalizadas = 0
-            solicitudes_a_archivar = []
+        print("\n--- FINALIZANDO ÓRDENES EN PRODUCCIÓN ---")
+        contador_finalizadas = 0
+        solicitudes_a_archivar = []
             
-            for id_solicitud, solicitud in list(self._solicitudes.items()):
+        for id_solicitud, solicitud in list(self._solicitudes.items()):
                 
-                if solicitud.get_estado() == "En Ejecución": 
-                    try:
-                        producto = solicitud.get_item_solicitado()
-                        cantidad_pedida = int(solicitud.get_cantidad())
-                        self._inventario.ingresar_stock(producto, cantidad_pedida)
-                        solicitud.marcar_como_terminada()
-                        print(f"-> ÉXITO: Solicitud #{id_solicitud} terminada. {cantidad_pedida}x '{producto.get_nombre()}' sumados al stock.")
-                        solicitudes_a_archivar.append(solicitud)
-                        contador_finalizadas += 1
-                    except Exception as e:
-                        print(f"-> ERROR al finalizar Solicitud #{id_solicitud}: {e}")
+            if solicitud.get_estado() == "En Ejecución": 
+                try:
+                    producto = solicitud.get_item_solicitado()
+                    cantidad_pedida = int(solicitud.get_cantidad())
+                    self._inventario.ingresar_stock(producto, cantidad_pedida)
+                    solicitud.marcar_como_terminada()
+                    print(f"-> ÉXITO: Solicitud #{id_solicitud} terminada. {cantidad_pedida}x '{producto.get_nombre()}' sumados al stock.")
+                    solicitudes_a_archivar.append(solicitud)
+                    contador_finalizadas += 1
+                except Exception as e:
+                    print(f"-> ERROR al finalizar Solicitud #{id_solicitud}: {e}")
                                     
             if contador_finalizadas > 0:
                 self.guardar_historial_csv(solicitudes_a_archivar) # archivo las solicitudes que voy a borrar
