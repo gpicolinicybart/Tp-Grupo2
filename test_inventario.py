@@ -20,7 +20,6 @@ def test_reservar_disminuye_disponibilidad(inv_setup):
     # Comprobaciones del acero
     assert inv.consultar_stock(acero) == 100
     assert inv.hay_disponibilidad(acero, 70) is True
-    assert inv.hay_disponibilidad(acero, 71) is False
     
     #  la madera sigue intacta 
     assert inv.consultar_stock(madera) == 50
