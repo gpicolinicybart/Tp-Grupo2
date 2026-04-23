@@ -44,7 +44,7 @@ class Inventario:
         return (stock_real - reservado) >= cant_pedida
     
     def obtener_stock_disponible(self, elem: Elemento) -> int:
-        """Retorna el stock disponible (físico - reservado) sin acceso directo a atributos privados"""
+        #Retorna el stock disponible (físico - reservado) sin acceso directo a atributos privados
         stock_real = self.consultar_stock(elem)
         reservado = self._stock_reservado.get(elem, 0)
         return stock_real - reservado
@@ -55,7 +55,7 @@ class Inventario:
             raise ValueError(f"Error: La cantidad debe ser mayor a cero.")
         return True
     
+    
     def obtener_materiales_criticos(self, necesidades: dict) -> list:
-        
         es_critico = lambda item: self.consultar_stock(item[0]) < (0.20 * item[1])   #calcula los materiales cuyo stock disponible es menor al 20% de la cantidad necesaria
         return list(filter(es_critico, necesidades.items()))

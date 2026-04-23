@@ -9,8 +9,8 @@ class UnidadDeTrabajo:
         self._horas_reservadas = 0.0 
         self._costo_operativo_por_hora = self.validar_costo_operativo(costo_operativo_por_hora)
         self._fecha_instalacion = datetime.now()
-    
-    def validar_costo_operativo(self, costo: float) -> float:
+    @staticmethod
+    def validar_costo_operativo(costo: float) -> float:
         if costo < 0:
             raise ValueError("Error: El costo operativo por hora debe ser un valor no negativo.")
         return costo

@@ -40,11 +40,11 @@ class Tarea:
 
 
     def calcular_horas_totales(self, cantidad_pedida: float) -> float:
-        """Calcula el tiempo total necesario multiplicando por la cantidad pedida"""
+        #Calcula el tiempo total necesario multiplicando por la cantidad pedida
         return float(self._tiempo_por_unidad) * float(cantidad_pedida)
 
     def filtrar_colaboradores_aptos(self, diccionario_colabs: dict, horas_totales: float) -> list:
-        """Usa función de alto orden (filter) para buscar el personal disponible y lo ordena por costo"""
+        #Ufiltra personal apto y los ordena por salario para elegir los más baratos. 
         aptos = list(filter(
             lambda c: c.tiene_habilidad(self._habilidad_requerida) and c.verificar_disponibilidad(horas_totales), 
             diccionario_colabs.values()
@@ -53,7 +53,7 @@ class Tarea:
         return sorted(aptos, key=lambda c: c.get_salario_hora())
 
     def ejecutar_reservas(self, horas_totales: float, colaboradores: list):
-        """La tarea misma se encarga de reservar la máquina y avisarle a los empleados"""
+        # Ejecuta las reservas de máquina y personal. 
         self._unidad_requerida.reservar_horas(horas_totales)
         for colab in colaboradores:
             colab.asignar_tarea(self._habilidad_requerida, horas_totales)

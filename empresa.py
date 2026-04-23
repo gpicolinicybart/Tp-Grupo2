@@ -21,7 +21,6 @@ class Empresa:
         self._catalogo_elementos = []
         self._solicitudes = {}
         self._unidades = []
-        self._habilidades = [] 
         self._colaboradores = {}
         self._compras_pendientes = []
         self._contador_id_compras = 1000
@@ -37,16 +36,22 @@ class Empresa:
 
     def procesar_solicitud(self):
         print("\n--- PROCESANDO PLANIFICACIÓN DE PRODUCCIÓN ---")
-        elegibles = [s for s in self._solicitudes.values() 
-                 if s.get_estado() == "Creada" or s.get_estado().startswith("Demorada")]
+        
+        elegibles = [] 
+        for s in self._solicitudes.values(): 
+            if s.get_estado() == "Creada" or s.get_estado().startswith("Demorada"): 
+                elegibles.append(s) 
     
         if not elegibles:
             print("-> AVISO: No hay solicitudes para procesar. Creá una con la opción 5 o esperá a que lleguen insumos (opción 14) si hay demoradas.")
             return
+        try:
+            for solicitud in elegibles:
+                self.procesar_solicitud_individual(solicitud)
+        except ValueError as e:
+                print(f"-> AVISO: No se pudo completar la Solicitud {solicitud.get_id()} por falta de recursos/validación: {e}")
+                solicitud.set_estado("Demorada por falta de recursos/validación")
     
-        for solicitud in elegibles:
-            self.procesar_solicitud_individual(solicitud)
-
 
     def procesar_solicitud_individual(self, solicitud):
         producto = solicitud.get_item_solicitado()
@@ -135,7 +140,7 @@ class Empresa:
                 # la tarea ejecuta sus reservas internamente
                 tarea.ejecutar_reservas(horas, colabs)
                 
-                # anoto a los colaboradores en la solicitud ---
+                # anoto a los colaboradores en la solicitud 
                 for colab in colabs:
                     solicitud.agregar_colaborador(colab.get_id())
                     
@@ -257,12 +262,12 @@ class Empresa:
                 writer = csv.writer(archivo)
                 writer.writerow(["ID Insumo", "Nombre", "Cant. Necesaria", "Stock Actual", "Cobertura"])
                 if not criticos:
-    #si no hay críticos, solo avisamos por consola (la consigna pide q se cree igual el archivo)
+                #si no hay críticos, solo avisamos por consola y dejamos el archivo con solo el encabezado.
                     print(f"-> [INFO] Reporte: NO hay materiales críticos para '{producto.get_nombre()}'. Stock en niveles aceptables.")
                 else:
                     for insumo, cant_nec in criticos:
                         stock = self._inventario.consultar_stock(insumo)
-                        porcentaje = (stock / cant_nec) * 100  # se puede calcular directo xq cant_nec siempre es > 0
+                        porcentaje = (stock / cant_nec) * 100  # se puede calcular directo xq cant_nec siempre es > 0 ya esta validado
                         cobertura = f"{porcentaje:.1f}%"
                         writer.writerow([insumo.get_id(), insumo.get_nombre(), cant_nec, stock, cobertura])
             print(f"-> Reporte de críticos generado en: '{nombre_archivo}'.")
@@ -347,9 +352,9 @@ class Empresa:
 
     def registrar_producto_nuevo(self, producto: Elemento):
         try:
-            if isinstance(producto, ArticuloFabricadoInternamente):
-                producto.validar_ciclos() 
+            producto.validar_ciclos() # validamos que el nuevo producto no tenga ciclos en su BOM antes de agregarlo al catálogo
             self._catalogo_elementos.append(producto)
             print(f"EMPRESA: '{producto.get_nombre()}' registrado exitosamente en el catálogo.")
+            
         except ValueError as e:
             print(f"EMPRESA - ERROR AL REGISTRAR: {e}")
