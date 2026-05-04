@@ -81,7 +81,6 @@ class MenuPrincipal:
             print("Apagando el sistema...")
             return 
 
-        menu_activo = None
         if self.rol_actual == "admin":
             menu_activo = self.menu_admin
         elif self.rol_actual == "prod":
