@@ -3,7 +3,7 @@ from datetime import datetime
 
 class SolicitudDeFabricacion:
     id_solicitud=0
-    def __init__(self, item_solicitado: ItemBOM, cantidad: int, es_para_cliente: bool):
+    def __init__(self, item_solicitado, cantidad: int, es_para_cliente: bool):
         SolicitudDeFabricacion.id_solicitud += 1
         self._id = SolicitudDeFabricacion.id_solicitud
         self._item_solicitado = item_solicitado

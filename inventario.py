@@ -19,9 +19,9 @@ class Inventario:
         stock_disponible=stock_actual-reservado_actual
         if stock_disponible>=cant:
             self._stock_reservado[elem]=reservado_actual+cant
-            print(f"-> RESERVA: Se reservaron {cant} unidades de '{elem._nombre}'.")
+            print(f"-> RESERVA: Se reservaron {cant} unidades de '{elem.get_nombre()}'.")
         else:
-            print(f"->ALERTA: No hay stock suficiente para reservar {cant} de '{elem._nombre}'.")
+            print(f"->ALERTA: No hay stock suficiente para reservar {cant} de '{elem.get_nombre()}'.")
             
     def descontar_stock(self, elem: Elemento, cant: int):
         # se descuenta el fisico y la reserva cuando se arranca a producir
@@ -29,9 +29,9 @@ class Inventario:
         if elem in self._stock_reservado and self._stock_reservado[elem]>=cant:
             self._stock_fisico[elem]-=cant 
             self._stock_reservado[elem]-=cant 
-            print(f"->CONSUMO: Se utilizaron {cant} unidades de '{elem._nombre}'.")
+            print(f"->CONSUMO: Se utilizaron {cant} unidades de '{elem.get_nombre()}'.")
         else:
-            print(f"->ERROR: Intentando consumir '{elem._nombre}' sin reserva previa.")
+            print(f"->ERROR: Intentando consumir '{elem.get_nombre()}' sin reserva previa.")
         
     def ingresar_stock(self, elem: Elemento, cant: int):
         self.validar_cantidad(cant)

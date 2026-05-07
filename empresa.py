@@ -2,8 +2,7 @@
 # IMPORTANTE NOTA: La empresa centraliza el procesamiento (revisa stock, asigna tareas).
 # La solicitud queda como un objeto de datos puro.
 #------------------------------------------------------------------------------------------------------------------------------
-import datetime
-
+from datetime import datetime
 from inventario import Inventario
 from compra_insumo import Compra_Insumo
 from solicitud_fabricacion import SolicitudDeFabricacion
