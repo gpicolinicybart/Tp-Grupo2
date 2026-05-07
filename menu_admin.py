@@ -377,7 +377,7 @@ class MenuAdministrativo(MenuBase):
         self.colaboradores[carpintero.get_id()] = carpintero
         self.empresa.agregar_colaborador(carpintero)
 
-        # 6. Definición de Productos (Usando ListaEnlazadaTareas)
+        # 6. Definición de Productos
         # --- PATA DE MESA ---
         tarea_pata = Tarea(id_tarea_corte, ensambladora, 1, 0.5, id_hab_armado, 1000.0)
         bom_pata = ItemBOM("Receta Pata", {madera: 1, tornillos: 4})
@@ -398,7 +398,7 @@ class MenuAdministrativo(MenuBase):
         if self.empresa.registrar_producto_nuevo(mesa):
             self.productos[mesa.get_id()] = mesa
         
-        print("\n-> [ÉXITO] Demo cargada con éxito en modo Centralizado y con Listas Enlazadas.")
+        print("\n-> [ÉXITO] Demo cargada con éxito")
 
     def crear_tarea_maestra(self):
             print("\n--- NUEVA TAREA MAESTRA ---")
