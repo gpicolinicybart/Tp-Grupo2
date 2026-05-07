@@ -1,0 +1,10 @@
+ID Producto,Nombre Producto,Tipo,Costo Fijo,Stock Fisico,Stock Reservado,Receta BOM
+1,Tablón de Madera,Insumo,5000.0,0,0,
+2,Tornillos 10mm,Insumo,5.0,0,0,
+3,Pata de Mesa,ArticuloFabricado,0.0,0,0,
+4,Mesa Completa,ArticuloFabricado,0.0,0,0,
+9,nico,Insumo,100.0,0,0,
+11,Test Producto,ArticuloFabricado,0.0,0,0,
+12,Mono Test,Insumo,100.0,0,0,
+13,Mono Producto,ArticuloFabricado,0.0,0,0,12:2
+18,nicolas,ArticuloFabricado,0.0,0,0,9:1

@@ -3,9 +3,14 @@ from datetime import datetime
 
 class Elemento:
     id=0
-    def __init__(self, nombre: str):
-        Elemento.id += 1
-        self._id = Elemento.id
+    def __init__(self, nombre: str, id: int = None):
+        if id is None:
+            Elemento.id += 1
+            self._id = Elemento.id
+        else:
+            self._id = id
+            if id > Elemento.id:
+                Elemento.id = id
         self._nombre = nombre
         self._fecha_registro = datetime.now()
         

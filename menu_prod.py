@@ -1,5 +1,6 @@
 from solicitud_fabricacion import SolicitudDeFabricacion
 from menu_base import MenuBase
+
 class MenuProduccion(MenuBase):
     def __init__(self, empresa, insumos, productos, unidades, colaboradores):
         super().__init__(empresa, insumos, productos, unidades, colaboradores)
@@ -18,20 +19,24 @@ class MenuProduccion(MenuBase):
         print("="*60)
 
     def ejecutar_opcion(self, opcion: str) -> bool:
-
-                if opcion == "1": self.crear_solicitud()
-                elif opcion == "2": self.procesar_solicitud()  
-                elif opcion == "3": self.ejecutar_solicitud()
-                elif opcion == "4": self.finalizar_solicitud()
-                elif opcion == "5": self.ver_estado()
-                elif opcion == "6": self.recibir_compras_pendientes() 
-                elif opcion == "0":
-                    print("\nCerrando sistema de gestion de producción. Hasta luego.")
-                    return False
-                else:
-                    print("Opción no válida.")
-                return True
-
+        if opcion == "1":
+            self.crear_solicitud()
+        elif opcion == "2":
+            self.procesar_solicitud()  
+        elif opcion == "3":
+            self.ejecutar_solicitud()
+        elif opcion == "4":
+            self.finalizar_solicitud()
+        elif opcion == "5":
+            self.ver_estado()
+        elif opcion == "6":
+            self.recibir_compras_pendientes() 
+        elif opcion == "0":
+            print("\nCerrando sistema de gestion de producción. Hasta luego.")
+            return False
+        else:
+            print("Opción no válida.")
+        return True
 
     def crear_solicitud(self):
         print("\n--- NUEVA SOLICITUD DE FABRICACIÓN ---")
@@ -54,18 +59,27 @@ class MenuProduccion(MenuBase):
             solicitud = SolicitudDeFabricacion(self.productos[id_p], cantidad, True)
             self.empresa.crear_solicitud(solicitud)
             print(f"CONFIRMACIÓN: Solicitud #{solicitud.get_id()} creada.")
+            
+            # --- PERSISTENCIA: Sincronizamos la Cola con el disco duro ---
+            self.empresa.guardar_solicitudes_csv()
+            
         except ValueError as e:
             print(f"ERROR: {e}")
 
     def procesar_solicitud(self):
         self.empresa.procesar_solicitud()
+        # --- PERSISTENCIA: Guardamos el cambio de estado de la solicitud ---
+        self.empresa.guardar_solicitudes_csv()
 
     def ejecutar_solicitud(self):
         self.empresa.ejecutar_solicitud()
-   
+        # --- PERSISTENCIA: Guardamos el avance ---
+        self.empresa.guardar_solicitudes_csv()
 
     def finalizar_solicitud(self):
         self.empresa.finalizar_solicitud()
+        # --- PERSISTENCIA: Eliminamos la solicitud terminada o la pasamos a historial ---
+        self.empresa.guardar_solicitudes_csv()
     
     def recibir_compras_pendientes(self):
         print("\n--- RECEPCIÓN DE ÓRDENES DE COMPRA ---")
@@ -73,6 +87,8 @@ class MenuProduccion(MenuBase):
         if cantidad > 0:
             print(f"\n-> ÉXITO: Se ingresaron {cantidad} órdenes al inventario.")
             print("-> AVISO: Podés volver a presionar '6' para que las solicitudes demoradas retomen su curso.")
+            # --- PERSISTENCIA: Actualizamos el inventario ---
+            self.empresa.guardar_inventario_csv()
         else:
             print("No hay órdenes de compra en tránsito para recibir.")
 
@@ -83,9 +99,10 @@ class MenuProduccion(MenuBase):
         
         print(f"\nCATÁLOGO DE INSUMOS: {len(self.insumos)}")
         for id_ins, ins in self.insumos.items():
-            disponible = self.empresa._inventario.obtener_stock_disponible(ins)
-            print(f"  ID {id_ins}: {ins.get_nombre()} | Stock Disponible: {disponible}")
         
+            disponible = self.empresa.consultar_stock_insumo(ins) 
+            
+            print(f"  ID {id_ins}: {ins.get_nombre()} | Stock Disponible: {disponible}")
         print(f"\nPRODUCTOS REGISTRADOS: {len(self.productos)}")
         for id_prod, prod in self.productos.items():
             print(f"  ID {id_prod}: {prod.get_nombre()}")

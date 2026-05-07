@@ -64,9 +64,9 @@ class MenuAdministrativo(MenuBase):
             insumo = InsumoBasico(nombre, costo)
             id_insumo = insumo.get_id()
             
-            self.insumos[id_insumo] = insumo
-            self.empresa.registrar_producto_nuevo(insumo)
-            print(f"CONFIRMACIÓN: Insumo '{nombre}' registrado con ID: {id_insumo}")
+            if self.empresa.registrar_producto_nuevo(insumo):
+                self.insumos[id_insumo] = insumo
+                print(f"CONFIRMACIÓN: Insumo '{nombre}' registrado con ID: {id_insumo}")
         except ValueError as e:
             print(f"ERROR: Datos inválidos. {e}")
         
@@ -151,9 +151,9 @@ class MenuAdministrativo(MenuBase):
 
                 # Si pasó todos los filtros, recién ahí lo creamos
                 producto = ArticuloFabricadoInternamente(nombre, [bom], tareas_producto)
-                self.productos[producto.get_id()] = producto
-                self.empresa.registrar_producto_nuevo(producto)
-                print(f"\nCONFIRMACIÓN: Producto '{nombre}' (ID: {producto.get_id()}) registrado con éxito.")
+                if self.empresa.registrar_producto_nuevo(producto):
+                    self.productos[producto.get_id()] = producto
+                    print(f"\nCONFIRMACIÓN: Producto '{nombre}' (ID: {producto.get_id()}) registrado con éxito.")
                 
             except ValueError as e:
                 print(f"ERROR: Datos inválidos. {e}")
@@ -357,9 +357,9 @@ class MenuAdministrativo(MenuBase):
         tornillos = InsumoBasico("Tornillos 10mm", 5.0)
 
         for insumo in [madera, tornillos]:
-            self.insumos[insumo.get_id()] = insumo
-            self.empresa.registrar_producto_nuevo(insumo)
-            self.empresa._inventario.ingresar_stock(insumo, 1000)
+            if self.empresa.registrar_producto_nuevo(insumo):
+                self.insumos[insumo.get_id()] = insumo
+                self.empresa._inventario.ingresar_stock(insumo, 1000)
         
         # 2. unidades de trabajo y personal
         ensambladora = UnidadDeTrabajo("Mesa de Ensamblaje", 80.0, 500.0)
@@ -381,15 +381,15 @@ class MenuAdministrativo(MenuBase):
         
         #sub-ensamble simple
         pata = ArticuloFabricadoInternamente("Pata de Mesa", [bom_pata], [tarea_pata])
-        self.productos[pata.get_id()] = pata
-        self.empresa.registrar_producto_nuevo(pata)
+        if self.empresa.registrar_producto_nuevo(pata):
+            self.productos[pata.get_id()] = pata
 
         #producto final que requiere el sub-ensamble
         tarea_mesa = Tarea("Ensamblaje Final Mesa", ensambladora, 1, 1.5, "Armado", 2500.0)
         bom_mesa = ItemBOM("Receta Mesa", {madera: 1, pata: 4})  
         
         mesa = ArticuloFabricadoInternamente("Mesa Completa", [bom_mesa], [tarea_mesa])
-        self.productos[mesa.get_id()] = mesa
-        self.empresa.registrar_producto_nuevo(mesa)
+        if self.empresa.registrar_producto_nuevo(mesa):
+            self.productos[mesa.get_id()] = mesa
         
         print("\n-> [ÉXITO] Demo cargada con éxito.")

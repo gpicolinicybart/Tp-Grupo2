@@ -3,16 +3,25 @@ from empresa import Empresa
 from menu_admin import MenuAdministrativo
 from menu_prod import MenuProduccion
 from inventario import Inventario
+from articulo_fabricado import ArticuloFabricadoInternamente
+from insumo_basico import InsumoBasico
 class MenuPrincipal:
     def __init__(self):
         mi_inventario = Inventario()
         self.empresa = Empresa(mi_inventario)
         
-    
         self.dicc_insumos = {}
         self.dicc_productos = {}
         self.dicc_unidades = {}
         self.dicc_colaboradores = {}
+        
+        # --- NUEVO: Sincronizar lo que cargó la Empresa con los menús ---
+        for elem in self.empresa._catalogo_elementos:
+            if isinstance(elem, ArticuloFabricadoInternamente):
+                self.dicc_productos[elem.get_id()] = elem
+            elif isinstance(elem, InsumoBasico):
+                self.dicc_insumos[elem.get_id()] = elem
+        # ----------------------------------------------------------------
         
         self.menu_admin = MenuAdministrativo(
             self.empresa, self.dicc_insumos, self.dicc_productos, 
@@ -85,6 +94,9 @@ class MenuPrincipal:
             menu_activo = self.menu_admin
         elif self.rol_actual == "prod":
             menu_activo = self.menu_prod
+        else:
+            print("Rol desconocido. Cerrando sesión.")
+            return
 
         try:
             continuar = True

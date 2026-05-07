@@ -1,7 +1,7 @@
 from elemento import Elemento
 class InsumoBasico(Elemento):
-    def __init__(self, nombre: str, costo_fijo: float):
-        super().__init__(nombre)
+    def __init__(self, nombre: str, costo_fijo: float, id: int = None):
+        super().__init__(nombre, id=id)
         self._costo_fijo = costo_fijo
         if costo_fijo < 0:
             raise ValueError("Error: El costo fijo inicial no puede ser negativo.")

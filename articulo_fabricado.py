@@ -2,8 +2,8 @@
 from elemento import Elemento
 
 class ArticuloFabricadoInternamente(Elemento):
-    def __init__(self, nombre: str, bom: list, lista_tareas: list):
-        super().__init__(nombre)
+    def __init__(self, nombre: str, bom: list, lista_tareas: list, id: int = None):
+        super().__init__(nombre, id=id)
         self._bom = bom # Lista de elementos
         self._lista_tareas = lista_tareas 
 

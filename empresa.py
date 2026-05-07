@@ -8,6 +8,7 @@ from solicitud_fabricacion import SolicitudDeFabricacion
 from unidad_de_trabajo import UnidadDeTrabajo
 from elemento import Elemento
 from articulo_fabricado import ArticuloFabricadoInternamente
+from itembom import ItemBOM
 import csv
 import os
 
@@ -23,6 +24,14 @@ class Empresa:
         self._unidades = []
         self._colaboradores = {}
         self._compras_pendientes = []
+
+        # --- CARGA INICIAL DE DATOS (PERSISTENCIA) ---
+        # 1. Cargamos el catálogo de lo que sabemos fabricar
+        self.cargar_catalogo_csv()
+        # 2. Le avisamos al inventario que cargue el stock, pasándole el catálogo
+        self._inventario.cargar_desde_csv(self._catalogo_elementos)
+        # 3. Cargamos las solicitudes que quedaron a medias
+        self.cargar_solicitudes_csv()
 
         
     def registrar_compra(self, orden: Compra_Insumo):
@@ -349,11 +358,149 @@ class Empresa:
     def agregar_unidad_trabajo(self, nueva_unidad: UnidadDeTrabajo):
         self._unidades.append(nueva_unidad)
 
-    def registrar_producto_nuevo(self, producto: Elemento):
+    def registrar_producto_nuevo(self, producto: Elemento) -> bool:
+        # --- NUEVO: Validación de duplicados por nombre ---
+        nombre_nuevo = producto.get_nombre().strip().lower()
+        for elem in self._catalogo_elementos:
+            if elem.get_nombre().strip().lower() == nombre_nuevo:
+                print(f"-> [ERROR] Ya existe un elemento llamado '{elem.get_nombre()}' en el catálogo. Acción cancelada.")
+                return False
+                
         try:
-            producto.validar_ciclos() # validamos que el nuevo producto no tenga ciclos en su BOM antes de agregarlo al catálogo
+            producto.validar_ciclos() 
             self._catalogo_elementos.append(producto)
             print(f"EMPRESA: '{producto.get_nombre()}' registrado exitosamente en el catálogo.")
             
+            # --- PERSISTENCIA ---
+            self.guardar_catalogo_csv()
+            return True
         except ValueError as e:
-            print(f"EMPRESA - ERROR AL REGISTRAR: {e}")
+            print(f"El producto '{producto.get_nombre()}'ya esta registrado: {e}")
+            return False
+            
+    def consultar_stock_insumo(self, insumo):
+        return self._inventario.obtener_stock_disponible(insumo)
+
+    # =====================================================================
+    # MÉTODOS DE PERSISTENCIA (Sincronización con archivos CSV)
+    # =====================================================================
+
+    def guardar_solicitudes_csv(self):
+        """Guarda las solicitudes activas (en cola, en proceso) para no perder el estado de la fábrica"""
+        nombre_archivo = "solicitudes_activas.csv"
+        try:
+            with open(nombre_archivo, mode='w', newline='', encoding='utf-8') as archivo:
+                writer = csv.writer(archivo)
+                writer.writerow(["ID Solicitud", "Producto", "Cantidad", "Estado", "Fecha Creacion"])
+                for sol in self._solicitudes.values():
+                    id_sol = sol.get_id()
+                    producto = sol.get_item_solicitado().get_nombre()
+                    cantidad = sol.get_cantidad()
+                    estado = sol.get_estado()
+                    fecha_creacion = sol._fecha_creacion.strftime("%Y-%m-%d %H:%M:%S")
+                    writer.writerow([id_sol, producto, cantidad, estado, fecha_creacion])
+        except IOError as e:
+            print(f"-> [ERROR] Falló la escritura de solicitudes activas CSV: {e}")
+
+    def guardar_catalogo_csv(self):
+        """Guarda modelos, recetas y stock físico actual en un solo archivo"""
+        nombre_archivo = "productos.csv"
+        try:
+            with open(nombre_archivo, mode='w', newline='', encoding='utf-8') as archivo:
+                writer = csv.writer(archivo)
+                # Una sola tabla con TODO
+                writer.writerow(["ID Producto", "Nombre Producto", "Tipo", "Costo Fijo", "Stock Fisico", "Stock Reservado", "Receta BOM"])
+                
+                for prod in self._catalogo_elementos:
+                    # Obtenemos los datos del inventario para este producto
+                    fisico = self._inventario.consultar_stock(prod)
+                    reservado = self._inventario.obtener_stock_reservado(prod)
+                    
+                    if isinstance(prod, ArticuloFabricadoInternamente):
+                        # Serializamos el BOM por IDs: "123:2;456:5"
+                        bom_str_list = []
+                        for bom_item in prod.get_bom():
+                            for elemento, cantidad in bom_item.get_diccionario().items():
+                                bom_str_list.append(f"{elemento.get_id()}:{cantidad}")
+                        receta_str = ";".join(bom_str_list)
+                        
+                        writer.writerow([prod.get_id(), prod.get_nombre(), "ArticuloFabricado", "0.0", fisico, reservado, receta_str])
+                    else: 
+                        costo = prod.get_costo_fijo() if hasattr(prod, 'get_costo_fijo') else 0.0
+                        writer.writerow([prod.get_id(), prod.get_nombre(), "Insumo", costo, fisico, reservado, ""])
+        except IOError as e:
+            print(f"-> [ERROR] Falló la escritura centralizada: {e}")
+    def guardar_inventario_csv(self):
+        """Le pide al inventario que guarde su stock físico actual respetando el encapsulamiento"""
+        if hasattr(self._inventario, 'guardar_en_csv'):
+            self._inventario.guardar_en_csv()
+        else:
+            print("-> [AVISO] Falta implementar guardar_en_csv() en la clase Inventario.")
+    def cargar_catalogo_csv(self):
+        """Reconstruye los objetos Elemento al arrancar el programa"""
+        nombre_archivo = "productos.csv"
+        if not os.path.exists(nombre_archivo):
+            return
+            
+        from articulo_fabricado import ArticuloFabricadoInternamente
+        from insumo_basico import InsumoBasico
+
+        try:
+            filas_csv = []
+            with open(nombre_archivo, mode='r', encoding='utf-8') as archivo:
+                reader = csv.DictReader(archivo)
+                for fila in reader:
+                    filas_csv.append(fila)
+                    id_prod = int(fila.get("ID Producto", 0)) if fila.get("ID Producto") else None
+                    nombre = fila["Nombre Producto"]
+                    tipo = fila["Tipo"]
+                    costo = float(fila.get("Costo Fijo", 0.0))
+                    
+                    if tipo == "ArticuloFabricado":
+                        nuevo_prod = ArticuloFabricadoInternamente(nombre=nombre, bom=[], lista_tareas=[], id=id_prod)
+                        self._catalogo_elementos.append(nuevo_prod)
+                    elif tipo == "Insumo":
+                        nuevo_insumo = InsumoBasico(nombre=nombre, costo_fijo=costo, id=id_prod)
+                        self._catalogo_elementos.append(nuevo_insumo)
+
+            # Reconstruimos el BOM utilizando IDs
+            elementos_por_id = {elem.get_id(): elem for elem in self._catalogo_elementos}
+            for fila in filas_csv:
+                if fila.get("Tipo") == "ArticuloFabricado" and fila.get("Receta BOM"):
+                    prod_id = int(fila.get("ID Producto", 0))
+                    prod_obj = elementos_por_id.get(prod_id)
+                    if not prod_obj:
+                        continue
+
+                    receta_str = fila.get("Receta BOM", "")
+                    bom_items = []
+                    if receta_str:
+                        for item in receta_str.split(";"):
+                            if not item.strip():
+                                continue
+                            componente_id_str, cantidad_str = item.split(":")
+                            componente_id = int(componente_id_str)
+                            cantidad = int(cantidad_str)
+                            componente = elementos_por_id.get(componente_id)
+                            if componente is not None:
+                                bom_items.append((componente, cantidad))
+                    if bom_items:
+                        prod_obj._bom = [ItemBOM(f"Receta {prod_obj.get_nombre()}", dict(bom_items))]
+
+        except Exception as e:
+            print(f"-> [ERROR] Falló la lectura del catálogo CSV: {e}")
+
+    def cargar_solicitudes_csv(self):
+        """Carga las solicitudes activas para retomar la producción"""
+        nombre_archivo = "solicitudes_activas.csv"
+        if not os.path.exists(nombre_archivo):
+            return
+            
+        try:
+            with open(nombre_archivo, mode='r', encoding='utf-8') as archivo:
+                reader = csv.DictReader(archivo)
+                # Lógica base preparada para cuando instanciemos solicitudes en memoria
+                for fila in reader:
+                    pass
+        except Exception as e:
+            print(f"-> [ERROR] Falló la lectura de solicitudes activas CSV: {e}")
