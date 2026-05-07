@@ -98,3 +98,6 @@ class Colaborador:
             print(f"El colaborador {self._id} ya estaba dado de baja.")
         else:
             self._fecha_baja = datetime.now()
+            
+    def get_horas_disponibles(self) -> float:
+        return self._horas_disponibles
