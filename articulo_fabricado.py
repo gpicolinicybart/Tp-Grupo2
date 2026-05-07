@@ -75,10 +75,10 @@ class ArticuloFabricadoInternamente(Elemento):
         return necesidades
 
     def calcular_horas_en_unidad(self, unidad, cantidad: int) -> float:
-        total = 0
+        horas_acumuladas = 0
         nodo_actual = self._lista_tareas.cabecera
         while nodo_actual is not None:
             if nodo_actual.tarea.get_unidad_requerida().get_id() == unidad.get_id():
-                total += nodo_actual.tarea.get_tiempo_por_unidad() * cantidad
+                horas_acumuladas += nodo_actual.tarea.get_tiempo_por_unidad() * cantidad
             nodo_actual = nodo_actual.siguiente
-        return total
+        return horas_acumuladas

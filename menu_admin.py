@@ -111,8 +111,8 @@ class MenuAdministrativo(MenuBase):
                     if input("¿Desea agregar una Tarea? (S/N): ").strip().upper() != 'S': break
 
                     print("\nTipos de Tareas Maestras:")
-                    for tid, datos in self.empresa._catalogo_tareas.items():
-                        print(f"  ID {tid}: {datos['nombre']} (Mesa: #{datos['id_unidad']} | Hab: #{datos['id_habilidad']})")
+                    for id_tarea, datos_tarea in self.empresa._catalogo_tareas.items():
+                        print(f"  ID {id_tarea}: {datos_tarea['nombre']} (Mesa: #{datos_tarea['id_unidad']} | Hab: #{datos_tarea['id_habilidad']})")
                     id_t_maestra = int(input("ID de tarea maestra a usar: "))
                     
                     if id_t_maestra not in self.empresa._catalogo_tareas:
@@ -126,8 +126,8 @@ class MenuAdministrativo(MenuBase):
                     cant_colabs = int(input("Cantidad de operarios para esta receta: "))
                     tiempo = float(input("Tiempo (hs/unidad): "))
 
-                    aptos = [c for c in self.colaboradores.values() if c.tiene_habilidad(id_hab)]
-                    costo_mo = (sum(c.get_salario_hora() for c in aptos) / len(aptos)) if aptos else 0.0
+                    aptos = [colaborador for colaborador in self.colaboradores.values() if colaborador.tiene_habilidad(id_hab)]
+                    costo_mo = (sum(colaborador.get_salario_hora() for colaborador in aptos) / len(aptos)) if aptos else 0.0
 
                     nueva_tarea = Tarea(id_t_maestra, self.unidades[id_unidad], cant_colabs, tiempo, id_hab, costo_mo)
                     tareas_producto.agregar_al_final(nueva_tarea)
@@ -170,10 +170,10 @@ class MenuAdministrativo(MenuBase):
             try:
                 entrada = input("\nIngrese los IDs de las habilidades (separados por coma): ").split(",")
                 habilidades_ids = []
-                for x in entrada:
-                    x = x.strip()
-                    if x.isdigit() and int(x) in self.empresa._catalogo_habilidades:
-                        habilidades_ids.append(int(x))
+                for id_texto in entrada:
+                    id_texto = id_texto.strip()
+                    if id_texto.isdigit() and int(id_texto) in self.empresa._catalogo_habilidades:
+                        habilidades_ids.append(int(id_texto))
                 if not habilidades_ids:
                     return print(" [!] ERROR: Debe ingresar IDs válidos.")
                 

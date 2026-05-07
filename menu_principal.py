@@ -23,11 +23,11 @@ class MenuPrincipal:
                 self.dicc_insumos[elem.get_id()] = elem
                 
         # >>> AGREGAR ESTO PARA SINCRONIZAR MÁQUINAS Y PERSONAL <<<
-        for u in self.empresa._unidades:
-            self.dicc_unidades[u.get_id()] = u
-            
-        for c_id, c in self.empresa._colaboradores.items():
-            self.dicc_colaboradores[c_id] = c
+        for unidad in self.empresa._unidades:
+            self.dicc_unidades[unidad.get_id()] = unidad
+
+        for id_colaborador, colaborador in self.empresa._colaboradores.items():
+            self.dicc_colaboradores[id_colaborador] = colaborador
         # >>> -------------------------------------------------- <<<
         
         self.menu_admin = MenuAdministrativo(
