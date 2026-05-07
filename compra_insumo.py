@@ -41,5 +41,4 @@ class Compra_Insumo:
     def recibir_materiales(self, inventario): 
         inventario.ingresar_stock(self._insumo,self._cantidad)
         self._fecha_recepcion = datetime.now()
-        print(f"Se ingresaron  con éxito {self._cantidad} unidades de {self._insumo._nombre} al inventario (Orden: {self._id}).")
-        
+        print(f"Se ingresaron con éxito {self._cantidad} unidades de {self._insumo.get_nombre()} al inventario (Orden: {self._id}).")       

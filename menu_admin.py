@@ -113,21 +113,29 @@ class MenuAdministrativo(MenuBase):
                     for tid, tnom in self.empresa._catalogo_tareas.items():
                         print(f"  ID {tid}: {tnom}")
                     id_t_maestra = int(input("ID de tarea maestra: "))
+                    if id_t_maestra not in self.empresa._catalogo_tareas:
+                        print(" [!] ERROR: ID de tarea no existe.")
+                        continue
                     
                     print("\nUnidades Disponibles:")
                     for uid, u in self.unidades.items():
                         print(f"  ID {uid}: {u.get_nombre()}")
                     id_unidad = int(input("ID de unidad: "))
+                    if id_unidad not in self.unidades:
+                        print(" [!] ERROR: Unidad no encontrada.")
+                        continue
                     
                     print("\nHabilidades Maestras Requeridas:")
                     for hid, hnom in self.empresa._catalogo_habilidades.items():
                         print(f"  ID {hid}: {hnom}")
                     id_hab = int(input("ID de habilidad requerida: "))
+                    if id_hab not in self.empresa._catalogo_habilidades:
+                        print(" [!] ERROR: Habilidad no encontrada.")
+                        continue
 
                     cant_colabs = int(input("Cantidad de operarios: "))
                     tiempo = float(input("Tiempo (hs/unidad): "))
                     
-                    # Costo MO promedio automático
                     aptos = [c for c in self.colaboradores.values() if c.tiene_habilidad(id_hab)]
                     costo_mo = (sum(c.get_salario_hora() for c in aptos) / len(aptos)) if aptos else 0.0
 
@@ -351,10 +359,15 @@ class MenuAdministrativo(MenuBase):
         self.empresa.mostrar_solicitudes()
         print("="*60)
 
-    def cargar_demo(self):
+def cargar_demo(self):
         print("\n--- CARGANDO DEMO INDUSTRIAL ---")
         
-        # 1.  insumos basicos
+        # 0. CATÁLOGOS MAESTROS 
+        id_hab_armado = self.empresa.agregar_habilidad("Armado General")
+        id_tarea_ensamble = self.empresa.agregar_tarea_maestra("Ensamblaje Manual")
+        id_tarea_corte = self.empresa.agregar_tarea_maestra("Corte de Madera")
+        
+        # 1. Insumos basicos
         madera = InsumoBasico("Tablón de Madera", 5000.0)
         tornillos = InsumoBasico("Tornillos 10mm", 5.0)
 
@@ -363,35 +376,29 @@ class MenuAdministrativo(MenuBase):
                 self.insumos[insumo.get_id()] = insumo
                 self.empresa._inventario.ingresar_stock(insumo, 1000)
         
-        # 2. unidades de trabajo y personal
+        # 2. Unidades de trabajo y personal
         ensambladora = UnidadDeTrabajo("Mesa de Ensamblaje", 80.0, 500.0)
         self.unidades[ensambladora.get_id()] = ensambladora
         self.empresa.agregar_unidad_trabajo(ensambladora)
         
-        carpintero = Colaborador(["Armado"], 40.0, 2500.0)
+        # LE PASAMOS EL ID DE LA HABILIDAD, NO EL TEXTO
+        carpintero = Colaborador([id_hab_armado], 40.0, 2500.0)
         self.colaboradores[carpintero.get_id()] = carpintero
         self.empresa.agregar_colaborador(carpintero)
 
-        #mostramos la recursividad de manera simple: el producto final requiere un sub-ensamble 
-        # que a su vez requiere insumos básicos. El sistema va a poder calcular automáticamente 
-        # los materiales necesarios para fabricar la mesa completa, multiplicando por 4 las patas
-        #  y sumando los materiales de cada una. Además, al generar el reporte de materiales críticos,
-        #  va a detectar si falta stock de alguno de los componentes, incluso si es un sub-ensamble.
-
-        tarea_pata = Tarea("Armado de Pata", ensambladora, 1, 0.5, "Armado", 1000.0)
+        # 3. Tareas y Recetas usando los IDs Relacionales
+        tarea_pata = Tarea(id_tarea_corte, ensambladora, 1, 0.5, id_hab_armado, 1000.0)
         bom_pata = ItemBOM("Receta Pata", {madera: 1, tornillos: 4})
         
-        #sub-ensamble simple
         pata = ArticuloFabricadoInternamente("Pata de Mesa", [bom_pata], [tarea_pata])
         if self.empresa.registrar_producto_nuevo(pata):
             self.productos[pata.get_id()] = pata
 
-        #producto final que requiere el sub-ensamble
-        tarea_mesa = Tarea("Ensamblaje Final Mesa", ensambladora, 1, 1.5, "Armado", 2500.0)
+        tarea_mesa = Tarea(id_tarea_ensamble, ensambladora, 1, 1.5, id_hab_armado, 2500.0)
         bom_mesa = ItemBOM("Receta Mesa", {madera: 1, pata: 4})  
         
         mesa = ArticuloFabricadoInternamente("Mesa Completa", [bom_mesa], [tarea_mesa])
         if self.empresa.registrar_producto_nuevo(mesa):
             self.productos[mesa.get_id()] = mesa
         
-        print("\n-> [ÉXITO] Demo cargada con éxito.")
+        print("\n-> [ÉXITO] Demo cargada con éxito en modo Relacional.")

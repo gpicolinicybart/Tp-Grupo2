@@ -120,29 +120,35 @@ class Empresa:
         return False
 
     def gestionar_capacidad(self, producto, cantidad_pedida) -> tuple:
-        asignaciones_pendientes = [] 
-        lista_tareas = producto.get_lista_tareas()
+            asignaciones_pendientes = [] 
+            lista_tareas = producto.get_lista_tareas()
 
-        #Si no hay tareas, frena la planificación
-        if not lista_tareas:
-            print(f" [!] ERROR: El producto '{producto.get_nombre()}' no tiene tareas asignadas para su fabricación.")
-            return False, []
-
-        for tarea in lista_tareas:
-            # la tarea hace sus propios calculos
-            horas_totales = tarea.calcular_horas_totales(cantidad_pedida)
-            unidad = tarea.get_unidad_requerida()
-            if not unidad.verificar_disponibilidad(horas_totales):
-                print(f" [!] Falta capacidad en la Unidad #{unidad.get_id()} para la tarea '{tarea.get_descripcion()}'.")
-                return False, [] # hay q poner esa lista vacia xq es tuple y tiene q tener si o si 2 variables de retorno aunque no se usen
-            colabs_necesarios = tarea.get_cant_colaboradores_req()
-            colabs_aptos = tarea.filtrar_colaboradores_aptos(self._colaboradores, horas_totales)
-            if len(colabs_aptos) < colabs_necesarios:
-                print(f" [!] No hay suficientes colaboradores con la habilidad '{tarea.get_habilidad_requerida()}' y {horas_totales}hs libres.")
+            if not lista_tareas:
+                print(f" [!] ERROR: El producto '{producto.get_nombre()}' no tiene tareas asignadas para su fabricación.")
                 return False, []
-            colabs_encontrados = colabs_aptos[:colabs_necesarios]
-            asignaciones_pendientes.append((tarea, horas_totales, colabs_encontrados))
-        return True, asignaciones_pendientes
+
+            for tarea in lista_tareas:
+                horas_totales = tarea.calcular_horas_totales(cantidad_pedida)
+                unidad = tarea.get_unidad_requerida()
+                if not unidad.verificar_disponibilidad(horas_totales):
+                    # Buscamos el nombre de la tarea en el diccionario usando su ID 
+                    id_t = tarea.get_id_tarea_maestra()
+                    nombre_tarea = self._catalogo_tareas.get(id_t, f"Tarea ID {id_t}")
+                    print(f" [!] Falta capacidad en la Unidad #{unidad.get_id()} para la tarea '{nombre_tarea}'.")
+                    return False, [] 
+                colabs_necesarios = tarea.get_cant_colaboradores_req()
+                colabs_aptos = tarea.filtrar_colaboradores_aptos(self._colaboradores, horas_totales)
+                
+                if len(colabs_aptos) < colabs_necesarios:
+                    # Buscamos el nombre de la habilidad en el diccionario usando su ID
+                    id_hab = tarea.get_id_habilidad_requerida()
+                    nombre_hab = self._catalogo_habilidades.get(id_hab, f"Habilidad ID {id_hab}")
+                    print(f" [!] No hay suficientes colaboradores con la habilidad '{nombre_hab}' y {horas_totales}hs libres.")
+                    return False, []
+                colabs_encontrados = colabs_aptos[:colabs_necesarios]
+                asignaciones_pendientes.append((tarea, horas_totales, colabs_encontrados))
+                
+            return True, asignaciones_pendientes
 
     def confirmar_reservas(self, solicitud, materiales_necesarios, asignaciones_pendientes):
             print(" -> Stock y Capacidad OK. Confirmando reservas...")
