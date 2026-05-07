@@ -1,11 +1,12 @@
 
 from elemento import Elemento
+from lista_tareas import ListaEnlazadaTareas
 
 class ArticuloFabricadoInternamente(Elemento):
-    def __init__(self, nombre: str, bom: list, lista_tareas: list, id: int = None):
+    def __init__(self, nombre: str, bom: list, lista_tareas: ListaEnlazadaTareas, id: int = None):
         super().__init__(nombre, id=id)
         self._bom = bom # Lista de elementos
-        self._lista_tareas = lista_tareas 
+        self._lista_tareas = lista_tareas
 
     def __str__(self):
         materiales = []
@@ -20,7 +21,11 @@ class ArticuloFabricadoInternamente(Elemento):
     
     def get_costo_unitario(self) -> float:
         costo_materiales = sum(map(lambda bom: bom.get_costo_total(), self._bom))
-        costo_manufactura = sum(map(lambda tarea: tarea.get_costo(), self._lista_tareas))
+        costo_manufactura = 0
+        nodo_actual = self._lista_tareas.cabecera
+        while nodo_actual is not None:
+            costo_manufactura += nodo_actual.tarea.get_costo()
+            nodo_actual = nodo_actual.siguiente
         return costo_materiales + costo_manufactura
   
     def validar_ciclos(self, camino_actual=None) -> bool:
@@ -70,6 +75,10 @@ class ArticuloFabricadoInternamente(Elemento):
         return necesidades
 
     def calcular_horas_en_unidad(self, unidad, cantidad: int) -> float:
-        es_tarea_de_unidad = lambda x: x.get_unidad_requerida().get_id() == unidad.get_id()
-        tareas_unidad = filter(es_tarea_de_unidad, self._lista_tareas)
-        return sum(map(lambda x: x.get_tiempo_por_unidad() * cantidad, tareas_unidad))
+        total = 0
+        nodo_actual = self._lista_tareas.cabecera
+        while nodo_actual is not None:
+            if nodo_actual.tarea.get_unidad_requerida().get_id() == unidad.get_id():
+                total += nodo_actual.tarea.get_tiempo_por_unidad() * cantidad
+            nodo_actual = nodo_actual.siguiente
+        return total

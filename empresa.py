@@ -122,22 +122,24 @@ class Empresa:
             asignaciones_pendientes = [] 
             lista_tareas = producto.get_lista_tareas()
 
-            if not lista_tareas:
+            if not lista_tareas.cabecera:
                 print(f" [!] ERROR: El producto '{producto.get_nombre()}' no tiene tareas asignadas para su fabricación.")
                 return False, []
 
-            for tarea in lista_tareas:
+            nodo_actual = lista_tareas.cabecera
+            while nodo_actual is not None:
+                tarea = nodo_actual.tarea
                 horas_totales = tarea.calcular_horas_totales(cantidad_pedida)
                 unidad = tarea.get_unidad_requerida()
                 if not unidad.verificar_disponibilidad(horas_totales):
-                    # Buscamos el nombre de la tarea en el diccionario usando su ID 
+                    # Buscamos el nombre de la tarea en el diccionario usando su ID
                     id_t = tarea.get_id_tarea_maestra()
                     nombre_tarea = self._catalogo_tareas.get(id_t, f"Tarea ID {id_t}")
                     print(f" [!] Falta capacidad en la Unidad #{unidad.get_id()} para la tarea '{nombre_tarea}'.")
-                    return False, [] 
+                    return False, []
                 colabs_necesarios = tarea.get_cant_colaboradores_req()
                 colabs_aptos = tarea.filtrar_colaboradores_aptos(self._colaboradores, horas_totales)
-                
+
                 if len(colabs_aptos) < colabs_necesarios:
                     # Buscamos el nombre de la habilidad en el diccionario usando su ID
                     id_hab = tarea.get_id_habilidad_requerida()
@@ -146,7 +148,8 @@ class Empresa:
                     return False, []
                 colabs_encontrados = colabs_aptos[:colabs_necesarios]
                 asignaciones_pendientes.append((tarea, horas_totales, colabs_encontrados))
-                
+                nodo_actual = nodo_actual.siguiente
+
             return True, asignaciones_pendientes
 
     def confirmar_reservas(self, solicitud, materiales_necesarios, asignaciones_pendientes):
