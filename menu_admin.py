@@ -359,46 +359,46 @@ class MenuAdministrativo(MenuBase):
         self.empresa.mostrar_solicitudes()
         print("="*60)
 
-def cargar_demo(self):
-        print("\n--- CARGANDO DEMO INDUSTRIAL ---")
-        
-        # 0. CATÁLOGOS MAESTROS 
-        id_hab_armado = self.empresa.agregar_habilidad("Armado General")
-        id_tarea_ensamble = self.empresa.agregar_tarea_maestra("Ensamblaje Manual")
-        id_tarea_corte = self.empresa.agregar_tarea_maestra("Corte de Madera")
-        
-        # 1. Insumos basicos
-        madera = InsumoBasico("Tablón de Madera", 5000.0)
-        tornillos = InsumoBasico("Tornillos 10mm", 5.0)
+    def cargar_demo(self):
+            print("\n--- CARGANDO DEMO INDUSTRIAL ---")
+            
+            # 0. CATÁLOGOS MAESTROS 
+            id_hab_armado = self.empresa.agregar_habilidad("Armado General")
+            id_tarea_ensamble = self.empresa.agregar_tarea_maestra("Ensamblaje Manual")
+            id_tarea_corte = self.empresa.agregar_tarea_maestra("Corte de Madera")
+            
+            # 1. Insumos basicos
+            madera = InsumoBasico("Tablón de Madera", 5000.0)
+            tornillos = InsumoBasico("Tornillos 10mm", 5.0)
 
-        for insumo in [madera, tornillos]:
-            if self.empresa.registrar_producto_nuevo(insumo):
-                self.insumos[insumo.get_id()] = insumo
-                self.empresa._inventario.ingresar_stock(insumo, 1000)
-        
-        # 2. Unidades de trabajo y personal
-        ensambladora = UnidadDeTrabajo("Mesa de Ensamblaje", 80.0, 500.0)
-        self.unidades[ensambladora.get_id()] = ensambladora
-        self.empresa.agregar_unidad_trabajo(ensambladora)
-        
-        # LE PASAMOS EL ID DE LA HABILIDAD, NO EL TEXTO
-        carpintero = Colaborador([id_hab_armado], 40.0, 2500.0)
-        self.colaboradores[carpintero.get_id()] = carpintero
-        self.empresa.agregar_colaborador(carpintero)
+            for insumo in [madera, tornillos]:
+                if self.empresa.registrar_producto_nuevo(insumo):
+                    self.insumos[insumo.get_id()] = insumo
+                    self.empresa._inventario.ingresar_stock(insumo, 1000)
+            
+            # 2. Unidades de trabajo y personal
+            ensambladora = UnidadDeTrabajo("Mesa de Ensamblaje", 80.0, 500.0)
+            self.unidades[ensambladora.get_id()] = ensambladora
+            self.empresa.agregar_unidad_trabajo(ensambladora)
+            
+            # LE PASAMOS EL ID DE LA HABILIDAD, NO EL TEXTO
+            carpintero = Colaborador([id_hab_armado], 40.0, 2500.0)
+            self.colaboradores[carpintero.get_id()] = carpintero
+            self.empresa.agregar_colaborador(carpintero)
 
-        # 3. Tareas y Recetas usando los IDs Relacionales
-        tarea_pata = Tarea(id_tarea_corte, ensambladora, 1, 0.5, id_hab_armado, 1000.0)
-        bom_pata = ItemBOM("Receta Pata", {madera: 1, tornillos: 4})
-        
-        pata = ArticuloFabricadoInternamente("Pata de Mesa", [bom_pata], [tarea_pata])
-        if self.empresa.registrar_producto_nuevo(pata):
-            self.productos[pata.get_id()] = pata
+            # 3. Tareas y Recetas usando los IDs Relacionales
+            tarea_pata = Tarea(id_tarea_corte, ensambladora, 1, 0.5, id_hab_armado, 1000.0)
+            bom_pata = ItemBOM("Receta Pata", {madera: 1, tornillos: 4})
+            
+            pata = ArticuloFabricadoInternamente("Pata de Mesa", [bom_pata], [tarea_pata])
+            if self.empresa.registrar_producto_nuevo(pata):
+                self.productos[pata.get_id()] = pata
 
-        tarea_mesa = Tarea(id_tarea_ensamble, ensambladora, 1, 1.5, id_hab_armado, 2500.0)
-        bom_mesa = ItemBOM("Receta Mesa", {madera: 1, pata: 4})  
-        
-        mesa = ArticuloFabricadoInternamente("Mesa Completa", [bom_mesa], [tarea_mesa])
-        if self.empresa.registrar_producto_nuevo(mesa):
-            self.productos[mesa.get_id()] = mesa
-        
-        print("\n-> [ÉXITO] Demo cargada con éxito en modo Relacional.")
+            tarea_mesa = Tarea(id_tarea_ensamble, ensambladora, 1, 1.5, id_hab_armado, 2500.0)
+            bom_mesa = ItemBOM("Receta Mesa", {madera: 1, pata: 4})  
+            
+            mesa = ArticuloFabricadoInternamente("Mesa Completa", [bom_mesa], [tarea_mesa])
+            if self.empresa.registrar_producto_nuevo(mesa):
+                self.productos[mesa.get_id()] = mesa
+            
+            print("\n-> [ÉXITO] Demo cargada con éxito en modo Relacional.")
