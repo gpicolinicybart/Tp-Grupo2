@@ -2,13 +2,21 @@
 from datetime import datetime
 from insumo_basico import InsumoBasico
 
+
 class Compra_Insumo:
     id = 0
-    def __init__(self, insumo: InsumoBasico, cantidad: int):
-        Compra_Insumo.id += 1
-        self._id = Compra_Insumo.id
+    def __init__(self, insumo, cantidad, id=None, estado="Solicitada"):
+        if id is None:
+            Compra_Insumo.id += 1
+            self._id = Compra_Insumo.id
+        else:
+            self._id = id
+            if id > Compra_Insumo.id: 
+                Compra_Insumo.id = id
+                
         self._insumo = insumo
         self._cantidad = cantidad
+        self._estado = estado
         self._fecha_emision = datetime.now()
         self._fecha_recepcion = None
         

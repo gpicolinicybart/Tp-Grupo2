@@ -29,6 +29,8 @@ class MenuAdministrativo(MenuBase):
         print("9. Ver Historial de Producción (Auditoría)")
         print("10. Ver Estado General del Sistema")
         print("11. Cargar Escenario de Prueba (Demo)")
+        print("12. Agregar Nueva Habilidad al Catálogo")
+        print("13. Agregar Nueva Tarea al Catálogo")
         print("0. Cerrar Sesión")
         print("="*60)
 
@@ -45,6 +47,8 @@ class MenuAdministrativo(MenuBase):
                 elif opcion == "9": self.ver_historial_produccion()  
                 elif opcion == "10": self.ver_estado()
                 elif opcion == "11": self.cargar_demo()
+                elif opcion == "12": self.empresa.agregar_habilidad(input("Nombre de la nueva Habilidad: "))
+                elif opcion == "13": self.empresa.agregar_tarea_maestra(input("Nombre del nuevo Tipo de Tarea: "))
                 elif opcion == "0":
                     print("\nCerrando sistema de gestion administrativa. Hasta luego.")
                     return False
@@ -72,23 +76,17 @@ class MenuAdministrativo(MenuBase):
         
     def crear_producto(self):
             print("\n--- REGISTRO DE PRODUCTO FABRICADO ---")
-            
-            # primero veo que hayan creado unidades e insumos asi no queda uno incompleto que no se puede editar despues
-            if not self.unidades:
-                print(" [!] ERROR: No se puede crear un producto fabricado si no existen Unidades de Trabajo.")
-                print("     Primero registre las máquinas (Opción 3).")
-                return
-                
-            if not self.insumos:
-                print(" [!] ERROR: No hay insumos registrados para armar la receta.")
-                print("     Primero registre los insumos básicos (Opción 1).")
-                return
-            
+            if not self.unidades or not self.insumos:
+                return print(" [!] ERROR: Faltan unidades o insumos para crear un producto.")
+
+            if not self.empresa._catalogo_tareas or not self.empresa._catalogo_habilidades:
+                return print(" [!] ERROR: Cargue los catálogos de tareas y habilidades (opciones 12 y 13) primero.")
+
             try:
                 nombre = input("Nombre del producto: ").strip()
                 
-                # insumo basicos
-                print("\nInsumos disponibles para la receta (BOM):")
+                # --- RECETA BOM ---
+                print("\nInsumos disponibles:")
                 for id_ins, ins in self.insumos.items():
                     print(f"  ID {id_ins}: {ins.get_nombre()}")
                 
@@ -96,67 +94,56 @@ class MenuAdministrativo(MenuBase):
                 while True:
                     entrada = input("\nIngrese ID del insumo (o '0' para finalizar receta): ")
                     if entrada == "0": break
-                    
-                    id_ins = int(entrada)
-                    if id_ins in self.insumos:
-                        cantidad = int(input(f"Cantidad de '{self.insumos[id_ins].get_nombre()}': "))
-                        bom_dict[self.insumos[id_ins]] = cantidad
+                    id_i = int(entrada)
+                    if id_i in self.insumos:
+                        cant = int(input(f"Cantidad de '{self.insumos[id_i].get_nombre()}': "))
+                        bom_dict[self.insumos[id_i]] = cant
                     else: print("ID no encontrado.")
                 
-                if not bom_dict:
-                    print(" [!] CANCELADO: Un producto requiere al menos un insumo.")
-                    return
-
+                if not bom_dict: return print("CANCELADO: Requiere materiales.")
                 bom = ItemBOM(f"Receta {nombre}", bom_dict)
                 
-                # tareas, unidad de trab
+                # --- TAREAS ---
                 print("\n--- ASIGNACIÓN DE TAREAS ---")
                 tareas_producto = []
-                
                 while True:
-                    agregar = input("¿Desea agregar una Tarea? (S/N): ").strip().upper()
-                    if agregar != 'S': 
-                        break
+                    if input("¿Desea agregar una Tarea? (S/N): ").strip().upper() != 'S': break
                     
-                    desc_tarea = input("Descripción de la Tarea: ")
+                    print("\nTipos de Tareas Maestras:")
+                    for tid, tnom in self.empresa._catalogo_tareas.items():
+                        print(f"  ID {tid}: {tnom}")
+                    id_t_maestra = int(input("ID de tarea maestra: "))
                     
-                    print("\n Unidades de trabajo disponibles:")
-                    for id_u, u in self.unidades.items():
-                        print(f"  ID {id_u}: {u.get_nombre()}")
-                        
-                    id_unidad = int(input("Ingrese ID de la unidad de trabajo: "))
-                    if id_unidad not in self.unidades:
-                        print("ERROR: Unidad de trabajo no encontrada.")
-                        continue
+                    print("\nUnidades Disponibles:")
+                    for uid, u in self.unidades.items():
+                        print(f"  ID {uid}: {u.get_nombre()}")
+                    id_unidad = int(input("ID de unidad: "))
                     
-                    habilidad = input("Habilidad requerida: ").strip()
-                    empleados_aptos = [c for c in self.colaboradores.values() if c.tiene_habilidad(habilidad)]
-                    
-                    if empleados_aptos:
-                        suma_sueldos = sum(c.get_salario_hora() for c in empleados_aptos)
-                        costo_mo = suma_sueldos / len(empleados_aptos)
-                        cant_colabs = int(input("Cantidad de operarios: "))
-                        tiempo = float(input("Tiempo (hs/unidad): "))
-                        nueva_tarea = Tarea(desc_tarea, self.unidades[id_unidad], cant_colabs, tiempo, habilidad, costo_mo)
-                        tareas_producto.append(nueva_tarea)
-                        print("-> Tarea añadida.")
-                    else:
-                        print(f" [!] ERROR: No hay personal con habilidad '{habilidad}'. Tarea descartada.")
+                    print("\nHabilidades Maestras Requeridas:")
+                    for hid, hnom in self.empresa._catalogo_habilidades.items():
+                        print(f"  ID {hid}: {hnom}")
+                    id_hab = int(input("ID de habilidad requerida: "))
 
-                #¿Se cargó al menos una tarea? x lo mismo que antes, si dice que no requiere nignuna tarea tiene q tirar error 
-                if not tareas_producto:
-                    print(f" [!] ERROR CRÍTICO: No se puede registrar '{nombre}' sin un proceso de manufactura.")
-                    print("     El registro ha sido abortado para evitar errores en la producción.")
-                    return
+                    cant_colabs = int(input("Cantidad de operarios: "))
+                    tiempo = float(input("Tiempo (hs/unidad): "))
+                    
+                    # Costo MO promedio automático
+                    aptos = [c for c in self.colaboradores.values() if c.tiene_habilidad(id_hab)]
+                    costo_mo = (sum(c.get_salario_hora() for c in aptos) / len(aptos)) if aptos else 0.0
 
-                # Si pasó todos los filtros, recién ahí lo creamos
+                    nueva_tarea = Tarea(id_t_maestra, self.unidades[id_unidad], cant_colabs, tiempo, id_hab, costo_mo)
+                    tareas_producto.append(nueva_tarea)
+                    print("-> Tarea añadida.")
+
+                if not tareas_producto: return print("ERROR: No se puede fabricar sin tareas.")
+
                 producto = ArticuloFabricadoInternamente(nombre, [bom], tareas_producto)
                 if self.empresa.registrar_producto_nuevo(producto):
                     self.productos[producto.get_id()] = producto
-                    print(f"\nCONFIRMACIÓN: Producto '{nombre}' (ID: {producto.get_id()}) registrado con éxito.")
-                
+                    print(f"\nCONFIRMACIÓN: Producto '{nombre}' (ID: {producto.get_id()}) registrado.")
+                    
             except ValueError as e:
-                print(f"ERROR: Datos inválidos. {e}")
+                print(f"ERROR: {e}")
 
     def agregar_unidad_trabajo(self):
         print("\n--- REGISTRO DE UNIDAD DE TRABAJO ---")
@@ -175,19 +162,34 @@ class MenuAdministrativo(MenuBase):
             print(f"ERROR: {e}")
 
     def agregar_colaborador(self):
-        print("\n--- REGISTRO DE COLABORADOR ---")
-        try:
-            habilidades = input("Habilidades (separadas por coma): ").split(",")
-            habilidades = [h.strip() for h in habilidades]
-            horas = float(input("Horas de disponibilidad: "))
-            salario = float(input("Salario por hora: $"))
-            colab = Colaborador(habilidades, horas, salario)
-            id_c=colab.get_id()
-            self.colaboradores[id_c] = colab # anoto el colaborador en el diccionario del menu
-            self.empresa.agregar_colaborador(colab)
-            print(f"CONFIRMACIÓN: Colaborador {id_c} agregado a la nómina.")
-        except ValueError as e:
-            print(f"ERROR: {e}")
+            print("\n--- REGISTRO DE COLABORADOR ---")
+            if not self.empresa._catalogo_habilidades:
+                print(" [!] ERROR: No hay habilidades en el catálogo maestro. Cargue una con la opción 12.")
+                return
+            print("\nCatálogo de Habilidades Disponibles:")
+            for id_h, nom in self.empresa._catalogo_habilidades.items():
+                print(f"  ID {id_h}: {nom}")
+            try:
+                entrada = input("\nIngrese los IDs de las habilidades (separados por coma): ").split(",")
+                habilidades_ids = []
+                for x in entrada:
+                    x = x.strip()
+                    if x.isdigit() and int(x) in self.empresa._catalogo_habilidades:
+                        habilidades_ids.append(int(x))
+                if not habilidades_ids:
+                    return print(" [!] ERROR: Debe ingresar IDs válidos.")
+                
+                horas = float(input("Horas de disponibilidad: "))
+                salario = float(input("Salario por hora: $"))
+                colab = Colaborador(habilidades_ids, horas, salario)
+                id_c = colab.get_id()
+                self.colaboradores[id_c] = colab
+                self.empresa.agregar_colaborador(colab)
+                nombres_h = [self.empresa._catalogo_habilidades[hid] for hid in habilidades_ids]
+                print(f"CONFIRMACIÓN: Colaborador {id_c} registrado con habilidades: {nombres_h}")
+                
+            except ValueError as e:
+                print(f"ERROR: Datos inválidos. {e}")
 
     def dar_baja_colaborador(self):
         print("\n--- BAJA DE PERSONAL ---")

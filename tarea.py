@@ -1,12 +1,12 @@
 from unidad_de_trabajo import UnidadDeTrabajo
 
 class Tarea:
-    def __init__(self, descripcion: str, unidad_requerida: UnidadDeTrabajo, cant_colaboradores_req: int, tiempo_por_unidad: float, habilidad_requerida: str,costo_mano_obra_hora: float):
-        self._descripcion = descripcion
+    def __init__(self, id_tarea_maestra: int, unidad_requerida, cant_colaboradores_req: int, tiempo_por_unidad: float, id_habilidad_requerida: int, costo_mano_obra_hora: float):
+        self._id_tarea_maestra = id_tarea_maestra
         self._unidad_requerida = unidad_requerida
         self._cant_colaboradores_req = cant_colaboradores_req
         self._tiempo_por_unidad = tiempo_por_unidad
-        self._habilidad_requerida = habilidad_requerida
+        self._id_habilidad_requerida = id_habilidad_requerida
         self._costo_mano_obra_hora = self.validar_costo_mano_obra(costo_mano_obra_hora)
         
     @staticmethod
@@ -27,8 +27,8 @@ class Tarea:
     def get_unidad_requerida(self) -> UnidadDeTrabajo:
         return self._unidad_requerida
 
-    def get_habilidad_requerida(self) -> str:
-        return self._habilidad_requerida
+    def get_habilidad_requerida(self) -> int:
+        return self._id_habilidad_requerida
 
     def get_cant_colaboradores_req(self) -> int:
         return self._cant_colaboradores_req
@@ -44,13 +44,10 @@ class Tarea:
         return float(self._tiempo_por_unidad) * float(cantidad_pedida)
 
     def filtrar_colaboradores_aptos(self, diccionario_colabs: dict, horas_totales: float) -> list:
-        #Ufiltra personal apto y los ordena por salario para elegir los más baratos. 
-        aptos = list(filter(
-            lambda c: c.tiene_habilidad(self._habilidad_requerida) and c.verificar_disponibilidad(horas_totales), 
-            diccionario_colabs.values()
-        ))
-        # Los ordena por salario (del más barato al más caro) para ahorrar plata
-        return sorted(aptos, key=lambda c: c.get_salario_hora())
+            aptos = list(filter(
+                lambda c: c.tiene_habilidad(self._id_habilidad_requerida) and c.verificar_disponibilidad(horas_totales), 
+                diccionario_colabs.values()))
+            return sorted(aptos, key=lambda c: c.get_salario_hora())
 
     def ejecutar_reservas(self, horas_totales: float, colaboradores: list):
         # Ejecuta las reservas de máquina y personal. 

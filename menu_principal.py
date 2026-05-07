@@ -15,13 +15,20 @@ class MenuPrincipal:
         self.dicc_unidades = {}
         self.dicc_colaboradores = {}
         
-        # --- NUEVO: Sincronizar lo que cargó la Empresa con los menús ---
+#  Sincronizar lo que cargó la Empresa con los menús
         for elem in self.empresa._catalogo_elementos:
             if isinstance(elem, ArticuloFabricadoInternamente):
                 self.dicc_productos[elem.get_id()] = elem
             elif isinstance(elem, InsumoBasico):
                 self.dicc_insumos[elem.get_id()] = elem
-        # ----------------------------------------------------------------
+                
+        # >>> AGREGAR ESTO PARA SINCRONIZAR MÁQUINAS Y PERSONAL <<<
+        for u in self.empresa._unidades:
+            self.dicc_unidades[u.get_id()] = u
+            
+        for c_id, c in self.empresa._colaboradores.items():
+            self.dicc_colaboradores[c_id] = c
+        # >>> -------------------------------------------------- <<<
         
         self.menu_admin = MenuAdministrativo(
             self.empresa, self.dicc_insumos, self.dicc_productos, 
