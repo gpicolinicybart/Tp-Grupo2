@@ -111,8 +111,8 @@ class MenuAdministrativo(MenuBase):
                     if input("¿Desea agregar una Tarea? (S/N): ").strip().upper() != 'S': break
 
                     print("\nTipos de Tareas Maestras:")
-                    for tid, datos in self.empresa._catalogo_tareas.items():
-                        print(f"  ID {tid}: {datos['nombre']} (Mesa: #{datos['id_unidad']} | Hab: #{datos['id_habilidad']})")
+                    for id_tarea, datos_tarea in self.empresa._catalogo_tareas.items():
+                        print(f"  ID {id_tarea}: {datos_tarea['nombre']} (Mesa: #{datos_tarea['id_unidad']} | Hab: #{datos_tarea['id_habilidad']})")
                     id_t_maestra = int(input("ID de tarea maestra a usar: "))
                     
                     if id_t_maestra not in self.empresa._catalogo_tareas:

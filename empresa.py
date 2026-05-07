@@ -134,10 +134,10 @@ class Empresa:
             
             # Verificamos Disponibilidad de Máquina
             if not unidad.verificar_disponibilidad(horas_totales):
-                id_t = tarea.get_id_tarea_maestra()
+                id_tarea_maestra = tarea.get_id_tarea_maestra()
                 # Accedemos al diccionario maestro que ahora tiene el formato {"nombre": "...", ...}
-                datos_t = self._catalogo_tareas.get(id_t)
-                nombre_tarea = datos_t["nombre"] if isinstance(datos_t, dict) else f"Tarea ID {id_t}"
+                datos_tarea = self._catalogo_tareas.get(id_tarea_maestra)
+                nombre_tarea = datos_tarea["nombre"] if isinstance(datos_tarea, dict) else f"Tarea ID {id_tarea_maestra}"
                 print(f" [!] Falta capacidad en la Unidad #{unidad.get_id()} para la tarea '{nombre_tarea}'.")
                 return False, [] 
                 

@@ -1,6 +1,18 @@
 from itembom import ItemBOM
 from datetime import datetime
 
+ESTADOS_VALIDOS = (
+    "Creada",
+    "Procesada y Planificada",
+    "En Ejecución",
+    "Terminada",
+    "Demorada por falta de stock",
+    "Demorada por falta de capacidad",
+    "Demorada por falta de colaboradores",
+    "Demorada por falta de recursos/validación",
+    "Demorada por Error Interno"
+)
+
 class SolicitudDeFabricacion:
     id_solicitud=0
     def __init__(self, item_solicitado, cantidad: int, es_para_cliente: bool):
@@ -24,6 +36,8 @@ class SolicitudDeFabricacion:
     def get_cantidad(self):
         return self._cantidad
     def set_estado(self, nuevo_estado: str):
+        if nuevo_estado not in ESTADOS_VALIDOS:
+            raise ValueError(f"Error: Estado inválido: '{nuevo_estado}'.")
         self._estado = nuevo_estado
     
     def agregar_colaborador(self, id_colaborador: int):
@@ -49,5 +63,5 @@ class SolicitudDeFabricacion:
         return cantidad
 
     def marcar_como_terminada(self):
-        self._estado = "Terminada"
+        self.set_estado("Terminada")
         self._fecha_finalizacion = datetime.now()
