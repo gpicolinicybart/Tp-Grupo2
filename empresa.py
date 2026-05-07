@@ -119,38 +119,43 @@ class Empresa:
         return False
 
     def gestionar_capacidad(self, producto, cantidad_pedida) -> tuple:
-            asignaciones_pendientes = [] 
-            lista_tareas = producto.get_lista_tareas()
+        asignaciones_pendientes = [] 
+        lista_tareas = producto.get_lista_tareas() # Esto es una ListaEnlazadaTareas
 
-            if not lista_tareas.cabecera:
-                print(f" [!] ERROR: El producto '{producto.get_nombre()}' no tiene tareas asignadas para su fabricación.")
+        if not lista_tareas.cabecera:
+            print(f" [!] ERROR: El producto '{producto.get_nombre()}' no tiene tareas asignadas.")
+            return False, []
+
+        nodo_actual = lista_tareas.cabecera
+        while nodo_actual is not None:
+            tarea = nodo_actual.tarea
+            horas_totales = tarea.calcular_horas_totales(cantidad_pedida)
+            unidad = tarea.get_unidad_requerida()
+            
+            # Verificamos Disponibilidad de Máquina
+            if not unidad.verificar_disponibilidad(horas_totales):
+                id_t = tarea.get_id_tarea_maestra()
+                # Accedemos al diccionario maestro que ahora tiene el formato {"nombre": "...", ...}
+                datos_t = self._catalogo_tareas.get(id_t)
+                nombre_tarea = datos_t["nombre"] if isinstance(datos_t, dict) else f"Tarea ID {id_t}"
+                print(f" [!] Falta capacidad en la Unidad #{unidad.get_id()} para la tarea '{nombre_tarea}'.")
+                return False, [] 
+                
+            colabs_necesarios = tarea.get_cant_colaboradores_req()
+            colabs_aptos = tarea.filtrar_colaboradores_aptos(self._colaboradores, horas_totales)
+            
+            # Verificamos Disponibilidad de Personal
+            if len(colabs_aptos) < colabs_necesarios:
+                id_hab = tarea.get_id_habilidad_requerida()
+                nombre_hab = self._catalogo_habilidades.get(id_hab, f"Habilidad ID {id_hab}")
+                print(f" [!] No hay suficientes colaboradores con la habilidad '{nombre_hab}'.")
                 return False, []
-
-            nodo_actual = lista_tareas.cabecera
-            while nodo_actual is not None:
-                tarea = nodo_actual.tarea
-                horas_totales = tarea.calcular_horas_totales(cantidad_pedida)
-                unidad = tarea.get_unidad_requerida()
-                if not unidad.verificar_disponibilidad(horas_totales):
-                    # Buscamos el nombre de la tarea en el diccionario usando su ID
-                    id_t = tarea.get_id_tarea_maestra()
-                    nombre_tarea = self._catalogo_tareas.get(id_t, f"Tarea ID {id_t}")
-                    print(f" [!] Falta capacidad en la Unidad #{unidad.get_id()} para la tarea '{nombre_tarea}'.")
-                    return False, []
-                colabs_necesarios = tarea.get_cant_colaboradores_req()
-                colabs_aptos = tarea.filtrar_colaboradores_aptos(self._colaboradores, horas_totales)
-
-                if len(colabs_aptos) < colabs_necesarios:
-                    # Buscamos el nombre de la habilidad en el diccionario usando su ID
-                    id_hab = tarea.get_id_habilidad_requerida()
-                    nombre_hab = self._catalogo_habilidades.get(id_hab, f"Habilidad ID {id_hab}")
-                    print(f" [!] No hay suficientes colaboradores con la habilidad '{nombre_hab}' y {horas_totales}hs libres.")
-                    return False, []
-                colabs_encontrados = colabs_aptos[:colabs_necesarios]
-                asignaciones_pendientes.append((tarea, horas_totales, colabs_encontrados))
-                nodo_actual = nodo_actual.siguiente
-
-            return True, asignaciones_pendientes
+                
+            colabs_encontrados = colabs_aptos[:colabs_necesarios]
+            asignaciones_pendientes.append((tarea, horas_totales, colabs_encontrados))
+            nodo_actual = nodo_actual.siguiente # Avanzamos en la lista enlazada
+            
+        return True, asignaciones_pendientes
 
     def confirmar_reservas(self, solicitud, materiales_necesarios, asignaciones_pendientes):
             print(" -> Stock y Capacidad OK. Confirmando reservas...")
@@ -620,7 +625,7 @@ class Empresa:
                             id_habilidad_requerida=int(fila["ID_Hab_Req"]),
                             costo_mano_obra_hora=float(fila["Costo MO"])
                         )
-                        prod.get_lista_tareas().append(nueva_t)
+                        prod.get_lista_tareas().agregar_al_final(nueva_t)
         except Exception as e: print(f"Error: {e}")
     def guardar_compras_csv(self):
             try:
@@ -659,9 +664,13 @@ class Empresa:
             self.guardar_catalogos_maestros()
             return nuevo_id
 
-    def agregar_tarea_maestra(self, nombre: str):
+    def agregar_tarea_maestra(self, nombre: str, id_unidad: int, id_habilidad: int):
         nuevo_id = len(self._catalogo_tareas) + 1 if self._catalogo_tareas else 1
-        self._catalogo_tareas[nuevo_id] = nombre.strip().title()
+        self._catalogo_tareas[nuevo_id] = {
+            "nombre": nombre.strip().title(),
+            "id_unidad": id_unidad,
+            "id_habilidad": id_habilidad
+        }
         self.guardar_catalogos_maestros()
         return nuevo_id
 
@@ -675,9 +684,9 @@ class Empresa:
                     
             with open("tareas_maestras.csv", mode='w', newline='', encoding='utf-8') as f:
                 writer = csv.writer(f)
-                writer.writerow(["ID", "Nombre"])
-                for id_t, nom in self._catalogo_tareas.items():
-                    writer.writerow([id_t, nom])
+                writer.writerow(["ID", "Nombre", "ID_Unidad", "ID_Habilidad"])
+                for id_t, datos in self._catalogo_tareas.items():
+                    writer.writerow([id_t, datos["nombre"], datos["id_unidad"], datos["id_habilidad"]])
         except IOError as e:
             print(f"-> [ERROR] Falló la escritura de catálogos: {e}")
 
@@ -690,4 +699,8 @@ class Empresa:
         if os.path.exists("tareas_maestras.csv"):
             with open("tareas_maestras.csv", mode='r', encoding='utf-8') as f:
                 for fila in csv.DictReader(f):
-                    self._catalogo_tareas[int(fila["ID"])] = fila["Nombre"]
+                    self._catalogo_tareas[int(fila["ID"])] = {
+                        "nombre": fila["Nombre"],
+                        "id_unidad": int(fila["ID_Unidad"]),
+                        "id_habilidad": int(fila["ID_Habilidad"])
+                    }

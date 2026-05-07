@@ -49,7 +49,7 @@ class MenuAdministrativo(MenuBase):
                 elif opcion == "10": self.ver_estado()
                 elif opcion == "11": self.cargar_demo()
                 elif opcion == "12": self.empresa.agregar_habilidad(input("Nombre de la nueva Habilidad: "))
-                elif opcion == "13": self.empresa.agregar_tarea_maestra(input("Nombre del nuevo Tipo de Tarea: "))
+                elif opcion == "13": self.crear_tarea_maestra()
                 elif opcion == "0":
                     print("\nCerrando sistema de gestion administrativa. Hasta luego.")
                     return False
@@ -111,30 +111,19 @@ class MenuAdministrativo(MenuBase):
                     if input("¿Desea agregar una Tarea? (S/N): ").strip().upper() != 'S': break
 
                     print("\nTipos de Tareas Maestras:")
-                    for tid, tnom in self.empresa._catalogo_tareas.items():
-                        print(f"  ID {tid}: {tnom}")
-                    id_t_maestra = int(input("ID de tarea maestra: "))
+                    for tid, datos in self.empresa._catalogo_tareas.items():
+                        print(f"  ID {tid}: {datos['nombre']} (Mesa: #{datos['id_unidad']} | Hab: #{datos['id_habilidad']})")
+                    id_t_maestra = int(input("ID de tarea maestra a usar: "))
+                    
                     if id_t_maestra not in self.empresa._catalogo_tareas:
                         print(" [!] ERROR: ID de tarea no existe.")
                         continue
 
-                    print("\nUnidades Disponibles:")
-                    for uid, u in self.unidades.items():
-                        print(f"  ID {uid}: {u.get_nombre()}")
-                    id_unidad = int(input("ID de unidad: "))
-                    if id_unidad not in self.unidades:
-                        print(" [!] ERROR: Unidad no encontrada.")
-                        continue
+                    datos_maestros = self.empresa._catalogo_tareas[id_t_maestra]
+                    id_unidad = datos_maestros["id_unidad"]
+                    id_hab = datos_maestros["id_habilidad"]
 
-                    print("\nHabilidades Maestras Requeridas:")
-                    for hid, hnom in self.empresa._catalogo_habilidades.items():
-                        print(f"  ID {hid}: {hnom}")
-                    id_hab = int(input("ID de habilidad requerida: "))
-                    if id_hab not in self.empresa._catalogo_habilidades:
-                        print(" [!] ERROR: Habilidad no encontrada.")
-                        continue
-
-                    cant_colabs = int(input("Cantidad de operarios: "))
+                    cant_colabs = int(input("Cantidad de operarios para esta receta: "))
                     tiempo = float(input("Tiempo (hs/unidad): "))
 
                     aptos = [c for c in self.colaboradores.values() if c.tiene_habilidad(id_hab)]
@@ -142,7 +131,7 @@ class MenuAdministrativo(MenuBase):
 
                     nueva_tarea = Tarea(id_t_maestra, self.unidades[id_unidad], cant_colabs, tiempo, id_hab, costo_mo)
                     tareas_producto.agregar_al_final(nueva_tarea)
-                    print("-> Tarea añadida.")
+                    print("-> Tarea añadida a la receta.")
 
                 if not tareas_producto.cabecera: return print("ERROR: No se puede fabricar sin tareas.")
 
@@ -361,49 +350,73 @@ class MenuAdministrativo(MenuBase):
         print("="*60)
 
     def cargar_demo(self):
-            print("\n--- CARGANDO DEMO INDUSTRIAL ---")
-            
-            # 0. CATÁLOGOS MAESTROS 
-            id_hab_armado = self.empresa.agregar_habilidad("Armado General")
-            id_tarea_ensamble = self.empresa.agregar_tarea_maestra("Ensamblaje Manual")
-            id_tarea_corte = self.empresa.agregar_tarea_maestra("Corte de Madera")
-            
-            # 1. Insumos basicos
-            madera = InsumoBasico("Tablón de Madera", 5000.0)
-            tornillos = InsumoBasico("Tornillos 10mm", 5.0)
+        print("\n--- CARGANDO DEMO INDUSTRIAL ---")
+        
+        # 1. Creamos Habilidad Maestra
+        id_hab_armado = self.empresa.agregar_habilidad("Armado General")
+        
+        # 2. Creamos Unidad de Trabajo
+        ensambladora = UnidadDeTrabajo("Mesa de Ensamblaje", 80.0, 500.0)
+        self.unidades[ensambladora.get_id()] = ensambladora
+        self.empresa.agregar_unidad_trabajo(ensambladora)
+        
+        # 3. Creamos Tareas Maestras (ahora vinculan Máquina y Habilidad)
+        id_tarea_ensamble = self.empresa.agregar_tarea_maestra("Ensamblaje Manual", ensambladora.get_id(), id_hab_armado)
+        id_tarea_corte = self.empresa.agregar_tarea_maestra("Corte de Madera", ensambladora.get_id(), id_hab_armado)
+        
+        # 4. Insumos y Stock
+        madera = InsumoBasico("Tablón de Madera", 5000.0)
+        tornillos = InsumoBasico("Tornillos 10mm", 5.0)
+        for insumo in [madera, tornillos]:
+            if self.empresa.registrar_producto_nuevo(insumo):
+                self.insumos[insumo.get_id()] = insumo
+                self.empresa._inventario.ingresar_stock(insumo, 1000)
+        
+        # 5. Colaborador
+        carpintero = Colaborador([id_hab_armado], 40.0, 2500.0)
+        self.colaboradores[carpintero.get_id()] = carpintero
+        self.empresa.agregar_colaborador(carpintero)
 
-            for insumo in [madera, tornillos]:
-                if self.empresa.registrar_producto_nuevo(insumo):
-                    self.insumos[insumo.get_id()] = insumo
-                    self.empresa._inventario.ingresar_stock(insumo, 1000)
+        # 6. Definición de Productos (Usando ListaEnlazadaTareas)
+        # --- PATA DE MESA ---
+        tarea_pata = Tarea(id_tarea_corte, ensambladora, 1, 0.5, id_hab_armado, 1000.0)
+        bom_pata = ItemBOM("Receta Pata", {madera: 1, tornillos: 4})
+        
+        lista_pata = ListaEnlazadaTareas()
+        lista_pata.agregar_al_final(tarea_pata)
+        pata = ArticuloFabricadoInternamente("Pata de Mesa", [bom_pata], lista_pata)
+        if self.empresa.registrar_producto_nuevo(pata):
+            self.productos[pata.get_id()] = pata
+
+        # --- MESA COMPLETA ---
+        tarea_mesa = Tarea(id_tarea_ensamble, ensambladora, 1, 1.5, id_hab_armado, 2500.0)
+        bom_mesa = ItemBOM("Receta Mesa", {madera: 1, pata: 4})
+        
+        lista_mesa = ListaEnlazadaTareas()
+        lista_mesa.agregar_al_final(tarea_mesa)
+        mesa = ArticuloFabricadoInternamente("Mesa Completa", [bom_mesa], lista_mesa)
+        if self.empresa.registrar_producto_nuevo(mesa):
+            self.productos[mesa.get_id()] = mesa
+        
+        print("\n-> [ÉXITO] Demo cargada con éxito en modo Centralizado y con Listas Enlazadas.")
+
+    def crear_tarea_maestra(self):
+            print("\n--- NUEVA TAREA MAESTRA ---")
+            if not self.unidades or not self.empresa._catalogo_habilidades:
+                return print("ERROR: Debe cargar al menos una Unidad y una Habilidad primero.")
+                
+            nombre = input("Nombre del Tipo de Tarea: ")
             
-            # 2. Unidades de trabajo y personal
-            ensambladora = UnidadDeTrabajo("Mesa de Ensamblaje", 80.0, 500.0)
-            self.unidades[ensambladora.get_id()] = ensambladora
-            self.empresa.agregar_unidad_trabajo(ensambladora)
+            print("\nUnidades Disponibles:")
+            for uid, u in self.unidades.items(): print(f"  ID {uid}: {u.get_nombre()}")
+            id_u = int(input("ID de la Unidad asociada: "))
             
-            # LE PASAMOS EL ID DE LA HABILIDAD, NO EL TEXTO
-            carpintero = Colaborador([id_hab_armado], 40.0, 2500.0)
-            self.colaboradores[carpintero.get_id()] = carpintero
-            self.empresa.agregar_colaborador(carpintero)
-
-            # 3. Tareas y Recetas usando los IDs Relacionales
-            tarea_pata = Tarea(id_tarea_corte, ensambladora, 1, 0.5, id_hab_armado, 1000.0)
-            bom_pata = ItemBOM("Receta Pata", {madera: 1, tornillos: 4})
-
-            lista_pata = ListaEnlazadaTareas()
-            lista_pata.agregar_al_final(tarea_pata)
-            pata = ArticuloFabricadoInternamente("Pata de Mesa", [bom_pata], lista_pata)
-            if self.empresa.registrar_producto_nuevo(pata):
-                self.productos[pata.get_id()] = pata
-
-            tarea_mesa = Tarea(id_tarea_ensamble, ensambladora, 1, 1.5, id_hab_armado, 2500.0)
-            bom_mesa = ItemBOM("Receta Mesa", {madera: 1, pata: 4})
-
-            lista_mesa = ListaEnlazadaTareas()
-            lista_mesa.agregar_al_final(tarea_mesa)
-            mesa = ArticuloFabricadoInternamente("Mesa Completa", [bom_mesa], lista_mesa)
-            if self.empresa.registrar_producto_nuevo(mesa):
-                self.productos[mesa.get_id()] = mesa
+            print("\nHabilidades Disponibles:")
+            for hid, hnom in self.empresa._catalogo_habilidades.items(): print(f"  ID {hid}: {hnom}")
+            id_h = int(input("ID de la Habilidad requerida: "))
             
-            print("\n-> [ÉXITO] Demo cargada con éxito en modo Relacional.")
+            if id_u in self.unidades and id_h in self.empresa._catalogo_habilidades:
+                self.empresa.agregar_tarea_maestra(nombre, id_u, id_h)
+                print("CONFIRMACIÓN: Tarea Maestra creada exitosamente.")
+            else:
+                print("ERROR: IDs no válidos.")

@@ -25,3 +25,8 @@ class ListaEnlazadaTareas:
             contador += 1
             nodo_actual = nodo_actual.siguiente
         return contador
+    def __iter__(self):
+        nodo_actual = self.cabecera
+        while nodo_actual is not None:
+            yield nodo_actual.tarea
+            nodo_actual = nodo_actual.siguiente
