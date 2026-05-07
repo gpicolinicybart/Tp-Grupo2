@@ -9,6 +9,7 @@ from colaboradores import Colaborador
 from compra_insumo import Compra_Insumo  
 from itembom import ItemBOM
 from tarea import Tarea
+from lista_tareas import ListaEnlazadaTareas
 
 class MenuAdministrativo(MenuBase):
     def __init__(self, empresa, insumos, productos, unidades, colaboradores):
@@ -105,10 +106,10 @@ class MenuAdministrativo(MenuBase):
                 
                 # --- TAREAS ---
                 print("\n--- ASIGNACIÓN DE TAREAS ---")
-                tareas_producto = []
+                tareas_producto = ListaEnlazadaTareas()
                 while True:
                     if input("¿Desea agregar una Tarea? (S/N): ").strip().upper() != 'S': break
-                    
+
                     print("\nTipos de Tareas Maestras:")
                     for tid, tnom in self.empresa._catalogo_tareas.items():
                         print(f"  ID {tid}: {tnom}")
@@ -116,7 +117,7 @@ class MenuAdministrativo(MenuBase):
                     if id_t_maestra not in self.empresa._catalogo_tareas:
                         print(" [!] ERROR: ID de tarea no existe.")
                         continue
-                    
+
                     print("\nUnidades Disponibles:")
                     for uid, u in self.unidades.items():
                         print(f"  ID {uid}: {u.get_nombre()}")
@@ -124,7 +125,7 @@ class MenuAdministrativo(MenuBase):
                     if id_unidad not in self.unidades:
                         print(" [!] ERROR: Unidad no encontrada.")
                         continue
-                    
+
                     print("\nHabilidades Maestras Requeridas:")
                     for hid, hnom in self.empresa._catalogo_habilidades.items():
                         print(f"  ID {hid}: {hnom}")
@@ -135,15 +136,15 @@ class MenuAdministrativo(MenuBase):
 
                     cant_colabs = int(input("Cantidad de operarios: "))
                     tiempo = float(input("Tiempo (hs/unidad): "))
-                    
+
                     aptos = [c for c in self.colaboradores.values() if c.tiene_habilidad(id_hab)]
                     costo_mo = (sum(c.get_salario_hora() for c in aptos) / len(aptos)) if aptos else 0.0
 
                     nueva_tarea = Tarea(id_t_maestra, self.unidades[id_unidad], cant_colabs, tiempo, id_hab, costo_mo)
-                    tareas_producto.append(nueva_tarea)
+                    tareas_producto.agregar_al_final(nueva_tarea)
                     print("-> Tarea añadida.")
 
-                if not tareas_producto: return print("ERROR: No se puede fabricar sin tareas.")
+                if not tareas_producto.cabecera: return print("ERROR: No se puede fabricar sin tareas.")
 
                 producto = ArticuloFabricadoInternamente(nombre, [bom], tareas_producto)
                 if self.empresa.registrar_producto_nuevo(producto):
@@ -389,15 +390,19 @@ class MenuAdministrativo(MenuBase):
             # 3. Tareas y Recetas usando los IDs Relacionales
             tarea_pata = Tarea(id_tarea_corte, ensambladora, 1, 0.5, id_hab_armado, 1000.0)
             bom_pata = ItemBOM("Receta Pata", {madera: 1, tornillos: 4})
-            
-            pata = ArticuloFabricadoInternamente("Pata de Mesa", [bom_pata], [tarea_pata])
+
+            lista_pata = ListaEnlazadaTareas()
+            lista_pata.agregar_al_final(tarea_pata)
+            pata = ArticuloFabricadoInternamente("Pata de Mesa", [bom_pata], lista_pata)
             if self.empresa.registrar_producto_nuevo(pata):
                 self.productos[pata.get_id()] = pata
 
             tarea_mesa = Tarea(id_tarea_ensamble, ensambladora, 1, 1.5, id_hab_armado, 2500.0)
-            bom_mesa = ItemBOM("Receta Mesa", {madera: 1, pata: 4})  
-            
-            mesa = ArticuloFabricadoInternamente("Mesa Completa", [bom_mesa], [tarea_mesa])
+            bom_mesa = ItemBOM("Receta Mesa", {madera: 1, pata: 4})
+
+            lista_mesa = ListaEnlazadaTareas()
+            lista_mesa.agregar_al_final(tarea_mesa)
+            mesa = ArticuloFabricadoInternamente("Mesa Completa", [bom_mesa], lista_mesa)
             if self.empresa.registrar_producto_nuevo(mesa):
                 self.productos[mesa.get_id()] = mesa
             
