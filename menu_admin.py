@@ -126,8 +126,8 @@ class MenuAdministrativo(MenuBase):
                     cant_colabs = int(input("Cantidad de operarios para esta receta: "))
                     tiempo = float(input("Tiempo (hs/unidad): "))
 
-                    aptos = [c for c in self.colaboradores.values() if c.tiene_habilidad(id_hab)]
-                    costo_mo = (sum(c.get_salario_hora() for c in aptos) / len(aptos)) if aptos else 0.0
+                    aptos = [colaborador for colaborador in self.colaboradores.values() if colaborador.tiene_habilidad(id_hab)]
+                    costo_mo = (sum(colaborador.get_salario_hora() for colaborador in aptos) / len(aptos)) if aptos else 0.0
 
                     nueva_tarea = Tarea(id_t_maestra, self.unidades[id_unidad], cant_colabs, tiempo, id_hab, costo_mo)
                     tareas_producto.agregar_al_final(nueva_tarea)
@@ -170,10 +170,10 @@ class MenuAdministrativo(MenuBase):
             try:
                 entrada = input("\nIngrese los IDs de las habilidades (separados por coma): ").split(",")
                 habilidades_ids = []
-                for x in entrada:
-                    x = x.strip()
-                    if x.isdigit() and int(x) in self.empresa._catalogo_habilidades:
-                        habilidades_ids.append(int(x))
+                for id_texto in entrada:
+                    id_texto = id_texto.strip()
+                    if id_texto.isdigit() and int(id_texto) in self.empresa._catalogo_habilidades:
+                        habilidades_ids.append(int(id_texto))
                 if not habilidades_ids:
                     return print(" [!] ERROR: Debe ingresar IDs válidos.")
                 

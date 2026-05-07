@@ -46,8 +46,8 @@ class MenuProduccion(MenuBase):
             
         try:
             print("Productos disponibles:")
-            for id_p, p in self.productos.items():
-                print(f"  ID {id_p}: {p.get_nombre()}")
+            for id_producto, producto in self.productos.items():
+                print(f"  ID {id_producto}: {producto.get_nombre()}")
             
             id_p = int(input("\nID del producto a fabricar: "))
             if id_p not in self.productos:

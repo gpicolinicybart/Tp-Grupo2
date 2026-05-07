@@ -49,10 +49,10 @@ class Empresa:
     def procesar_solicitud(self):
         print("\n--- PROCESANDO PLANIFICACIÓN DE PRODUCCIÓN ---")
         
-        elegibles = [] 
-        for s in self._solicitudes.values(): 
-            if s.get_estado() == "Creada" or s.get_estado().startswith("Demorada"): 
-                elegibles.append(s) 
+        elegibles = []
+        for solicitud in self._solicitudes.values():
+            if solicitud.get_estado() == "Creada" or solicitud.get_estado().startswith("Demorada"):
+                elegibles.append(solicitud)
     
         if not elegibles:
             print("-> AVISO: No hay solicitudes para procesar. Creá una con la opción 5 o esperá a que lleguen insumos (opción 14) si hay demoradas.")
@@ -315,9 +315,9 @@ class Empresa:
             print("  No hay unidades registradas.")
         else: # para encontrar la maquina más saturada de la planta uso max() y lambda como clave (key)
             # busco el objeto mas grande de la lista ejecutando get_porcentaje_uso()
-            unidad_critica = max(lista_unidades, key=lambda x: x.get_porcentaje_uso())
-            for x in lista_unidades:
-                print(f"  - Unidad #{x.get_id()} ({x.get_nombre()}): {x.get_porcentaje_uso():.1f}% de ocupación.")
+            unidad_critica = max(lista_unidades, key=lambda unidad: unidad.get_porcentaje_uso())
+            for unidad in lista_unidades:
+                print(f"  - Unidad #{unidad.get_id()} ({unidad.get_nombre()}): {unidad.get_porcentaje_uso():.1f}% de ocupación.")
             
             if unidad_critica.get_porcentaje_uso() > 0:
                 print(f"  >>> UNIDAD DE TRABAJO MÁS EXIGIDA: {unidad_critica.get_nombre()}")
@@ -541,8 +541,8 @@ class Empresa:
             with open("unidades.csv", mode='w', newline='', encoding='utf-8') as archivo:
                 writer = csv.writer(archivo)
                 writer.writerow(["ID Unidad", "Nombre", "Capacidad", "Costo Operativo"])
-                for u in self._unidades:
-                    writer.writerow([u.get_id(), u.get_nombre(), u.get_capacidad_max_horas(), u.get_costo_operativo()])
+                for unidad in self._unidades:
+                    writer.writerow([unidad.get_id(), unidad.get_nombre(), unidad.get_capacidad_max_horas(), unidad.get_costo_operativo()])
         except IOError as e:
             print(f"-> [ERROR] Falló la escritura de unidades: {e}")
 
@@ -553,11 +553,11 @@ class Empresa:
             with open("unidades.csv", mode='r', encoding='utf-8') as archivo:
                 reader = csv.DictReader(archivo)
                 for fila in reader:
-                    u = UnidadDeTrabajo(fila["Nombre"], float(fila["Capacidad"]), float(fila["Costo Operativo"]))
-                    u._id = int(fila["ID Unidad"]) 
-                    if hasattr(UnidadDeTrabajo, 'id_unidad') and u._id > UnidadDeTrabajo.id_unidad:
-                        UnidadDeTrabajo.id_unidad = u._id
-                    self._unidades.append(u)
+                    nueva_unidad = UnidadDeTrabajo(fila["Nombre"], float(fila["Capacidad"]), float(fila["Costo Operativo"]))
+                    nueva_unidad._id = int(fila["ID Unidad"])
+                    if hasattr(UnidadDeTrabajo, 'id_unidad') and nueva_unidad._id > UnidadDeTrabajo.id_unidad:
+                        UnidadDeTrabajo.id_unidad = nueva_unidad._id
+                    self._unidades.append(nueva_unidad)
         except Exception as e:
             print(f"-> [ERROR] Falló la carga de unidades: {e}")
 
@@ -567,10 +567,9 @@ class Empresa:
             with open("colaboradores.csv", mode='w', newline='', encoding='utf-8') as archivo:
                 writer = csv.writer(archivo)
                 writer.writerow(["ID Colaborador", "Habilidades_IDs", "Horas Disponibles", "Salario Hora"])
-                for c in self._colaboradores.values():
-                    # Usamos punto y coma para separar la lista de números
-                    ids_str = ";".join(map(str, c.get_habilidades()))
-                    writer.writerow([c.get_id(), ids_str, c.get_horas_disponibles(), c.get_salario_hora()])
+                for colaborador in self._colaboradores.values():
+                    ids_str = ";".join(map(str, colaborador.get_habilidades()))
+                    writer.writerow([colaborador.get_id(), ids_str, colaborador.get_horas_disponibles(), colaborador.get_salario_hora()])
         except IOError as e: print(f"Error: {e}")
 
     def cargar_colaboradores_csv(self):
@@ -581,12 +580,12 @@ class Empresa:
                 reader = csv.DictReader(archivo)
                 for fila in reader:
                     ids_str = fila["Habilidades_IDs"]
-                    h_ids = [int(x) for x in ids_str.split(";")] if ids_str else []
-                    c = Colaborador(h_ids, float(fila["Horas Disponibles"]), float(fila["Salario Hora"]))
-                    c._id = int(fila["ID Colaborador"])
-                    if hasattr(Colaborador, 'id_colaborador') and c._id > Colaborador.id_colaborador:
-                        Colaborador.id_colaborador = c._id
-                    self._colaboradores[c.get_id()] = c
+                    h_ids = [int(id_habilidad) for id_habilidad in ids_str.split(";")] if ids_str else []
+                    nuevo_colaborador = Colaborador(h_ids, float(fila["Horas Disponibles"]), float(fila["Salario Hora"]))
+                    nuevo_colaborador._id = int(fila["ID Colaborador"])
+                    if hasattr(Colaborador, 'id_colaborador') and nuevo_colaborador._id > Colaborador.id_colaborador:
+                        Colaborador.id_colaborador = nuevo_colaborador._id
+                    self._colaboradores[nuevo_colaborador.get_id()] = nuevo_colaborador
         except Exception as e: print(f"Error: {e}")
 
     # CORRECCIÓN PARA TAREAS (Relaciona el ID de tarea y habilidad maestra)
@@ -615,27 +614,27 @@ class Empresa:
                 for fila in reader:
                     id_p, id_u = int(fila["ID Producto"]), int(fila["ID Unidad"])
                     prod = next((p for p in self._catalogo_elementos if p.get_id() == id_p), None)
-                    unid = next((u for u in self._unidades if u.get_id() == id_u), None)
-                    if prod and unid:
-                        nueva_t = Tarea(
+                    unidad = next((unidad for unidad in self._unidades if unidad.get_id() == id_u), None)
+                    if prod and unidad:
+                        nueva_tarea = Tarea(
                             id_tarea_maestra=int(fila["ID_Tarea_M"]),
-                            unidad_requerida=unid,
+                            unidad_requerida=unidad,
                             cant_colaboradores_req=int(fila["Cant Colab"]),
                             tiempo_por_unidad=float(fila["Tiempo"]),
                             id_habilidad_requerida=int(fila["ID_Hab_Req"]),
                             costo_mano_obra_hora=float(fila["Costo MO"])
                         )
-                        prod.get_lista_tareas().agregar_al_final(nueva_t)
+                        prod.get_lista_tareas().agregar_al_final(nueva_tarea)
         except Exception as e: print(f"Error: {e}")
     def guardar_compras_csv(self):
             try:
                 with open("compras.csv", mode='w', newline='', encoding='utf-8') as archivo:
                     writer = csv.writer(archivo)
                     writer.writerow(["ID", "Insumo_ID", "Cantidad", "Estado", "Fecha_Emision", "Fecha_Recepcion"])
-                    for c in self._compras_pendientes:
-                        f_emision = c._fecha_emision.strftime("%Y-%m-%d %H:%M:%S")
-                        f_recepcion = c._fecha_recepcion.strftime("%Y-%m-%d %H:%M:%S") if c._fecha_recepcion else ""
-                        writer.writerow([c.get_id(), c._insumo.get_id(), c._cantidad, c._estado, f_emision, f_recepcion])
+                    for compra in self._compras_pendientes:
+                        f_emision = compra._fecha_emision.strftime("%Y-%m-%d %H:%M:%S")
+                        f_recepcion = compra._fecha_recepcion.strftime("%Y-%m-%d %H:%M:%S") if compra._fecha_recepcion else ""
+                        writer.writerow([compra.get_id(), compra._insumo.get_id(), compra._cantidad, compra._estado, f_emision, f_recepcion])
             except IOError as e:
                 print(f"-> [ERROR] Falló la escritura de compras: {e}")
 
