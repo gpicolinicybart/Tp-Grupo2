@@ -1,9 +1,9 @@
-from solicitud_fabricacion import SolicitudDeFabricacion
+
 from menu_base import MenuBase
 
 class MenuProduccion(MenuBase):
-    def __init__(self, empresa, insumos, productos, unidades, colaboradores):
-        super().__init__(empresa, insumos, productos, unidades, colaboradores)
+    def __init__(self, empresa):
+        super().__init__(empresa)
 
     def mostrar_opciones(self):
         print("\n" + "="*60)
@@ -14,7 +14,7 @@ class MenuProduccion(MenuBase):
         print("3. Ejecutar Solicitud (Producción)")
         print("4. Finalizar Solicitud (Cierre)")
         print("5. Ver Estado General del Sistema")
-        print("6. Recibir Órdenes de Compra (Ingresar Stock de Insumos)")
+        print("6. Recibir Órdenes de Compra")
         print("0. Cerrar Sesión")
         print("="*60)
 
@@ -40,75 +40,99 @@ class MenuProduccion(MenuBase):
 
     def crear_solicitud(self):
         print("\n--- NUEVA SOLICITUD DE FABRICACIÓN ---")
-        if not self.productos:
-            print("AVISO: No hay productos fabricados en el catálogo.")
-            return
+        productos = self.empresa.obtener_diccionario_productos()
+        if not productos:
+            return print("AVISO: No hay productos fabricados en el catálogo.")
             
         try:
             print("Productos disponibles:")
-            for id_producto, producto in self.productos.items():
+            for id_producto, producto in productos.items():
                 print(f"  ID {id_producto}: {producto.get_nombre()}")
             
             id_p = int(input("\nID del producto a fabricar: "))
-            if id_p not in self.productos:
-                print("ID inválido.")
-                return
+            if id_p not in productos:
+                return print("ERROR: ID inválido.")
                 
             cantidad = int(input("Cantidad de unidades: "))
-            
-            solicitud = SolicitudDeFabricacion(self.productos[id_p], cantidad, True)
-            self.empresa.crear_solicitud(solicitud)
+            solicitud = self.empresa.generar_solicitud_desde_menu(productos[id_p], cantidad)
             print(f"CONFIRMACIÓN: Solicitud #{solicitud.get_id()} creada.")
-            
-            # --- PERSISTENCIA: Sincronizamos la Cola con el disco duro ---
+
             self.empresa.guardar_solicitudes_csv()
             
         except ValueError as e:
             print(f"ERROR: {e}")
 
     def procesar_solicitud(self):
-        self.empresa.procesar_solicitud()
-        # --- PERSISTENCIA: Guardamos el cambio de estado de la solicitud ---
-        self.empresa.guardar_solicitudes_csv()
+        try:
+            self.empresa.procesar_solicitud()
+            self.empresa.guardar_solicitudes_csv()
+        except ValueError as e:
+            print(f"Error de validación al procesar (Estado incorrecto o falta de stock): {e}")
+        except KeyError as e:
+            print(f"Error: No se encontró la solicitud en el sistema: {e}")
+        except OSError as e:
+            print(f"Error de sistema al intentar guardar el archivo CSV: {e}")
 
     def ejecutar_solicitud(self):
-        self.empresa.ejecutar_solicitud()
-        # --- PERSISTENCIA: Guardamos el avance ---
-        self.empresa.guardar_solicitudes_csv()
+        try:
+            self.empresa.ejecutar_solicitud()
+            self.empresa.guardar_solicitudes_csv()
+        except ValueError as e:
+            print(f"Error al ejecutar (La solicitud no está lista para producción): {e}")
+        except KeyError as e:
+            print(f"Error: ID de solicitud no encontrado: {e}")
+        except OSError as e:
+            print(f"Error al guardar el avance en el disco: {e}")
 
     def finalizar_solicitud(self):
-        self.empresa.finalizar_solicitud()
-        # --- PERSISTENCIA: Eliminamos la solicitud terminada o la pasamos a historial ---
-        self.empresa.guardar_solicitudes_csv()
+        try:
+            self.empresa.finalizar_solicitud()
+            self.empresa.guardar_solicitudes_csv()
+        except ValueError as e:
+            print(f"Error de negocio al finalizar (Quizás la solicitud aún no está en ejecución): {e}")
+        except KeyError as e:
+            print(f"Error: No se encontró la solicitud a finalizar: {e}")
+        except OSError as e:
+            print(f"Error al actualizar el historial CSV: {e}")
     
     def recibir_compras_pendientes(self):
         print("\n--- RECEPCIÓN DE ÓRDENES DE COMPRA ---")
-        cantidad = self.empresa.recibir_compras()
-        if cantidad > 0:
-            print(f"\n-> ÉXITO: Se ingresaron {cantidad} órdenes al inventario.")
-            print("-> AVISO: Podés volver a presionar '6' para que las solicitudes demoradas retomen su curso.")
-            # --- PERSISTENCIA: Actualizamos el inventario ---
-            self.empresa.guardar_inventario_csv()
-        else:
-            print("No hay órdenes de compra en tránsito para recibir.")
+        try:
+            cantidad = self.empresa.recibir_compras()
+            if cantidad > 0:
+                print(f"\n-> ÉXITO: Se ingresaron {cantidad} órdenes al inventario.")
+                print("-> AVISO: Podés volver a presionar '6' para que las solicitudes demoradas retomen su curso.")
+                
+                self.empresa.guardar_inventario_csv()
+            else:
+                print("No hay órdenes de compra en tránsito para recibir.")
+        except ValueError as e:
+            print(f"Error con los datos de las órdenes de compra: {e}")
+        except IndexError:
+            print("Error: Se intentó procesar una cola de compras que ya estaba vacía.")
+        except OSError as e:
+            print(f"Error al intentar actualizar el archivo de inventario: {e}")
 
     def ver_estado(self):
         print("\n" + "="*60)
         print("               ESTADO ACTUAL DEL SISTEMA")
         print("="*60)
         
-        print(f"\nCATÁLOGO DE INSUMOS: {len(self.insumos)}")
-        for id_ins, ins in self.insumos.items():
+        insumos = self.empresa.obtener_diccionario_insumos()
+        productos = self.empresa.obtener_diccionario_productos()
+        unidades = self.empresa.obtener_diccionario_unidades()
         
+        print(f"\nCATÁLOGO DE INSUMOS: {len(insumos)}")
+        for id_ins, ins in insumos.items():
             disponible = self.empresa.consultar_stock_insumo(ins) 
-            
             print(f"  ID {id_ins}: {ins.get_nombre()} | Stock Disponible: {disponible}")
-        print(f"\nPRODUCTOS REGISTRADOS: {len(self.productos)}")
-        for id_prod, prod in self.productos.items():
+            
+        print(f"\nPRODUCTOS REGISTRADOS: {len(productos)}")
+        for id_prod, prod in productos.items():
             print(f"  ID {id_prod}: {prod.get_nombre()}")
         
-        print(f"\nUNIDADES DE TRABAJO: {len(self.unidades)}")
-        for unit in self.unidades.values():
+        print(f"\nUNIDADES DE TRABAJO: {len(unidades)}")
+        for unit in unidades.values():
             print(f"  {unit}")
         
         print("\nSOLICITUDES EN EL SISTEMA:")

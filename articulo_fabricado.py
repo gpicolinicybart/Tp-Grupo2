@@ -19,6 +19,9 @@ class ArticuloFabricadoInternamente(Elemento):
         
         return f"Artículo Fabricado -> {super().__str__()} | Componentes BOM: {len(self._bom)} | Tareas: {len(self._lista_tareas)} | Materiales: [{materiales_str}]"
     
+    def get_tipo_elemento(self):
+        return "Articulo Fabricado"
+    
     def get_costo_unitario(self) -> float:
         costo_materiales = sum(map(lambda bom: bom.get_costo_total(), self._bom))
         costo_manufactura = 0

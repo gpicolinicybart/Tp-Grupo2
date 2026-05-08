@@ -2,20 +2,27 @@ from elemento import Elemento
 class InsumoBasico(Elemento):
     def __init__(self, nombre: str, costo_fijo: float, id: int = None):
         super().__init__(nombre, id=id)
-        self._costo_fijo = costo_fijo
-        if costo_fijo < 0:
-            raise ValueError("Error: El costo fijo inicial no puede ser negativo.")
-        self._costo_fijo = costo_fijo
-        
+        self._costo_fijo = self.validar_costo_fijo(costo_fijo)
+
+
+    @staticmethod
+    def validar_costo_fijo(costo: float) -> float:
+        if costo < 0:
+            raise ValueError("Error: El costo fijo no puede ser negativo.")
+        return costo
+    
     def __str__(self):
         return f"Insumo Básico -> {super().__str__()} | Costo Fijo: ${self._costo_fijo}"
     
     def get_costo_fijo(self) -> float:
         return self._costo_fijo
-        
+    
+    def get_tipo_elemento(self):
+        return "Insumo Básico"
+      
     def set_costo_fijo(self, nuevo_costo: float):
         if nuevo_costo >= 0:
-            self._costo_fijo = nuevo_costo
+            self._costo_fijo = self.validar_costo_fijo(nuevo_costo)
         else:
             raise ValueError("Error: El costo no puede ser negativo.")
 

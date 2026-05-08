@@ -29,7 +29,9 @@ class Elemento:
                 self._nombre = nuevo_nombre
             else:
                 raise ValueError("Error: El nombre no puede estar vacío.")
-        
+    def get_tipo_elemento(self) -> str:
+        pass 
+    
     def gestionar_reabastecimiento(self) -> str:
         pass
         

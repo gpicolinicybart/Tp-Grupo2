@@ -4,12 +4,16 @@
 #------------------------------------------------------------------------------------------------------------------------------
 from datetime import datetime
 from inventario import Inventario
+from tarea import Tarea
 from compra_insumo import Compra_Insumo
 from solicitud_fabricacion import SolicitudDeFabricacion
 from unidad_de_trabajo import UnidadDeTrabajo
 from elemento import Elemento
 from articulo_fabricado import ArticuloFabricadoInternamente
+from insumo_basico import InsumoBasico
+from colaboradores import Colaborador
 from itembom import ItemBOM
+from lista_tareas import ListaEnlazadaTareas
 import csv
 import os
 
@@ -27,15 +31,6 @@ class Empresa:
         self._compras_pendientes = []
         self._catalogo_habilidades = {}  # Formato -> ID: Nombre
         self._catalogo_tareas = {}       # Formato -> ID: Nombre
-#CARGA DE DATOS
-        self.cargar_unidades_csv()
-        self.cargar_colaboradores_csv()
-        self.cargar_catalogo_csv()
-        self.cargar_compras_csv()
-        self.cargar_tareas_csv() 
-        self._inventario.cargar_desde_csv(self._catalogo_elementos)
-        self.cargar_solicitudes_csv()
-        self.cargar_catalogos_maestros()
         
     def registrar_compra(self, orden: Compra_Insumo):
         self._compras_pendientes.append(orden)
@@ -287,6 +282,7 @@ class Empresa:
         criticos = self._inventario.obtener_materiales_criticos(necesidades)
         nombre_archivo = f"criticos_{producto.get_id()}.csv"
         try:
+
             with open(nombre_archivo, mode='w', newline='', encoding='utf-8') as archivo:
                 writer = csv.writer(archivo)
                 writer.writerow(["ID Insumo", "Nombre", "Cant. Necesaria", "Stock Actual", "Cobertura"])
@@ -520,13 +516,36 @@ class Empresa:
         nombre_archivo = "solicitudes_activas.csv"
         if not os.path.exists(nombre_archivo):
             return
-            
+    
         try:
             with open(nombre_archivo, mode='r', encoding='utf-8') as archivo:
                 reader = csv.DictReader(archivo)
-                # Lógica base preparada para cuando instanciemos solicitudes en memoria
+                
                 for fila in reader:
-                    pass
+                    nombre_prod = fila["Producto"]
+                    
+                    # Filtramos el catálogo dejando solo los que coinciden con el nombre.
+                    resultados = list(filter(lambda p: p.get_nombre() == nombre_prod, self._catalogo_elementos))
+                    
+                    if len(resultados) > 0:
+                        producto_obj = resultados[0] 
+                        
+                        id_sol = int(fila["ID Solicitud"])
+                        cantidad = int(fila["Cantidad"])
+                        estado = fila["Estado"]
+                        fecha_creacion_str = fila["Fecha Creacion"]
+                        
+                        nueva_sol = SolicitudDeFabricacion(producto_obj, cantidad, True)
+                        
+                        nueva_sol._id = id_sol
+                        nueva_sol.set_estado(estado)
+                        nueva_sol._fecha_creacion = datetime.strptime(fecha_creacion_str, "%Y-%m-%d %H:%M:%S")
+                        
+                        self._solicitudes[id_sol] = nueva_sol
+                        
+                        if id_sol > SolicitudDeFabricacion.id_solicitud:
+                            SolicitudDeFabricacion.id_solicitud = id_sol
+                            
         except Exception as e:
             print(f"-> [ERROR] Falló la lectura de solicitudes activas CSV: {e}")
             
@@ -624,7 +643,7 @@ class Empresa:
                             id_habilidad_requerida=int(fila["ID_Hab_Req"]),
                             costo_mano_obra_hora=float(fila["Costo MO"])
                         )
-                        prod.get_lista_tareas().agregar_al_final(nueva_tarea)
+                        prod.get_lista_tareas().agregar_nodo(nueva_tarea)
         except Exception as e: print(f"Error: {e}")
     def guardar_compras_csv(self):
             try:
@@ -703,3 +722,186 @@ class Empresa:
                         "id_unidad": int(fila["ID_Unidad"]),
                         "id_habilidad": int(fila["ID_Habilidad"])
                     }
+                    
+    # ==========================================================
+    # PERSISTENCIA MAESTRA EN CSV
+    # ==========================================================
+    def guardar_todos_los_csv(self):
+        """Centraliza el guardado de todos los archivos del sistema"""
+        self.guardar_unidades_csv()
+        self.guardar_colaboradores_csv()
+        self.guardar_tareas_csv()
+        self.guardar_catalogo_csv()
+        self.guardar_compras_csv()
+        self.guardar_solicitudes_csv()
+        self.guardar_catalogos_maestros()
+        
+        if hasattr(self._inventario, 'guardar_en_csv'):
+            self._inventario.guardar_en_csv()
+
+    def cargar_todos_los_csv(self):
+        """Centraliza la carga en el orden correcto para evitar dependencias rotas"""
+        self.cargar_catalogos_maestros()
+        self.cargar_unidades_csv()
+        self.cargar_colaboradores_csv()
+        self.cargar_catalogo_csv()
+        
+        if hasattr(self._inventario, 'cargar_desde_csv'):
+            self._inventario.cargar_desde_csv(self._catalogo_elementos)
+            
+        self.cargar_tareas_csv()
+        self.cargar_compras_csv()
+        self.cargar_solicitudes_csv()
+    # ==========================================================
+    # metodos que cargan los datos en los menus
+    # ==========================================================
+    def obtener_diccionario_insumos(self):
+        # creo un diccionario nuevo con solo los insumos basicos, filtrando el catalogo por tipo de elemento
+        insumos = {}
+        for elemento in self._catalogo_elementos:
+            if elemento.get_tipo_elemento() == "Insumo Básico":
+                insumos[elemento.get_id()] = elemento
+        return insumos
+
+    def obtener_diccionario_productos(self):
+        #lo mismo que el de insumos pero filtrando por Articulo Fabricado
+        productos = {}
+        for elemento in self._catalogo_elementos:
+            if elemento.get_tipo_elemento() == "Articulo Fabricado":
+                productos[elemento.get_id()] = elemento
+        return productos
+
+    def obtener_diccionario_unidades(self):
+        unidades_dict = {}
+        for u in self._unidades:
+            unidades_dict[u.get_id()] = u
+        return unidades_dict
+
+    def obtener_diccionario_colaboradores(self):
+        return self._colaboradores 
+
+    # ==========================================================
+    # los metodos que estaban en los menus
+    # ==========================================================
+
+    def crear_insumo_basico(self, nombre, costo):
+        if not nombre: raise ValueError("El nombre no puede estar vacío.")
+        if costo <= 0: raise ValueError("El costo debe ser positivo.")
+        
+        insumo = InsumoBasico(nombre, costo)
+        self.registrar_producto_nuevo(insumo)
+        return insumo
+
+    def crear_unidad_trabajo(self, nombre, capacidad, costo):
+
+        unidad = UnidadDeTrabajo(nombre, capacidad, costo)
+        self.agregar_unidad_trabajo(unidad)
+        return unidad
+
+    def crear_colaborador(self, habilidades_ids, horas, salario):
+        # Validar que las habilidades existan en el catálogo maestro
+        for h in habilidades_ids:
+            if h not in self._catalogo_habilidades:
+                raise ValueError(f"La habilidad con ID {h} no existe.")
+                
+        colab = Colaborador(habilidades_ids, horas, salario)
+        self.agregar_colaborador(colab)
+        return colab
+
+    def dar_baja_colaborador_por_id(self, id_colab):
+        if id_colab not in self._colaboradores:
+            raise ValueError("ID de colaborador no encontrado.")
+        
+        colab = self._colaboradores[id_colab]
+        colab.dar_de_baja()
+        return colab
+
+    def comprar_insumo_manual(self, id_insumo, cantidad):
+        insumos_disp = self.obtener_diccionario_insumos()
+        if id_insumo not in insumos_disp:
+            raise ValueError("ID de insumo no válido.")
+            
+        insumo = insumos_disp[id_insumo]
+        insumo.gestionar_reabastecimiento(self, cantidad)
+        return insumo
+
+    def crear_producto_completo(self, nombre, dict_bom_cantidades, lista_datos_tareas):
+        insumos_disp = self.obtener_diccionario_insumos()
+
+        #  Armar Receta BOM
+        bom_dict = {}
+        for id_ins, cant in dict_bom_cantidades.items():
+            bom_dict[insumos_disp[id_ins]] = cant
+        bom = ItemBOM(f"Receta {nombre}", bom_dict)
+
+        tareas_producto = ListaEnlazadaTareas() 
+        
+        for dt in lista_datos_tareas:
+            id_t_maestra = dt['id_maestra']
+            datos_maestros = self._catalogo_tareas[id_t_maestra]
+            id_unidad = datos_maestros["id_unidad"]
+            id_hab = datos_maestros["id_habilidad"]
+
+            # colaboradores aptos para esta tarea
+            aptos = []
+            for colaborador in self._colaboradores.values():
+                if colaborador.tiene_habilidad(id_hab):
+                    aptos.append(colaborador)
+
+            # calculo del costo de mano de obra promedio
+            if len(aptos) > 0:
+                suma_salarios = 0.0
+                for colaborador in aptos:
+                    suma_salarios += colaborador.get_salario_hora()
+                
+                costo_mo = suma_salarios / len(aptos)
+            else:
+                costo_mo = 0.0
+            unidades_disp = self.obtener_diccionario_unidades()
+            unidad_obj = unidades_disp[id_unidad]
+            nueva_tarea = Tarea(id_t_maestra, unidad_obj, dt['cant_colabs'], dt['tiempo'], id_hab, costo_mo)
+            
+            tareas_producto.agregar_nodo(nueva_tarea) 
+
+        if not tareas_producto.cabecera:
+            raise ValueError("No se puede fabricar sin tareas.")
+
+        
+        producto = ArticuloFabricadoInternamente(nombre, [bom], tareas_producto)
+        self.registrar_producto_nuevo(producto)
+        return producto
+
+    def cargar_demo_completa(self):
+        
+
+        id_hab_armado = self.agregar_habilidad("Armado General")
+        ensambladora = UnidadDeTrabajo("Mesa de Ensamblaje", 80.0, 500.0)
+        self.agregar_unidad_trabajo(ensambladora)
+        
+        id_tarea_ensamble = self.agregar_tarea_maestra("Ensamblaje Manual", ensambladora.get_id(), id_hab_armado)
+        id_tarea_corte = self.agregar_tarea_maestra("Corte de Madera", ensambladora.get_id(), id_hab_armado)
+        
+        madera = InsumoBasico("Tablón de Madera", 5000.0)
+        tornillos = InsumoBasico("Tornillos 10mm", 5.0)
+        for insumo in [madera, tornillos]:
+            self.registrar_producto_nuevo(insumo)
+            self._inventario.ingresar_stock(insumo, 1000)
+            
+        carpintero = Colaborador([id_hab_armado], 40.0, 2500.0)
+        self.agregar_colaborador(carpintero)
+
+        # Pata
+        tarea_pata = Tarea(id_tarea_corte, ensambladora, 1, 0.5, id_hab_armado, 1000.0)
+        bom_pata = ItemBOM("Receta Pata", {madera: 1, tornillos: 4})
+        lista_pata = ListaEnlazadaTareas()
+        lista_pata.agregar_nodo(tarea_pata)
+        pata = ArticuloFabricadoInternamente("Pata de Mesa", [bom_pata], lista_pata)
+        self.registrar_producto_nuevo(pata)
+
+        # Mesa
+        tarea_mesa = Tarea(id_tarea_ensamble, ensambladora, 1, 1.5, id_hab_armado, 2500.0)
+        bom_mesa = ItemBOM("Receta Mesa", {madera: 1, pata: 4})
+        lista_mesa = ListaEnlazadaTareas()
+        lista_mesa.agregar_nodo(tarea_mesa)
+        mesa = ArticuloFabricadoInternamente("Mesa Completa", [bom_mesa], lista_mesa)
+        self.registrar_producto_nuevo(mesa)

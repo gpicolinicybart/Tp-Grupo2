@@ -4,17 +4,27 @@ class UnidadDeTrabajo:
     def __init__(self, nombre: str, capacidad_max_horas: float, costo_operativo_por_hora: float):
         UnidadDeTrabajo.id_unidad += 1
         self._id = UnidadDeTrabajo.id_unidad
-        self._nombre = nombre
-        self._capacidad_max_horas = float(capacidad_max_horas)
+        self._nombre = self.validar_nombre(nombre)
+        self._capacidad_max_horas = self.validar_capacidad(capacidad_max_horas)
         self._horas_reservadas = 0.0 
         self._costo_operativo_por_hora = self.validar_costo_operativo(costo_operativo_por_hora)
         self._fecha_instalacion = datetime.now()
+
+    @staticmethod
+    def validar_nombre(nombre: str) -> str:
+        if not nombre:
+            raise ValueError("Error: El nombre de la unidad de trabajo no puede estar vacío.")
+        return nombre
     @staticmethod
     def validar_costo_operativo(costo: float) -> float:
         if costo < 0:
             raise ValueError("Error: El costo operativo por hora debe ser un valor no negativo.")
         return costo
-
+    @staticmethod
+    def validar_capacidad(capacidad: float) -> float:
+        if capacidad <= 0:
+            raise ValueError("Error: La capacidad máxima de horas debe ser un valor positivo.")
+        return capacidad
     def __str__(self):
         fecha_str = self._fecha_instalacion.strftime("%d/%m/%Y")
         return f"Unidad #{self._id} ({self._nombre}) | Capacidad Max: {self._capacidad_max_horas}hs | Costo/hr: ${self._costo_operativo_por_hora} | Fecha de instalación: {fecha_str}"
