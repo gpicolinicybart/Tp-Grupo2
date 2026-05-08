@@ -54,7 +54,7 @@ class MenuProduccion(MenuBase):
                 return print("ERROR: ID inválido.")
                 
             cantidad = int(input("Cantidad de unidades: "))
-            solicitud = self.empresa.crear_solicitud(productos[id_p], cantidad)
+            solicitud = self.empresa.generar_solicitud_desde_menu(productos[id_p], cantidad)
             print(f"CONFIRMACIÓN: Solicitud #{solicitud.get_id()} creada.")
 
             self.empresa.guardar_solicitudes_csv()

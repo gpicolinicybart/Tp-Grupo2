@@ -41,6 +41,14 @@ class Empresa:
         self._solicitudes[solicitud.get_id()] = solicitud
         print(f"EMPRESA: Se registró una nueva solicitud de fabricación (ID:{solicitud.get_id()})")
 
+    def generar_solicitud_desde_menu(self, producto, cantidad):
+        if cantidad <= 0:
+            raise ValueError("La cantidad a fabricar debe ser mayor a cero.")
+        
+        solicitud = SolicitudDeFabricacion(producto, cantidad, True)
+        self.crear_solicitud(solicitud)
+        return solicitud
+    
     def procesar_solicitud(self):
         print("\n--- PROCESANDO PLANIFICACIÓN DE PRODUCCIÓN ---")
         
@@ -722,7 +730,7 @@ class Empresa:
                         "id_unidad": int(fila["ID_Unidad"]),
                         "id_habilidad": int(fila["ID_Habilidad"])
                     }
-                    
+
     # ==========================================================
     # PERSISTENCIA MAESTRA EN CSV
     # ==========================================================
