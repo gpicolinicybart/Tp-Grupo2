@@ -651,7 +651,7 @@ class Empresa:
                             id_habilidad_requerida=int(fila["ID_Hab_Req"]),
                             costo_mano_obra_hora=float(fila["Costo MO"])
                         )
-                        prod.get_lista_tareas().agregar_nodo(nueva_tarea)
+                        prod.get_lista_tareas().agregar_al_final(nueva_tarea)
         except Exception as e: print(f"Error: {e}")
     def guardar_compras_csv(self):
             try:
@@ -869,7 +869,7 @@ class Empresa:
             unidad_obj = unidades_disp[id_unidad]
             nueva_tarea = Tarea(id_t_maestra, unidad_obj, dt['cant_colabs'], dt['tiempo'], id_hab, costo_mo)
             
-            tareas_producto.agregar_nodo(nueva_tarea) 
+            tareas_producto.agregar_al_final(nueva_tarea) 
 
         if not tareas_producto.cabecera:
             raise ValueError("No se puede fabricar sin tareas.")
@@ -902,7 +902,7 @@ class Empresa:
         tarea_pata = Tarea(id_tarea_corte, ensambladora, 1, 0.5, id_hab_armado, 1000.0)
         bom_pata = ItemBOM("Receta Pata", {madera: 1, tornillos: 4})
         lista_pata = ListaEnlazadaTareas()
-        lista_pata.agregar_nodo(tarea_pata)
+        lista_pata.agregar_al_final(tarea_pata)
         pata = ArticuloFabricadoInternamente("Pata de Mesa", [bom_pata], lista_pata)
         self.registrar_producto_nuevo(pata)
 
@@ -910,6 +910,6 @@ class Empresa:
         tarea_mesa = Tarea(id_tarea_ensamble, ensambladora, 1, 1.5, id_hab_armado, 2500.0)
         bom_mesa = ItemBOM("Receta Mesa", {madera: 1, pata: 4})
         lista_mesa = ListaEnlazadaTareas()
-        lista_mesa.agregar_nodo(tarea_mesa)
+        lista_mesa.agregar_al_final(tarea_mesa)
         mesa = ArticuloFabricadoInternamente("Mesa Completa", [bom_mesa], lista_mesa)
         self.registrar_producto_nuevo(mesa)
