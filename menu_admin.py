@@ -1,4 +1,4 @@
-
+from collections import deque
 import os
 import csv
 from menu_base import MenuBase
@@ -274,14 +274,14 @@ class MenuAdministrativo(MenuBase):
                 encabezados = next(lector)
                 print(f"{encabezados[0]:<15} | {encabezados[1]:<20} | {encabezados[2]:<8} | {encabezados[5]:<15}")
                 print("-" * 70)
-                pila_historial = [] 
-                # Metemos cada registro del CSV en la pila
+                pila_historial = deque()
+                
                 for fila in lector:
                     pila_historial.append(fila)
                 filas = len(pila_historial)
-                #Sacamos de la pila para imprimir
-                while len(pila_historial) > 0:
-                    fila = pila_historial.pop() 
+                
+                while pila_historial:
+                    fila = pila_historial.pop()
                     print(f"#{fila[0]:<14} | {fila[1]:<20} | {fila[2]:<8} | {fila[5]:<15} hs")
                 print("-" * 70)
                 print(f"Total de registros históricos: {filas}")

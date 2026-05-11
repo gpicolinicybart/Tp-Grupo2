@@ -14,7 +14,7 @@ from insumo_basico import InsumoBasico
 from colaboradores import Colaborador
 from itembom import ItemBOM
 from lista_tareas import ListaEnlazadaTareas
-from cola import Cola
+from collections import deque
 import csv
 import os
 
@@ -30,9 +30,9 @@ class Empresa:
         self._unidades = []
         self._colaboradores = {}
         self._registro_compras = []  # Para guardar el historial en el CSV
-        self._cola_entregas = Cola() # Para procesar las que van llegando en orden (FIFO)
         self._catalogo_habilidades = {}  # Formato -> ID: Nombre
         self._catalogo_tareas = {}       # Formato -> ID: Nombre
+        self._compras_pendientes=deque() 
         
     def registrar_compra(self, orden: Compra_Insumo):
         self._registro_compras.append(orden)
@@ -273,12 +273,12 @@ class Empresa:
             print(f"-> [ERROR] Falló la escritura del historial CSV: {e}")
             
     def recibir_compras(self):
-        if self._cola_entregas.esta_vacia():
+        if not self._compras_pendientes:
             return 0
         cantidad_recibida = 0
         # Desencolamos una a una 
-        while not self._cola_entregas.esta_vacia():
-            orden = self._cola_entregas.desencolar()
+        while self._compras_pendientes:
+            orden = self._compras_pendientes.popleft()
             if orden._estado == "Solicitada":
                 orden.recibir_materiales(self._inventario) 
                 orden._estado = "Recibida"
