@@ -1,4 +1,3 @@
-id,clave,rol
-1,1234,admin
-2,5678,prod
-A01,admin123,admin
+id,clave,rol,nombre,apellido,dni
+1,1234,administracion,Juan,Perez,11222333
+2,5678,produccion,Maria,Gomez,44555666

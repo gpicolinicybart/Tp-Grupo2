@@ -48,7 +48,10 @@ class MenuPrincipal:
                 for fila in lector:
                     usuarios[fila["id"].strip()] = {
                         "clave": fila["clave"].strip(),
-                        "rol": fila["rol"].strip()
+                        "rol": fila["rol"].strip(),
+                        "nombre": fila.get("nombre", "").strip(),
+                        "apellido": fila.get("apellido", "").strip(),
+                        "dni": fila.get("dni", "").strip()
                     }
         except FileNotFoundError:
             print("Archivo 'usuarios.csv' no encontrado.")
@@ -96,9 +99,9 @@ class MenuPrincipal:
             return 
 
         menu_activo = None
-        if self.rol_actual == "admin":
+        if self.rol_actual == "administracion":
             menu_activo = self.menu_admin
-        elif self.rol_actual == "prod":
+        elif self.rol_actual == "produccion":
             menu_activo = self.menu_prod
 
         try:

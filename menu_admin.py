@@ -9,7 +9,7 @@ class MenuAdministrativo(MenuBase):
 
     def mostrar_opciones(self):
         print("\n" + "="*60)
-        print("  MENÚ ADMINISTRATIVO (RRHH, Compras y Reportes)")
+        print("  MENÚ ADMINISTRATIVO  ")
         print("="*60)
         print("1. Crear Insumo Básico")
         print("2. Crear Producto (Artículo Fabricado)")
@@ -24,6 +24,7 @@ class MenuAdministrativo(MenuBase):
         print("11. Cargar Escenario de Prueba (Demo)")
         print("12. Agregar Nueva Habilidad al Catálogo")
         print("13. Agregar Nueva Tarea al Catálogo")
+        print("14. Agregar Nuevo Usuario")
         print("0. Cerrar Sesión")
         print("="*60)
 
@@ -42,6 +43,7 @@ class MenuAdministrativo(MenuBase):
                 elif opcion == "11": self.cargar_demo()
                 elif opcion == "12": self.empresa.agregar_habilidad(input("Nombre de la nueva Habilidad: "))
                 elif opcion == "13": self.crear_tarea_maestra()
+                elif opcion == "14": self.agregar_usuario()
                 elif opcion == "0":
                     print("\nCerrando sistema de gestion administrativa. Hasta luego.")
                     return False
@@ -281,7 +283,7 @@ class MenuAdministrativo(MenuBase):
                 print("-" * 70)
                 print(f"Total de registros históricos: {filas}")
         except IOError as e:
-            print(f"[ERROR] No se pudo leer el archivo: {e}")
+            print(f" ERROR: No se pudo leer el archivo: {e}")
 
     def ver_estado(self):
         print("\n" + "="*60)
@@ -353,3 +355,49 @@ class MenuAdministrativo(MenuBase):
             print("ERROR: IDs no válidos.")
 
 
+
+    def agregar_usuario(self):
+        print("\n--- REGISTRO DE NUEVO USUARIO ---")
+        try:
+            contrasena = input("Ingrese la contraseña: ").strip()
+            if not contrasena: return print(" ERROR: La contraseña no puede estar vacía.")
+            nombre = input("Nombre: ").strip()
+            apellido = input("Apellido: ").strip()
+            dni = input("DNI: ").strip()
+            if not dni: return print(" ERROR: El DNI es obligatorio.")
+            # Buscar DNI duplicado y calcular el próximo ID autoincremental
+            max_id = 0
+            archivo_existe = os.path.isfile("usuarios.csv")
+            if archivo_existe:
+                with open("usuarios.csv", "r", encoding="utf-8") as f:
+                    lector = csv.DictReader(f)
+                    for fila in lector:
+                        # Verificar DNI duplicado
+                        if fila["dni"].strip() == dni:
+                            return print(f" ERROR: Ya existe un usuario registrado con el DNI {dni}.")
+                        id_actual = int(fila["id"].strip())
+                        if id_actual > max_id:
+                            max_id = id_actual
+            nuevo_id = str(max_id + 1)
+            # Selección de Rol
+            print("\nSeleccione el rol:")
+            print("  1. Producción")
+            print("  2. Administración")
+            op_rol = input("Opción (1/2): ").strip()
+            if op_rol == "1":
+                rol = "produccion"
+            elif op_rol == "2":
+                rol = "administracion"
+            else:
+                return print(" ERROR: Opción de rol no válida.")
+            # Guardar en el archivo
+            with open("usuarios.csv", mode="a", newline="", encoding="utf-8") as archivo:
+                escritor = csv.writer(archivo)
+                if not archivo_existe:
+                    # Por si el archivo no existe, escribimos los encabezados primero
+                    escritor.writerow(["id", "clave", "rol", "nombre", "apellido", "dni"])
+                escritor.writerow([nuevo_id, contrasena, rol, nombre, apellido, dni])
+            print(f"\n-> Usuario '{nombre} {apellido}' registrado correctamente como '{rol}'.")
+            print(f"-> AVISO IMPORTANTE: Su ID de acceso generado por el sistema es el número {nuevo_id}.")
+        except Exception as e:
+            print(f" ERROR: {e}")
