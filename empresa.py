@@ -14,6 +14,7 @@ from insumo_basico import InsumoBasico
 from colaboradores import Colaborador
 from itembom import ItemBOM
 from lista_tareas import ListaEnlazadaTareas
+from cola import Cola
 import csv
 import os
 
@@ -28,12 +29,14 @@ class Empresa:
         self._solicitudes = {}
         self._unidades = []
         self._colaboradores = {}
-        self._compras_pendientes = []
+        self._registro_compras = []  # Para guardar el historial en el CSV
+        self._cola_entregas = Cola() # Para procesar las que van llegando en orden (FIFO)
         self._catalogo_habilidades = {}  # Formato -> ID: Nombre
         self._catalogo_tareas = {}       # Formato -> ID: Nombre
         
     def registrar_compra(self, orden: Compra_Insumo):
-        self._compras_pendientes.append(orden)
+        self._registro_compras.append(orden)
+        self._cola_entregas.encolar(orden)
         print(f"EMPRESA: Se registró la orden de compra {orden.get_id()}...")
         self.guardar_compras_csv()
         
@@ -270,17 +273,20 @@ class Empresa:
             print(f"-> [ERROR] Falló la escritura del historial CSV: {e}")
             
     def recibir_compras(self):
-            pendientes = list(filter(lambda o: o._estado == "Solicitada", self._compras_pendientes))
-            if not pendientes: return 0
-            
-            for orden in pendientes:
-                orden.recibir_materiales(self._inventario) # Esto suma el stock
+        if self._cola_entregas.esta_vacia():
+            return 0
+        cantidad_recibida = 0
+        # Desencolamos una a una 
+        while not self._cola_entregas.esta_vacia():
+            orden = self._cola_entregas.desencolar()
+            if orden._estado == "Solicitada":
+                orden.recibir_materiales(self._inventario) 
                 orden._estado = "Recibida"
                 orden._fecha_recepcion = datetime.now()
-                
-            self.guardar_compras_csv() # Guardamos los estados actualizados
-            self.guardar_catalogo_csv() # Guardamos el nuevo stock físico
-            return len(pendientes)
+                cantidad_recibida += 1
+        self.guardar_compras_csv() 
+        self.guardar_catalogo_csv() 
+        return cantidad_recibida
         
 #==============================================================================================================
     #consigna de implementacion 
@@ -652,12 +658,13 @@ class Empresa:
                         )
                         prod.get_lista_tareas().agregar_al_final(nueva_tarea)
         except Exception as e: print(f"Error: {e}")
+    
     def guardar_compras_csv(self):
             try:
                 with open("compras.csv", mode='w', newline='', encoding='utf-8') as archivo:
                     writer = csv.writer(archivo)
                     writer.writerow(["ID", "Insumo_ID", "Cantidad", "Estado", "Fecha_Emision", "Fecha_Recepcion"])
-                    for compra in self._compras_pendientes:
+                    for compra in self._registro_compras:
                         f_emision = compra._fecha_emision.strftime("%Y-%m-%d %H:%M:%S")
                         f_recepcion = compra._fecha_recepcion.strftime("%Y-%m-%d %H:%M:%S") if compra._fecha_recepcion else ""
                         writer.writerow([compra.get_id(), compra._insumo.get_id(), compra._cantidad, compra._estado, f_emision, f_recepcion])
@@ -679,7 +686,9 @@ class Empresa:
                             orden._fecha_emision = datetime.strptime(fila["Fecha_Emision"], "%Y-%m-%d %H:%M:%S")
                             if fila["Fecha_Recepcion"]:
                                 orden._fecha_recepcion = datetime.strptime(fila["Fecha_Recepcion"], "%Y-%m-%d %H:%M:%S")
-                            self._compras_pendientes.append(orden)
+                            self._registro_compras.append(orden)
+                            if orden._estado == "Solicitada":
+                                self._cola_entregas.encolar(orden)
             except Exception as e:
                 print(f"-> [ERROR] Falló la carga de compras: {e}")
                 
