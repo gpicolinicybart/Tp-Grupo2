@@ -20,7 +20,7 @@ class SolicitudDeFabricacion:
         self._id = SolicitudDeFabricacion.id_solicitud
         self._item_solicitado = item_solicitado
         self._cantidad =self.validar_entero_positivo(cantidad)
-        self._estado = "Creada" 
+        self._estado = ESTADOS_VALIDOS[0]
         self._es_para_cliente = es_para_cliente 
         self._colaboradores_asignados = [] 
         self._fecha_creacion = datetime.now()
@@ -63,5 +63,5 @@ class SolicitudDeFabricacion:
         return cantidad
 
     def marcar_como_terminada(self):
-        self.set_estado("Terminada")
+        self.set_estado(ESTADOS_VALIDOS[3])  # Terminada
         self._fecha_finalizacion = datetime.now()

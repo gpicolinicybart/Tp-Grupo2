@@ -6,7 +6,7 @@ from datetime import datetime
 from inventario import Inventario
 from tarea import Tarea
 from compra_insumo import Compra_Insumo
-from solicitud_fabricacion import SolicitudDeFabricacion
+from solicitud_fabricacion import SolicitudDeFabricacion, ESTADOS_VALIDOS
 from unidad_de_trabajo import UnidadDeTrabajo
 from elemento import Elemento
 from articulo_fabricado import ArticuloFabricadoInternamente
@@ -54,7 +54,7 @@ class Empresa:
         
         elegibles = []
         for solicitud in self._solicitudes.values():
-            if solicitud.get_estado() == "Creada" or solicitud.get_estado().startswith("Demorada"):
+            if solicitud.get_estado() == ESTADOS_VALIDOS[0] or solicitud.get_estado().startswith("Demorada"):
                 elegibles.append(solicitud)
     
         if not elegibles:
@@ -65,7 +65,7 @@ class Empresa:
                 self.procesar_solicitud_individual(solicitud)
         except ValueError as e:
                 print(f"-> AVISO: No se pudo completar la Solicitud {solicitud.get_id()} por falta de recursos/validación: {e}")
-                solicitud.set_estado("Demorada por falta de recursos/validación")
+                solicitud.set_estado(ESTADOS_VALIDOS[7])  # Demorada por falta de recursos/validación
     
 
     def procesar_solicitud_individual(self, solicitud):
@@ -83,7 +83,7 @@ class Empresa:
         # 3: VERIFICAR CAPACIDAD (Delegación a Tarea)
         exito_capacidad, asignaciones_pendientes = self.gestionar_capacidad(producto, cantidad_pedida)
         if not exito_capacidad:
-            solicitud.set_estado("Demorada por falta de capacidad")
+            solicitud.set_estado(ESTADOS_VALIDOS[5])  # Demorada por falta de capacidad
             print(f" -> Solicitud {solicitud.get_id()} DEMORADA (Falta Capacidad).")
             return
 
@@ -117,7 +117,7 @@ class Empresa:
             # la empresa ejecuta metodo de reabastecimiento
             componente.gestionar_reabastecimiento(self, faltante)
         
-        solicitud.set_estado("Demorada por falta de stock")
+        solicitud.set_estado(ESTADOS_VALIDOS[4])  # Demorada por falta de stock
         print(f" -> Solicitud {solicitud.get_id()} DEMORADA (Falta Stock).")
         return False
 
@@ -173,7 +173,7 @@ class Empresa:
                 for colab in colabs:
                     solicitud.agregar_colaborador(colab.get_id())
                     
-            solicitud.set_estado("Procesada y Planificada")
+            solicitud.set_estado(ESTADOS_VALIDOS[1])  # Procesada y Planificada
             print(f" -> Solicitud {solicitud.get_id()} PROCESADA CON ÉXITO.")
 
    
@@ -184,7 +184,7 @@ class Empresa:
         for id_solicitud, solicitud in self._solicitudes.items():
             
             # Solo actuamos sobre las que están listas
-            if solicitud.get_estado() == "Procesada y Planificada":
+            if solicitud.get_estado() == ESTADOS_VALIDOS[1]:
                 try:
                     producto = solicitud.get_item_solicitado()
                     cantidad_pedida = solicitud.get_cantidad()
@@ -194,13 +194,13 @@ class Empresa:
                     for componente, cant_necesaria in materiales_necesarios.items():
                         self._inventario.descontar_stock(componente, cant_necesaria)
 
-                    solicitud.set_estado("En Ejecución")
+                    solicitud.set_estado(ESTADOS_VALIDOS[2])  # En Ejecución
                     print(f"-> ÉXITO: Solicitud #{id_solicitud} ('{producto.get_nombre()}') enviada a producción.")
                     contador_ejecutadas += 1
                     
                 except Exception as e:
                     print(f"-> ERROR CRÍTICO en Solicitud #{id_solicitud}: {e}")
-                    solicitud.set_estado("Demorada por Error Interno")
+                    solicitud.set_estado(ESTADOS_VALIDOS[8])  # Demorada por Error Interno
 
         
         if contador_ejecutadas == 0:
@@ -217,7 +217,7 @@ class Empresa:
             
         for id_solicitud, solicitud in list(self._solicitudes.items()):
                 
-            if solicitud.get_estado() == "En Ejecución": 
+            if solicitud.get_estado() == ESTADOS_VALIDOS[2]:  # En Ejecución
                 try:
                     producto = solicitud.get_item_solicitado()
                     cantidad_pedida = int(solicitud.get_cantidad())
@@ -231,7 +231,7 @@ class Empresa:
                                     
             if contador_finalizadas > 0:
                 self.guardar_historial_csv(solicitudes_a_archivar) # archivo las solicitudes que voy a borrar
-                self._solicitudes = dict(filter(lambda item: item[1].get_estado() != "Terminada", self._solicitudes.items()))
+                self._solicitudes = dict(filter(lambda item: item[1].get_estado() != ESTADOS_VALIDOS[3], self._solicitudes.items()))
                 print(f"-> SISTEMA: Limpieza de memoria. {contador_finalizadas} solicitudes históricas archivadas/borradas.")
             else:
                 print("-> AVISO: No hay solicitudes en producción para finalizar.")
@@ -330,10 +330,9 @@ class Empresa:
         print("\n[2] ANÁLISIS DE DEMORAS (CUELLOS DE BOTELLA):")
         #ponemos en listas las solicitudes que estan demoradas por cada tipo de cuello de botella
         # y contamos cuantas hay de c/u
-        d_stock = len(list(filter(lambda t: t.get_estado() == "Demorada por falta de stock", self._solicitudes.values())))
-        d_capacidad = len(list(filter(lambda t: t.get_estado() == "Demorada por falta de capacidad", self._solicitudes.values())))
-        d_personal = len(list(filter(lambda t: t.get_estado() == "Demorada por falta de colaboradores", self._solicitudes.values())))
-        
+        d_stock = len(list(filter(lambda t: t.get_estado() == ESTADOS_VALIDOS[4], self._solicitudes.values())))
+        d_capacidad = len(list(filter(lambda t: t.get_estado() == ESTADOS_VALIDOS[5], self._solicitudes.values())))
+        d_personal = len(list(filter(lambda t: t.get_estado() == ESTADOS_VALIDOS[6], self._solicitudes.values())))        
         print(f"  - Frenadas por FALTA DE INSUMOS: {d_stock}")
         print(f"  - Frenadas por CAPACIDAD DE UNIDADES DE TRABAJO: {d_capacidad}")
         print(f"  - Frenadas por ESCASEZ DE COLABORADORES: {d_personal}")
