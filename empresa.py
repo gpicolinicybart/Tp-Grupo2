@@ -63,14 +63,14 @@ class Empresa:
         if not elegibles:
             print("-> AVISO: No hay solicitudes para procesar. Creá una con la opción 5 o esperá a que lleguen insumos (opción 14) si hay demoradas.")
             return
-        try:
-            for solicitud in elegibles:
+        
+        for solicitud in elegibles:
+            try:
                 self.procesar_solicitud_individual(solicitud)
-        except ValueError as e:
+            except ValueError as e:
                 print(f"-> AVISO: No se pudo completar la Solicitud {solicitud.get_id()} por falta de recursos/validación: {e}")
                 solicitud.set_estado(ESTADOS_VALIDOS[7])  # Demorada por falta de recursos/validación
     
-
     def procesar_solicitud_individual(self, solicitud):
         producto = solicitud.get_item_solicitado()
         cantidad_pedida = int(solicitud.get_cantidad()) 
@@ -232,12 +232,12 @@ class Empresa:
                 except Exception as e:
                     print(f"-> ERROR al finalizar Solicitud #{id_solicitud}: {e}")
                                     
-            if contador_finalizadas > 0:
-                self.guardar_historial_csv(solicitudes_a_archivar) # archivo las solicitudes que voy a borrar
-                self._solicitudes = dict(filter(lambda item: item[1].get_estado() != ESTADOS_VALIDOS[3], self._solicitudes.items()))
-                print(f"-> SISTEMA: Limpieza de memoria. {contador_finalizadas} solicitudes históricas archivadas/borradas.")
-            else:
-                print("-> AVISO: No hay solicitudes en producción para finalizar.")
+        if contador_finalizadas > 0:
+            self.guardar_historial_csv(solicitudes_a_archivar) # archivo las solicitudes que voy a borrar
+            self._solicitudes = dict(filter(lambda item: item[1].get_estado() != ESTADOS_VALIDOS[3], self._solicitudes.items()))
+            print(f"-> SISTEMA: Limpieza de memoria. {contador_finalizadas} solicitudes históricas archivadas/borradas.")
+        else:
+            print("-> AVISO: No hay solicitudes en producción para finalizar.")
 
 
     def guardar_historial_csv(self, solicitudes_terminadas: list): #agarra la lista de solicitudes terminadas y las appendea al historial CSV
@@ -409,7 +409,7 @@ class Empresa:
                 self.guardar_tareas_csv() # <--- ¡ACÁ VA EL CAMBIO!
                 return True
             except ValueError as e:
-                print(f"El producto '{producto.get_nombre()}'ya esta registrado: {e}")
+                print(f"No se pudo registrar '{producto.get_nombre()}' por un ciclo en el BOM: {e}")
                 return False
                 
     def consultar_stock_insumo(self, insumo):
@@ -491,7 +491,7 @@ class Empresa:
                     costo = float(fila.get("Costo Fijo", 0.0))
                     
                     if tipo == "ArticuloFabricado":
-                        nuevo_prod = ArticuloFabricadoInternamente(nombre=nombre, bom=[], lista_tareas=[], id=id_prod)
+                        nuevo_prod = ArticuloFabricadoInternamente(nombre=nombre, bom=[], lista_tareas=ListaEnlazadaTareas(), id=id_prod)
                         self._catalogo_elementos.append(nuevo_prod)
                     elif tipo == "Insumo":
                         nuevo_insumo = InsumoBasico(nombre=nombre, costo_fijo=costo, id=id_prod)
@@ -602,7 +602,12 @@ class Empresa:
                 for colaborador in self._colaboradores.values():
                     ids_str = ";".join(map(str, colaborador.get_habilidades()))
                     writer.writerow([colaborador.get_id(), ids_str, colaborador.get_horas_disponibles(), colaborador.get_salario_hora()])
-        except IOError as e: print(f"Error: {e}")
+        except IOError as e:
+            print(f"-> [ERROR] Falla en el guardado de colaboradores CSV: {e}")
+        except KeyError as e:
+            print(f"-> [ERROR] Falla en el guardado de colaboradores CSV: {e}")
+        except ValueError as e:
+            print(f"-> [ERROR] Falla en el guardado de colaboradores CSV: {e}")
 
     def cargar_colaboradores_csv(self):
         if not os.path.exists("colaboradores.csv"): return
@@ -618,7 +623,12 @@ class Empresa:
                     if hasattr(Colaborador, 'id_colaborador') and nuevo_colaborador._id > Colaborador.id_colaborador:
                         Colaborador.id_colaborador = nuevo_colaborador._id
                     self._colaboradores[nuevo_colaborador.get_id()] = nuevo_colaborador
-        except Exception as e: print(f"Error: {e}")
+        except IOError as e:
+            print(f"-> [ERROR] Falla en la carga de colaboradores CSV: {e}")
+        except KeyError as e:
+            print(f"-> [ERROR] Falla en la carga de colaboradores CSV: {e}")
+        except ValueError as e:
+            print(f"-> [ERROR] Falla en la carga de colaboradores CSV: {e}")
 
     # CORRECCIÓN PARA TAREAS (Relaciona el ID de tarea y habilidad maestra)
     def guardar_tareas_csv(self):
@@ -635,7 +645,12 @@ class Empresa:
                                 t.get_tiempo_por_unidad(), t.get_id_habilidad_requerida(), # Guardamos ID numérico
                                 getattr(t, '_costo_mano_obra_hora', 0.0)
                             ])
-        except IOError as e: print(f"Error: {e}")
+        except IOError as e:
+            print(f"-> [ERROR] Falla en el guardado de tareas CSV: {e}")
+        except KeyError as e:
+            print(f"-> [ERROR] Falla en el guardado de tareas CSV: {e}")
+        except ValueError as e:
+            print(f"-> [ERROR] Falla en el guardado de tareas CSV: {e}")
 
     def cargar_tareas_csv(self):
         if not os.path.exists("tareas.csv"): return
@@ -657,7 +672,12 @@ class Empresa:
                             costo_mano_obra_hora=float(fila["Costo MO"])
                         )
                         prod.get_lista_tareas().agregar_al_final(nueva_tarea)
-        except Exception as e: print(f"Error: {e}")
+        except IOError as e:
+            print(f"-> [ERROR] Falla en la carga de tareas CSV: {e}")
+        except KeyError as e:
+            print(f"-> [ERROR] Falla en la carga de tareas CSV: {e}")
+        except ValueError as e:
+            print(f"-> [ERROR] Falla en la carga de tareas CSV: {e}")
     
     def guardar_compras_csv(self):
             try:
@@ -669,7 +689,11 @@ class Empresa:
                         f_recepcion = compra._fecha_recepcion.strftime("%Y-%m-%d %H:%M:%S") if compra._fecha_recepcion else ""
                         writer.writerow([compra.get_id(), compra._insumo.get_id(), compra._cantidad, compra._estado, f_emision, f_recepcion])
             except IOError as e:
-                print(f"-> [ERROR] Falló la escritura de compras: {e}")
+                print(f"-> [ERROR] Falla en el guardado de compras CSV: {e}")
+            except KeyError as e:
+                print(f"-> [ERROR] Falla en el guardado de compras CSV: {e}")
+            except ValueError as e:
+                print(f"-> [ERROR] Falla en el guardado de compras CSV: {e}")
 
     def cargar_compras_csv(self):
             if not os.path.exists("compras.csv"): return
@@ -689,9 +713,13 @@ class Empresa:
                             self._registro_compras.append(orden)
                             if orden._estado == "Solicitada":
                                 self._cola_entregas.encolar(orden)
-            except Exception as e:
-                print(f"-> [ERROR] Falló la carga de compras: {e}")
-                
+            except IOError as e:
+                print(f"-> [ERROR] Falla en la carga de compras CSV: {e}")
+            except KeyError as e:
+                print(f"-> [ERROR] Falla en la carga de compras CSV: {e}")
+            except ValueError as e:
+                print(f"-> [ERROR] Falla en la carga de compras CSV: {e}")
+
     def agregar_habilidad(self, nombre: str):
             nuevo_id = len(self._catalogo_habilidades) + 1 if self._catalogo_habilidades else 1
             self._catalogo_habilidades[nuevo_id] = nombre.strip().title()
