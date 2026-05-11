@@ -17,7 +17,7 @@ class Colaborador:
                 Colaborador.id_colaborador = id
         # -------------------------------------
         
-        self._habilidades_ids = habilidades_ids  # Ahora guarda una lista de enteros (ej: [1, 4])
+        self._habilidades_ids = set(habilidades_ids)  # Ahora guarda una lista de enteros (ej: [1, 4])
         self._horas_disponibles = self.validar_horas_disponibles(horas_disponibles)
         self._horas_asignadas = 0.0 
         self._salario_hora = self.validar_salario(salario_hora)
@@ -55,7 +55,7 @@ class Colaborador:
     def get_id(self) -> int:
         return self._id
         
-    def get_habilidades(self) -> list:
+    def get_habilidades(self) -> set:
         return self._habilidades_ids
         
     def get_salario_hora(self) -> float:
