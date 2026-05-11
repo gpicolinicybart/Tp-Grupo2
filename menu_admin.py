@@ -263,27 +263,30 @@ class MenuAdministrativo(MenuBase):
 
     def ver_historial_produccion(self):            
         print("\n" + "="*70)
-        print("              HISTORIAL DE PRODUCCIÓN TERMINADA")
+        print("    HISTORIAL DE PRODUCCIÓN TERMINADA    ")
         print("="*70)
-        
         nombre_archivo = "historial_solicitudes.csv"
         if not os.path.isfile(nombre_archivo):
             return print("Todavía no hay un historial. Finalizá alguna solicitud primero.")
-            
         try:
             with open(nombre_archivo, mode='r', encoding='utf-8') as archivo:
                 lector = csv.reader(archivo)
                 encabezados = next(lector)
                 print(f"{encabezados[0]:<15} | {encabezados[1]:<20} | {encabezados[2]:<8} | {encabezados[5]:<15}")
                 print("-" * 70)
-                filas = 0
+                pila_historial = [] 
+                # Metemos cada registro del CSV en la pila
                 for fila in lector:
+                    pila_historial.append(fila)
+                filas = len(pila_historial)
+                #Sacamos de la pila para imprimir
+                while len(pila_historial) > 0:
+                    fila = pila_historial.pop() 
                     print(f"#{fila[0]:<14} | {fila[1]:<20} | {fila[2]:<8} | {fila[5]:<15} hs")
-                    filas += 1
                 print("-" * 70)
                 print(f"Total de registros históricos: {filas}")
         except IOError as e:
-            print(f" ERROR: No se pudo leer el archivo: {e}")
+            print(f"[ERROR] No se pudo leer el archivo: {e}")
 
     def ver_estado(self):
         print("\n" + "="*60)
