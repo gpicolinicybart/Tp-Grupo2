@@ -36,7 +36,7 @@ class Empresa:
         
     def registrar_compra(self, orden: Compra_Insumo):
         self._registro_compras.append(orden)
-        self._cola_entregas.encolar(orden)
+        self._compras_pendientes.append(orden)
         print(f"EMPRESA: Se registró la orden de compra {orden.get_id()}...")
         self.guardar_compras_csv()
         
@@ -712,7 +712,7 @@ class Empresa:
                                 orden._fecha_recepcion = datetime.strptime(fila["Fecha_Recepcion"], "%Y-%m-%d %H:%M:%S")
                             self._registro_compras.append(orden)
                             if orden._estado == "Solicitada":
-                                self._cola_entregas.encolar(orden)
+                                self._compras_pendientes.append(orden)
             except IOError as e:
                 print(f"-> [ERROR] Falla en la carga de compras CSV: {e}")
             except KeyError as e:
