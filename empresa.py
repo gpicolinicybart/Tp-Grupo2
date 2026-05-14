@@ -628,10 +628,7 @@ class Empresa:
                     writer.writerow([colaborador.get_id(), ids_str, colaborador.get_horas_disponibles(), colaborador.get_salario_hora()])
         except IOError as e:
             print(f"-> [ERROR] Falla en el guardado de colaboradores CSV: {e}")
-        except KeyError as e:
-            print(f"-> [ERROR] Falla en el guardado de colaboradores CSV: {e}")
-        except ValueError as e:
-            print(f"-> [ERROR] Falla en el guardado de colaboradores CSV: {e}")
+        
 
     def cargar_colaboradores_csv(self):
         if not os.path.exists("colaboradores.csv"): 
@@ -677,10 +674,7 @@ class Empresa:
                             ])
         except IOError as e:
             print(f"-> [ERROR] Falla en el guardado de tareas CSV: {e}")
-        except KeyError as e:
-            print(f"-> [ERROR] Falla en el guardado de tareas CSV: {e}")
-        except ValueError as e:
-            print(f"-> [ERROR] Falla en el guardado de tareas CSV: {e}")
+        
 
     def cargar_tareas_csv(self):
         if not os.path.exists("tareas.csv"):
