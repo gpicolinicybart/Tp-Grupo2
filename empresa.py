@@ -77,22 +77,27 @@ class Empresa:
         print(f"\nProcesando Solicitud {solicitud.get_id()} -> Fabricar: {cantidad_pedida}x '{producto.get_nombre()}'")
         
         # 1: EXPLOSIÓN DE MATERIALES
-        materiales_necesarios =self.explotar_bom(producto, cantidad_pedida)
+        materiales_necesarios = self.explotar_bom(producto, cantidad_pedida)
         
         # 2: VERIFICAR STOCK (Si falta stock, frena y retorna)
         if not self.gestionar_stock(solicitud, materiales_necesarios):
             return 
 
         # 3: VERIFICAR CAPACIDAD (Delegación a Tarea)
-        exito_capacidad, asignaciones_pendientes = self.gestionar_capacidad(producto, cantidad_pedida)
+        # Ahora desempaquetamos 3 variables
+        exito_capacidad, asignaciones_pendientes, motivo_fallo = self.gestionar_capacidad(producto, cantidad_pedida)
+        
         if not exito_capacidad:
-            solicitud.set_estado(ESTADOS_VALIDOS[5])  # Demorada por falta de capacidad
-            print(f" -> Solicitud {solicitud.get_id()} DEMORADA (Falta Capacidad).")
+            if motivo_fallo == "capacidad":
+                solicitud.set_estado(ESTADOS_VALIDOS[5])  # Demorada por falta de capacidad
+                print(f" -> Solicitud {solicitud.get_id()} DEMORADA (Falta Capacidad Máquina).")
+            elif motivo_fallo == "personal":
+                solicitud.set_estado(ESTADOS_VALIDOS[6])  # Demorada por falta de colaboradores
+                print(f" -> Solicitud {solicitud.get_id()} DEMORADA (Falta Personal).")
             return
 
         # 4: CONFIRMACIÓN Y RESERVA
         self.confirmar_reservas(solicitud, materiales_necesarios, asignaciones_pendientes)
-
 
     def explotar_bom(self, producto, cantidad_pedida) -> dict:
         materiales_necesarios = {}
@@ -126,11 +131,11 @@ class Empresa:
 
     def gestionar_capacidad(self, producto, cantidad_pedida) -> tuple:
         asignaciones_pendientes = [] 
-        lista_tareas = producto.get_lista_tareas() # Esto es una ListaEnlazadaTareas
+        lista_tareas = producto.get_lista_tareas() 
 
         if not lista_tareas.cabecera:
             print(f" [!] ERROR: El producto '{producto.get_nombre()}' no tiene tareas asignadas.")
-            return False, []
+            return False, [], "error_configuracion"
 
         nodo_actual = lista_tareas.cabecera
         while nodo_actual is not None:
@@ -141,11 +146,11 @@ class Empresa:
             # Verificamos Disponibilidad de Máquina
             if not unidad.verificar_disponibilidad(horas_totales):
                 id_tarea_maestra = tarea.get_id_tarea_maestra()
-                # Accedemos al diccionario maestro que ahora tiene el formato {"nombre": "...", ...}
                 datos_tarea = self._catalogo_tareas.get(id_tarea_maestra)
                 nombre_tarea = datos_tarea["nombre"] if isinstance(datos_tarea, dict) else f"Tarea ID {id_tarea_maestra}"
                 print(f" [!] Falta capacidad en la Unidad #{unidad.get_id()} para la tarea '{nombre_tarea}'.")
-                return False, [] 
+                # Devolvemos "capacidad" como motivo de fallo
+                return False, [], "capacidad" 
                 
             colabs_necesarios = tarea.get_cant_colaboradores_req()
             colabs_aptos = tarea.filtrar_colaboradores_aptos(self._colaboradores, horas_totales)
@@ -155,13 +160,14 @@ class Empresa:
                 id_hab = tarea.get_id_habilidad_requerida()
                 nombre_hab = self._catalogo_habilidades.get(id_hab, f"Habilidad ID {id_hab}")
                 print(f" [!] No hay suficientes colaboradores con la habilidad '{nombre_hab}'.")
-                return False, []
+                # Devolvemos "personal" como motivo de fallo
+                return False, [], "personal"
                 
             colabs_encontrados = colabs_aptos[:colabs_necesarios]
             asignaciones_pendientes.append((tarea, horas_totales, colabs_encontrados))
-            nodo_actual = nodo_actual.siguiente # Avanzamos en la lista enlazada
+            nodo_actual = nodo_actual.siguiente 
             
-        return True, asignaciones_pendientes
+        return True, asignaciones_pendientes, None
 
     def confirmar_reservas(self, solicitud, materiales_necesarios, asignaciones_pendientes):
             print(" -> Stock y Capacidad OK. Confirmando reservas...")
@@ -499,10 +505,10 @@ class Empresa:
                     tipo = fila["Tipo"]
                     costo = float(fila.get("Costo Fijo", 0.0))
                     
-                    if tipo == "ArticuloFabricado":
+                    if tipo == "Articulo Fabricado":
                         nuevo_prod = ArticuloFabricadoInternamente(nombre=nombre, bom=[], lista_tareas=ListaEnlazadaTareas(), id=id_prod)
                         self._catalogo_elementos.append(nuevo_prod)
-                    elif tipo == "Insumo":
+                    elif tipo == "Insumo Básico":
                         nuevo_insumo = InsumoBasico(nombre=nombre, costo_fijo=costo, id=id_prod)
                         self._catalogo_elementos.append(nuevo_insumo)
 
@@ -512,7 +518,7 @@ class Empresa:
                 elementos_por_id[elem.get_id()] = elem
 
             for fila in filas_csv:
-                if fila.get("Tipo") == "ArticuloFabricado" and fila.get("Receta BOM"):
+                if fila.get("Tipo") == "Articulo Fabricado" and fila.get("Receta BOM"):
                     prod_id = int(fila.get("ID Producto", 0))
                     prod_obj = elementos_por_id.get(prod_id)
                     if not prod_obj:
