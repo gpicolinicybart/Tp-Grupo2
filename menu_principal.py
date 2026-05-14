@@ -62,7 +62,8 @@ class MenuPrincipal:
 
     def iniciar_sesion(self) -> bool:
         usuarios_registrados = self._leer_usuarios()
-        if not usuarios_registrados: return False
+        if not usuarios_registrados: 
+            return False
 
         print("\n" + "="*40)
         print(" INICIO DE SESIÓN - SISTEMA TECNOMECÁNICA ITBA ")

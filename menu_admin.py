@@ -83,7 +83,8 @@ class MenuAdministrativo(MenuBase):
             dict_bom_cantidades = {} 
             while True:
                 entrada = input("\nIngrese ID del insumo (o '0' para finalizar receta): ")
-                if entrada == "0": break
+                if entrada == "0": 
+                    break
                 id_i = int(entrada)
                 if id_i in insumos:
                     cant = int(input(f"Cantidad de '{insumos[id_i].get_nombre()}': "))
@@ -195,7 +196,8 @@ class MenuAdministrativo(MenuBase):
     def comprar_insumos_manual(self):
         print("\n=== GENERADOR DE ÓRDENES DE COMPRA MANUAL ===")
         insumos = self.empresa.obtener_diccionario_insumos()
-        if not insumos: return print("ERROR: No hay insumos registrados.")
+        if not insumos:
+            return print("ERROR: No hay insumos registrados.")
 
         print("\nCatálogo de Insumos Básicos y Stock Disponible:")
         for id_ins, ins in insumos.items():
@@ -216,14 +218,16 @@ class MenuAdministrativo(MenuBase):
     def generar_reporte_criticos(self):
         print("\n--- REPORTE DE MATERIALES CRÍTICOS ---")
         productos = self.empresa.obtener_diccionario_productos()
-        if not productos: return print("No hay productos registrados.")
+        if not productos:
+            return print("No hay productos registrados.")
         
         for id_prod, producto in productos.items():
             print(f"  - ID: {id_prod} | {producto.get_nombre()}")   
             
         try:
             id_p = int(input("Ingrese el ID del producto a evaluar: "))
-            if id_p not in productos: return print("Error: ID no encontrado.")
+            if id_p not in productos: 
+                return print("Error: ID no encontrado.")
             
             cantidad = int(input("Ingrese la cantidad a simular: "))
             if cantidad <= 0: 
@@ -241,7 +245,8 @@ class MenuAdministrativo(MenuBase):
         
         print("\n¿Desea calcular la sobrecarga para un pedido específico?")
         if input("Ingrese 'S' para calcular o 'N' para salir: ").strip().upper() == 'S':
-            if not unidades or not productos: return print("Faltan datos base.")
+            if not unidades or not productos:
+                return print("Faltan datos base.")
             
             print("\nUnidades Disponibles:")
             for id_u, unidad in unidades.items(): print(f"  - ID: {id_u} | {unidad.get_nombre()}")
@@ -363,11 +368,13 @@ class MenuAdministrativo(MenuBase):
         print("\n--- REGISTRO DE NUEVO USUARIO ---")
         try:
             contrasena = input("Ingrese la contraseña: ").strip()
-            if not contrasena: return print(" ERROR: La contraseña no puede estar vacía.")
+            if not contrasena:
+                return print(" ERROR: La contraseña no puede estar vacía.")
             nombre = input("Nombre: ").strip()
             apellido = input("Apellido: ").strip()
             dni = input("DNI: ").strip()
-            if not dni: return print(" ERROR: El DNI es obligatorio.")
+            if not dni: 
+                return print(" ERROR: El DNI es obligatorio.")
             # Buscar DNI duplicado y calcular el próximo ID autoincremental
             max_id = 0
             archivo_existe = os.path.isfile("usuarios.csv")
@@ -402,5 +409,9 @@ class MenuAdministrativo(MenuBase):
                 escritor.writerow([nuevo_id, contrasena, rol, nombre, apellido, dni])
             print(f"\n-> Usuario '{nombre} {apellido}' registrado correctamente como '{rol}'.")
             print(f"-> AVISO IMPORTANTE: Su ID de acceso generado por el sistema es el número {nuevo_id}.")
-        except Exception as e:
-            print(f" ERROR: {e}")
+        except KeyError as e:
+            print(f" ERROR: El archivo 'usuarios.csv' está dañado o no tiene los encabezados correctos. Falta la columna: {e}")
+        except ValueError as e:
+            print(f" ERROR: Hay un ID incorrecto en 'usuarios.csv' que no es un número: {e}")
+        except OSError as e:
+            print(f" ERROR: Falla al intentar guardar en 'usuarios.csv': {e}")

@@ -7,7 +7,7 @@ class Colaborador:
     # 2. Cambiamos 'habilidades' por 'habilidades_ids'
     def __init__(self, habilidades_ids: list, horas_disponibles: float, salario_hora: float, id: int = None):
         
-        # --- Lógica de Persistencia de IDs ---
+        # Persistencia de IDs 
         if id is None:
             Colaborador.id_colaborador += 1
             self._id = Colaborador.id_colaborador
@@ -15,7 +15,7 @@ class Colaborador:
             self._id = id
             if id > Colaborador.id_colaborador:
                 Colaborador.id_colaborador = id
-        # -------------------------------------
+        
         
         self._habilidades_ids = set(habilidades_ids)  # Ahora guarda una lista de enteros (ej: [1, 4])
         self._horas_disponibles = self.validar_horas_disponibles(horas_disponibles)

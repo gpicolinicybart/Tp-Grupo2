@@ -64,9 +64,9 @@ class Inventario:
             return self.consultar_stock(item[0]) < (0.20 * item[1])
         return list(filter(es_critico, necesidades.items()))
 
-    # =====================================================================
+    # ---------------------------------------------------------------------
     # MÉTODOS DE PERSISTENCIA (Sincronización con archivos CSV)
-    # =====================================================================
+    
 
     def guardar_en_csv(self, archivo_csv="inventario.csv"):
         with open(archivo_csv, mode='w', newline='', encoding='utf-8') as archivo:
@@ -78,8 +78,15 @@ class Inventario:
             
             for elem in elementos_unicos:
                 # Usamos getattr por seguridad, asumiendo que todos tienen un ID o nombre
-                id_elem = elem.get_id() if hasattr(elem, 'get_id') else getattr(elem, '_id', 'N/A')
-                nombre = elem.get_nombre() if hasattr(elem, 'get_nombre') else getattr(elem, '_nombre', 'Desconocido')
+                if hasattr(elem, 'get_id'):
+                    id_elem = elem.get_id()
+                else:
+                    id_elem = "N/A"
+                
+                if hasattr(elem, 'get_nombre'):
+                    nombre = elem.get_nombre()
+                else:
+                    nombre = "Desconocido"
                 
                 fisico = self._stock_fisico.get(elem, 0)
                 reservado = self._stock_reservado.get(elem, 0)
@@ -118,5 +125,7 @@ class Inventario:
                         self._stock_fisico[elemento] = fisico
                     if reservado:
                         self._stock_reservado[elemento] = reservado
-        except Exception as e:
-            print(f"-> [ERROR] Falló la carga de inventario desde CSV: {e}")
+        except ValueError as e:
+            print(f"-> [ERROR] Datos numéricos corruptos en 'inventario.csv'. Se esperaba un número entero: {e}")
+        except OSError as e:
+            print(f"-> [ERROR] Problema de lectura o permisos con el archivo 'inventario.csv': {e}")

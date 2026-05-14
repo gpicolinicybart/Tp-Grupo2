@@ -16,10 +16,9 @@ class Tarea:
         return costo
 
     def __str__(self):
-        # Como no tenemos el texto, imprimimos los IDs para el reporte técnico
         return f"Tarea (ID Maestro: {self._id_tarea_maestra}) | Req. Habilidad ID: {self._id_habilidad_requerida} | Tiempo: {self._tiempo_por_unidad}hs/u | Colab: {self._cant_colaboradores_req} | Unidad: {self._unidad_requerida.get_id()}"
     
-    # --- GETTERS ACTUALIZADOS ---
+    #
     def get_id_tarea_maestra(self) -> int:
         return self._id_tarea_maestra
         
@@ -52,5 +51,4 @@ class Tarea:
     def ejecutar_reservas(self, horas_totales: float, colaboradores: list):
         self._unidad_requerida.reservar_horas(horas_totales)
         for colab in colaboradores:
-            # ACÁ HABÍA UN BUG: Se usaba _habilidad_requerida (viejo)
             colab.asignar_tarea(self._id_habilidad_requerida, horas_totales)
