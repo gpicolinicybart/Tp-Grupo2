@@ -44,23 +44,35 @@ class MenuProduccion(MenuBase):
         if not productos:
             return print("AVISO: No hay productos fabricados en el catálogo.")
             
-        try:
-            print("Productos disponibles:")
-            for id_producto, producto in productos.items():
-                print(f"  ID {id_producto}: {producto.get_nombre()}")
+        print("Productos disponibles:")
+        for id_producto, producto in productos.items():
+            print(f"  ID {id_producto}: {producto.get_nombre()}")
             
-            id_p = int(input("\nID del producto a fabricar: "))
+        try:
+            # 1. Validamos el ingreso del ID
+            entrada_id = input("\nID del producto a fabricar: ").strip()
+            if not entrada_id.isdigit():
+                return print(" [!] ERROR: Por favor, ingrese un número de ID válido.")
+            
+            id_p = int(entrada_id)
             if id_p not in productos:
-                return print("ERROR: ID inválido.")
+                return print(" [!] ERROR: Ese ID de producto no existe.")
                 
-            cantidad = int(input("Cantidad de unidades: "))
+            # 2. Validamos el ingreso de la cantidad
+            entrada_cant = input("Cantidad de unidades: ").strip()
+            if not entrada_cant.isdigit():
+                return print(" [!] ERROR: Por favor, ingrese una cantidad numérica válida.")
+                
+            cantidad = int(entrada_cant)
+            
+            # 3. Generamos la solicitud
             solicitud = self.empresa.generar_solicitud_desde_menu(productos[id_p], cantidad)
             print(f"CONFIRMACIÓN: Solicitud #{solicitud.get_id()} creada.")
 
             self.empresa.guardar_solicitudes_csv()
             
         except ValueError as e:
-            print(f"ERROR: {e}")
+            print(f" [!] ERROR: {e}")
 
     def procesar_solicitud(self):
         try:
