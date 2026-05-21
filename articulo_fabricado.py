@@ -23,13 +23,17 @@ class ArticuloFabricadoInternamente(Elemento):
         return "Articulo Fabricado"
     
     def get_costo_unitario(self) -> float:
-        costo_materiales = sum(map(lambda bom: bom.get_costo_total(), self._bom))
-        costo_manufactura = 0
-        nodo_actual = self._lista_tareas.cabecera
-        while nodo_actual is not None:
-            costo_manufactura += nodo_actual.tarea.get_costo()
-            nodo_actual = nodo_actual.siguiente
-        return costo_materiales + costo_manufactura
+        costo_tareas = 0.0
+        lista_tareas = self.get_lista_tareas()
+        
+        if lista_tareas is not None:
+            costo_tareas = lista_tareas.get_costo_total()
+        
+        costo_materiales = 0.0
+        for item in self.get_bom():
+            costo_materiales += item.get_costo()
+            
+        return costo_materiales + costo_tareas
   
     def validar_ciclos(self, camino_actual=None) -> bool:
         if camino_actual is None:

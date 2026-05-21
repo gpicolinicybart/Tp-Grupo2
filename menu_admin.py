@@ -152,13 +152,14 @@ class MenuAdministrativo(MenuBase):
         try:
             entrada = input("\nIDs de habilidades (separados por coma): ").split(",")
 
-            habilidades_ids = []
+            habilidades_ids = set()
             for i in entrada:
                 texto_limpio = i.strip()
                 if texto_limpio.isdigit():
-                    habilidades_ids.append(int(texto_limpio))
+                    habilidades_ids.add(int(texto_limpio))
             
-            if not habilidades_ids: return print(" [!] ERROR: Debe ingresar IDs válidos.")
+            if not habilidades_ids: 
+                return print(" [!] ERROR: Debe ingresar IDs válidos.")
             
             horas = float(input("Horas de disponibilidad: "))
             salario = float(input("Salario por hora: $"))
@@ -170,8 +171,11 @@ class MenuAdministrativo(MenuBase):
                 nombres_h.append(nombre_habilidad)
 
             print(f"CONFIRMACIÓN: Colaborador {colab.get_id()} registrado con habilidades: {nombres_h}")
+            
         except ValueError as e:
-            print(f"ERROR: {e}")
+            print(f"ERROR: Ingresó texto donde iba un número")
+        except KeyError as e:
+            print(f"ERROR: El ID de habilidad ingresado no existe en el catálogo")
 
     def dar_baja_colaborador(self):
         print("\n--- BAJA DE PERSONAL ---")

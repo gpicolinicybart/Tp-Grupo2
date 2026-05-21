@@ -7,16 +7,19 @@ class NodoTarea:
 class ListaEnlazadaTareas:
     def __init__(self):
         self.cabecera = None
+        self.fin = None        
+        self._costo_total = 0.0
 
     def agregar_al_final(self, tarea):
         nuevo_nodo = NodoTarea(tarea)
+        self._costo_total += tarea.get_costo()
+
         if self.cabecera is None:
             self.cabecera = nuevo_nodo
+            self.fin = nuevo_nodo
         else:
-            nodo_actual = self.cabecera
-            while nodo_actual.siguiente is not None:
-                nodo_actual = nodo_actual.siguiente
-            nodo_actual.siguiente = nuevo_nodo
+            self.fin.siguiente = nuevo_nodo
+            self.fin = nuevo_nodo
 
     def __len__(self):
         contador = 0
@@ -30,3 +33,6 @@ class ListaEnlazadaTareas:
         while nodo_actual is not None:
             yield nodo_actual.tarea
             nodo_actual = nodo_actual.siguiente
+
+    def costo_total(self):
+        return self._costo_total

@@ -3,6 +3,7 @@
 # La solicitud queda como un objeto de datos puro.
 #------------------------------------------------------------------------------------------------------------------------------
 from datetime import datetime
+from gestor_compras import GestorCompras
 from inventario import Inventario
 from tarea import Tarea
 from compra_insumo import Compra_Insumo
@@ -14,7 +15,6 @@ from insumo_basico import InsumoBasico
 from colaboradores import Colaborador
 from itembom import ItemBOM
 from lista_tareas import ListaEnlazadaTareas
-from collections import deque
 import csv
 import os
 
@@ -29,10 +29,9 @@ class Empresa:
         self._solicitudes = {}
         self._unidades = []
         self._colaboradores = {}
-        self._registro_compras = []  # Para guardar el historial en el CSV
         self._catalogo_habilidades = {}  # Formato  ID: Nombre
         self._catalogo_tareas = {}       # Formato  ID: Nombre
-        self._compras_pendientes=deque() 
+        self._gestor_compras = GestorCompras()
         
     def registrar_compra(self, orden: Compra_Insumo):
         self._registro_compras.append(orden)
@@ -279,20 +278,13 @@ class Empresa:
             print(f"-> [ERROR] Falló la escritura del historial CSV: {e}")
             
     def recibir_compras(self):
-        if not self._compras_pendientes:
-            return 0
-        cantidad_recibida = 0
-        # Desencolamos una a una 
-        while self._compras_pendientes:
-            orden = self._compras_pendientes.popleft()
-            if orden._estado == "Solicitada":
-                orden.recibir_materiales(self._inventario) 
-                orden._estado = "Recibida"
-                orden._fecha_recepcion = datetime.now()
-                cantidad_recibida += 1
-        self.guardar_compras_csv() 
-        self.guardar_catalogo_csv() 
-        return cantidad_recibida
+        compra=self._gestor_compras.recibir_proxima_compra()
+        if compra:
+            self._inventario.agregar_stock(compra._insumo, compra._cantidad)
+            self.guardar_compras_csv()
+            self._inventario.guardar_en_csv()
+            return compra
+        return None
         
 #==============================================================================================================
     #consigna de implementacion 
@@ -398,7 +390,7 @@ class Empresa:
         
     
     def registrar_producto_nuevo(self, producto: Elemento) -> bool:
-            # --- NUEVO: Validación de duplicados por nombre ---
+            
             nombre_nuevo = producto.get_nombre().strip().lower()
             for elem in self._catalogo_elementos:
                 if elem.get_nombre().strip().lower() == nombre_nuevo:
@@ -727,17 +719,19 @@ class Empresa:
                 with open("compras.csv", mode='w', newline='', encoding='utf-8') as archivo:
                     writer = csv.writer(archivo)
                     writer.writerow(["ID", "Insumo_ID", "Cantidad", "Estado", "Fecha_Emision", "Fecha_Recepcion"])
-                    for compra in self._registro_compras:
+                    writer.writerow(["ID", "Insumo_ID", "Cantidad", "Estado", "Fecha_Emision", "Fecha_Recepcion"])
+        
+                    for compra in self._gestor_compras.obtener_historial(): 
                         f_emision = compra._fecha_emision.strftime("%Y-%m-%d %H:%M:%S")
                         if compra._fecha_recepcion is not None:
                             f_recepcion = compra._fecha_recepcion.strftime("%Y-%m-%d %H:%M:%S")
                         else:
                             f_recepcion = ""
-                            
+                
                         writer.writerow([compra.get_id(), compra._insumo.get_id(), compra._cantidad, compra._estado, f_emision, f_recepcion])
                     
             except IOError as e:
-                print(f"-> [ERROR] Falla al guardar compras CSV: {e}")
+                print(f"-> [ERROR] Falla al guardar compras CSV")
             
 
     def cargar_compras_csv(self):
