@@ -36,8 +36,7 @@ class InsumoBasico(Elemento):
         empresa.registrar_compra(nueva_compra)
         return f"Se ha generado una orden de compra para reabastecer {cantidad_faltante} unidades de '{self.get_nombre()}'. (Orden ID: {nueva_compra.get_id()})"
     
-    def acumular_necesidades(self, cantidad: int, necesidades: dict):
-        #insumo basico solo suma su cantidad al diccionario de necesidades, no baja más niveles porque no tiene componentes (caso base de la recursión)
+    def acumular_necesidades(self, cantidad: int, necesidades: dict, camino=None):
         necesidades[self] = necesidades.get(self, 0) + cantidad
 
     

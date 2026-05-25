@@ -40,7 +40,7 @@ class GestorArchivos:
             with open("solicitudes_activas.csv", mode='w', newline='', encoding='utf-8') as archivo:
                 escritor_csv = csv.writer(archivo)
                 escritor_csv.writerow(["ID Solicitud", "Producto", "Cantidad", "Estado", "Fecha Creacion"])
-                for solicitud in self.empresa._solicitudes.values():
+                for solicitud in self.empresa.obtener_solicitudes().values():
                     escritor_csv.writerow([
                         solicitud.get_id(),
                         solicitud.get_item_solicitado().get_nombre(),
@@ -59,21 +59,27 @@ class GestorArchivos:
                     fisico=self.empresa._inventario.consultar_stock(prod)
                     reservado=self.empresa._inventario.obtener_stock_reservado(prod)
                     tipo=prod.get_tipo_elemento()
+                    
                     if tipo=="Articulo Fabricado":
                         bom_str_lista=[]
                         for bom_item in prod.get_bom():
                             for elemento,cantidad in bom_item.get_diccionario().items():
                                 bom_str_lista.append(f"{elemento.get_id()}: {cantidad}")
                         receta_str=";".join(bom_str_lista)
-                        escritor_csv.writerow([prod.get_id(), prod.get_nombre(), tipo, prod.get_costo_fijo(), fisico, reservado, receta_str])
+                        
+                        # CORREGIDO: En vez de prod.get_costo_fijo(), mandamos 0.0
+                        escritor_csv.writerow([prod.get_id(), prod.get_nombre(), tipo, 0.0, fisico, reservado, receta_str])
+                        
                     elif tipo=="Insumo Básico":
+                        # El insumo SÍ tiene get_costo_fijo()
                         escritor_csv.writerow([prod.get_id(), prod.get_nombre(), tipo, prod.get_costo_fijo(), fisico, reservado, ""])
         except IOError as e:
-            print(f"->[ERROR] Falla en el guardado del catálogo CSV")
+            print(f"->[ERROR] Falla en el guardado del catálogo CSV: {e}")
 
     def guardar_inventario_csv(self):
-        if hasattr(self.empresa._inventario, 'guardar_en_csv'):
-            self.empresa._inventario.guardar_en_csv()
+        inventario = self.empresa.obtener_inventario()
+        if hasattr(inventario, 'guardar_en_csv'):
+            inventario.guardar_en_csv()
         else:
             print(f"[AVISO] Falta implementar guardar_en_csv() en la clase Inventario.")
 
@@ -82,7 +88,7 @@ class GestorArchivos:
             with open("unidades.csv", mode='w', newline='', encoding='utf-8') as archivo:
                 escritor_csv = csv.writer(archivo)
                 escritor_csv.writerow(["ID Unidad", "Nombre", "Capacidad", "Costo Operativo"])
-                for unidad in self.empresa._unidades:
+                for unidad in self.empresa.obtener_unidades():
                     escritor_csv.writerow([unidad.get_id(), unidad.get_nombre(), unidad.get_capacidad_max_horas(), unidad.get_costo_operativo()])
         except IOError as e:
             print(f"->[ERROR] Falla en el guardado de unidades CSV")
@@ -92,7 +98,7 @@ class GestorArchivos:
             with open("colaboradores.csv", mode='w', newline='', encoding='utf-8') as archivo:
                 escritor_csv = csv.writer(archivo)
                 escritor_csv.writerow(["ID Colaborador", "Habilidades_IDs", "Horas Disponibles", "Salario Hora"])
-                for colaborador in self.empresa._colaboradores.values():
+                for colaborador in self.empresa.obtener_colaboradores().values():
                     habilidades_str = ";".join(map(str, colaborador.get_habilidades()))
                     escritor_csv.writerow([colaborador.get_id(), habilidades_str, colaborador.get_horas_disponibles(), colaborador.get_salario_hora()])
         except IOError as e:
@@ -103,7 +109,7 @@ class GestorArchivos:
                 with open("tareas.csv", mode='w', newline='', encoding='utf-8') as archivo:
                     writer = csv.writer(archivo)
                     writer.writerow(["ID Producto", "ID_Tarea_M", "ID Unidad", "Cant Colab", "Tiempo", "ID_Hab_Req", "Costo MO"])
-                    for prod in self._catalogo_elementos:
+                    for prod in self.empresa.obtener_elementos_catalogo():
                         if hasattr(prod, 'get_lista_tareas'):
                             for t in prod.get_lista_tareas():
                                 writer.writerow([
@@ -116,39 +122,41 @@ class GestorArchivos:
                 print(f"-> [ERROR] Falla en el guardado de tareas CSV")
 
     def guardar_compras_csv(self):
-                try:
-                    with open("compras.csv", mode='w', newline='', encoding='utf-8') as archivo:
-                        writer = csv.writer(archivo)
-                        writer.writerow(["ID", "Insumo_ID", "Cantidad", "Estado", "Fecha_Emision", "Fecha_Recepcion"])
+        try:
+            with open("compras.csv", mode='w', newline='', encoding='utf-8') as archivo:
+                writer = csv.writer(archivo)
+                writer.writerow(["ID", "Insumo_ID", "Cantidad", "Estado", "Fecha_Emision", "Fecha_Recepcion"])
+    
+                # La empresa nos devuelve el historial a través de su propio getter
+                for compra in self.empresa.obtener_historial_compras(): 
+                    f_emision = compra._fecha_emision.strftime("%Y-%m-%d %H:%M:%S")
+                    if compra._fecha_recepcion is not None:
+                        f_recepcion = compra._fecha_recepcion.strftime("%Y-%m-%d %H:%M:%S")
+                    else:
+                        f_recepcion = ""
             
-                        for compra in self._gestor_compras.obtener_historial(): 
-                            f_emision = compra._fecha_emision.strftime("%Y-%m-%d %H:%M:%S")
-                            if compra._fecha_recepcion is not None:
-                                f_recepcion = compra._fecha_recepcion.strftime("%Y-%m-%d %H:%M:%S")
-                            else:
-                                f_recepcion = ""
-                    
-                            writer.writerow([compra.get_id(), compra._insumo.get_id(), compra._cantidad, compra._estado, f_emision, f_recepcion])
-                        
-                except IOError as e:
-                    print(f"-> [ERROR] Falla al guardar compras CSV")
+                    writer.writerow([compra.get_id(), compra._insumo.get_id(), compra._cantidad, compra._estado, f_emision, f_recepcion])
+                
+        except IOError as e:
+            print(f"-> [ERROR] Falla al guardar compras CSV: {e}")
 
     def guardar_catalogos_maestros(self):
-            try:
-                with open("habilidades.csv", mode='w', newline='', encoding='utf-8') as f:
-                    writer = csv.writer(f)
-                    writer.writerow(["ID", "Nombre"])
-                    for id_h, nom in self._catalogo_habilidades.items():
-                        writer.writerow([id_h, nom])
-                        
-                with open("tareas_maestras.csv", mode='w', newline='', encoding='utf-8') as f:
-                    writer = csv.writer(f)
-                    writer.writerow(["ID", "Nombre", "ID_Unidad", "ID_Habilidad"])
-                    for id_t, datos in self._catalogo_tareas.items():
-                        writer.writerow([id_t, datos["nombre"], datos["id_unidad"], datos["id_habilidad"]])
-            except IOError as e:
-                print(f"-> [ERROR] Falló la escritura de catálogos")
-
+        try:
+            with open("habilidades.csv", mode='w', newline='', encoding='utf-8') as f:
+                writer = csv.writer(f)
+                writer.writerow(["ID", "Nombre"])
+                # Usamos el getter
+                for id_h, nom in self.empresa.obtener_catalogo_habilidades().items():
+                    writer.writerow([id_h, nom])
+                    
+            with open("tareas_maestras.csv", mode='w', newline='', encoding='utf-8') as f:
+                writer = csv.writer(f)
+                writer.writerow(["ID", "Nombre", "ID_Unidad", "ID_Habilidad"])
+                # Usamos el getter
+                for id_t, datos in self.empresa.obtener_catalogo_tareas().items():
+                    writer.writerow([id_t, datos["nombre"], datos["id_unidad"], datos["id_habilidad"]])
+        except IOError as e:
+            print(f"-> [ERROR] Falló la escritura de catálogos: {e}")
     #-----------Cargar----------------------------
 
     def cargar_catalogo_csv(self):
@@ -177,14 +185,14 @@ class GestorArchivos:
                         
                         if tipo == "Articulo Fabricado":
                             nuevo_prod = ArticuloFabricadoInternamente(nombre=nombre, bom=[], lista_tareas=ListaEnlazadaTareas(), id=id_prod)
-                            self._catalogo_elementos.append(nuevo_prod)
+                            self.empresa.agregar_elemento_al_catalogo(nuevo_prod)
                         elif tipo == "Insumo Básico":
                             nuevo_insumo = InsumoBasico(nombre=nombre, costo_fijo=costo, id=id_prod)
-                            self._catalogo_elementos.append(nuevo_insumo)
+                            self.empresa.agregar_elemento_al_catalogo(nuevo_insumo)
 
                 # Reconstruimos el BOM utilizando IDs
                 elementos_por_id = {}
-                for elem in self._catalogo_elementos:
+                for elem in self.empresa.obtener_elementos_catalogo():
                     elementos_por_id[elem.get_id()] = elem
 
                 for fila in filas_csv:
@@ -230,7 +238,7 @@ class GestorArchivos:
                         nombre_prod = fila["Producto"]
                         
                         # Filtramos el catálogo dejando solo los que coinciden con el nombre.
-                        resultados = list(filter(lambda p: p.get_nombre() == nombre_prod, self._catalogo_elementos))
+                        resultados = list(filter(lambda p: p.get_nombre() == nombre_prod, self.empresa.obtener_elementos_catalogo()))
                         
                         if len(resultados) > 0:
                             producto_obj = resultados[0] 
@@ -246,7 +254,7 @@ class GestorArchivos:
                             nueva_sol.set_estado(estado)
                             nueva_sol._fecha_creacion = datetime.strptime(fecha_creacion_str, "%d/%m/%Y %H:%M")
                             
-                            self._solicitudes[id_sol] = nueva_sol
+                            self.empresa.agregar_solicitud(id_sol, nueva_sol)
                             
                             if id_sol > SolicitudDeFabricacion.id_solicitud:
                                 SolicitudDeFabricacion.id_solicitud = id_sol
@@ -269,7 +277,7 @@ class GestorArchivos:
                     nueva_unidad._id = int(fila["ID Unidad"])
                     if hasattr(UnidadDeTrabajo, 'id_unidad') and nueva_unidad._id > UnidadDeTrabajo.id_unidad:
                         UnidadDeTrabajo.id_unidad = nueva_unidad._id
-                    self._unidades.append(nueva_unidad)
+                    self.empresa.agregar_unidad(nueva_unidad)
         except KeyError as e:
             print(f"-> [ERROR] El archivo 'unidades.csv' está mal formateado. Falta la columna")
         except ValueError as e:
@@ -296,7 +304,7 @@ class GestorArchivos:
                         nuevo_colaborador._id = int(fila["ID Colaborador"])
                         if hasattr(Colaborador, 'id_colaborador') and nuevo_colaborador._id > Colaborador.id_colaborador:
                             Colaborador.id_colaborador = nuevo_colaborador._id
-                        self._colaboradores[nuevo_colaborador.get_id()] = nuevo_colaborador
+                        self.empresa.agregar_colaborador(nuevo_colaborador)
             except IOError as e:
                 print(f"-> [ERROR] Falla en la carga de colaboradores CSV")
             except KeyError as e:
@@ -310,11 +318,11 @@ class GestorArchivos:
         from tarea import Tarea
         try:
             productos_dict = {}
-            for p in self._catalogo_elementos:
+            for p in self.empresa.obtener_elementos_catalogo():
                 productos_dict[p.get_id()] = p
                 
             unidades_dict = {}
-            for u in self._unidades:
+            for u in self.empresa.obtener_unidades():
                 unidades_dict[u.get_id()] = u
 
             with open("tareas.csv", mode='r', encoding='utf-8') as archivo:
@@ -345,49 +353,44 @@ class GestorArchivos:
             print(f"-> [ERROR] Dato numérico corrupto en tareas CSV")
     
     def cargar_compras_csv(self):
-            if not os.path.exists("compras.csv"):
-                return
-            from compra_insumo import Compra_Insumo
-            try:
-                with open("compras.csv", mode='r', encoding='utf-8') as archivo:
-                    reader = csv.DictReader(archivo)
-                    elementos_id = {}
-                    for e in self._catalogo_elementos:
-                        elementos_id[e.get_id()] = e
+        if not os.path.exists("compras.csv"): return
+        from compra_insumo import Compra_Insumo
+        from datetime import datetime
+        try:
+            with open("compras.csv", mode='r', encoding='utf-8') as archivo:
+                reader = csv.DictReader(archivo)
+                # POO Correcto: Usamos el método público para pedir los insumos
+                insumos_disp = self.empresa.obtener_diccionario_insumos()
 
-                    for fila in reader:
-                        insumo = elementos_id.get(int(fila["Insumo_ID"]))
-                        if insumo:
-                            orden = Compra_Insumo(insumo, int(fila["Cantidad"]),id=int(fila["ID"]), estado=fila["Estado"]) 
-                            # ponemos manualmente la fecha vieja para no perder el historial
-                            orden._fecha_emision = datetime.strptime(fila["Fecha_Emision"], "%Y-%m-%d %H:%M:%S")
-                            if fila["Fecha_Recepcion"]:
-                                orden._fecha_recepcion = datetime.strptime(fila["Fecha_Recepcion"], "%Y-%m-%d %H:%M:%S")
-                            self._registro_compras.append(orden)
-                            if orden._estado == "Solicitada":
-                                self._compras_pendientes.append(orden)
-            except IOError as e:
-                print(f"-> [ERROR] Falla en la carga de compras CSV")
-            except KeyError as e:
-                print(f"-> [ERROR] Falla en la carga de compras CSV")
-            except ValueError as e:
-                print(f"-> [ERROR] Falla en la carga de compras CSV")
-
+                for fila in reader:
+                    insumo = insumos_disp.get(int(fila["Insumo_ID"]))
+                    if insumo:
+                        orden = Compra_Insumo(insumo, int(fila["Cantidad"]), id=int(fila["ID"]), estado=fila["Estado"]) 
+                        
+                        f_emision = datetime.strptime(fila["Fecha_Emision"], "%Y-%m-%d %H:%M:%S")
+                        f_recepcion = None
+                        if fila["Fecha_Recepcion"]:
+                            f_recepcion = datetime.strptime(fila["Fecha_Recepcion"], "%Y-%m-%d %H:%M:%S")
+                        
+                        # POO Correcto: Setter para las fechas
+                        orden.set_fechas_historicas(f_emision, f_recepcion)
+                        # POO Correcto: Inyección a la empresa
+                        self.empresa.cargar_compra_desde_archivo(orden)
+        except Exception as e:
+            print(f"-> [ERROR] Falla en la carga de compras CSV: {e}")
     def cargar_catalogos_maestros(self):
         if os.path.exists("habilidades.csv"):
             with open("habilidades.csv", mode='r', encoding='utf-8') as f:
                 for fila in csv.DictReader(f):
-                    self._catalogo_habilidades[int(fila["ID"])] = fila["Nombre"]
+                    # Usamos el método de la empresa para inyectar el dato
+                    self.empresa.registrar_habilidad_desde_archivo(int(fila["ID"]), fila["Nombre"])
                     
         if os.path.exists("tareas_maestras.csv"):
             with open("tareas_maestras.csv", mode='r', encoding='utf-8') as f:
                 for fila in csv.DictReader(f):
-                    self._catalogo_tareas[int(fila["ID"])] = {
-                        "nombre": fila["Nombre"],
-                        "id_unidad": int(fila["ID_Unidad"]),
-                        "id_habilidad": int(fila["ID_Habilidad"])
-
-                    }
+                    datos_tarea = {"nombre": fila["Nombre"],"id_unidad": int(fila["ID_Unidad"]),"id_habilidad": int(fila["ID_Habilidad"]) }
+                    # Usamos el método de la empresa para inyectar el dato
+                    self.empresa.registrar_tarea_desde_archivo(int(fila["ID"]), datos_tarea)
     
     #--------------------centralizacion--------------------------------------
 
@@ -403,13 +406,20 @@ class GestorArchivos:
         self.guardar_inventario_csv()
 
     def cargar_todos_los_csv(self):
-        """Centraliza la carga en el orden correcto para evitar dependencias rotas"""
         self.cargar_catalogos_maestros()
         self.cargar_unidades_csv()
         self.cargar_colaboradores_csv()
         self.cargar_catalogo_csv()
-        self._inventario.cargar_desde_csv(self._catalogo_elementos)
+        
+        self.empresa.cargar_inventario_desde_archivo()
             
         self.cargar_tareas_csv()
         self.cargar_compras_csv()
         self.cargar_solicitudes_csv()
+        
+   
+        self.empresa._inventario.cargar_desde_csv(self.empresa._catalogo_elementos)
+            
+        self.cargar_tareas_csv()
+        self.cargar_compras_csv()
+        self.cargar_solicitudes_csv()#ENCAPSULAMIENTOOOOO

@@ -2,6 +2,7 @@
 # IMPORTANTE NOTA: La empresa centraliza el procesamiento (revisa stock, asigna tareas).
 # La solicitud queda como un objeto de datos puro.
 #------------------------------------------------------------------------------------------------------------------------------
+import csv
 from datetime import datetime
 from gestor_compras import GestorCompras
 from inventario import Inventario
@@ -98,12 +99,7 @@ class Empresa:
         self.confirmar_reservas(solicitud, materiales_necesarios, asignaciones_pendientes)
 
     def explotar_bom(self, producto, cantidad_pedida) -> dict:
-        materiales_necesarios = {}
-        for bom in producto.get_bom():
-            for componente, cant_unitaria in bom.get_diccionario().items():
-                total_necesario = int(cant_unitaria) * int(cantidad_pedida)
-                materiales_necesarios[componente] = materiales_necesarios.get(componente, 0) + total_necesario
-        return materiales_necesarios
+        return producto.calcular_materiales_necesarios(cantidad_pedida)
 
     def gestionar_stock(self, solicitud, materiales_necesarios) -> bool:
         # filtrar faltantes
@@ -244,15 +240,16 @@ class Empresa:
             print("-> AVISO: No hay solicitudes en producción para finalizar.")
 
             
-    def recibir_compras(self):
-        compra=self._gestor_compras.recibir_proxima_compra()
+    def recibir_compras(self) -> int:
+        compra = self._gestor_compras.recibir_proxima_compra(self._inventario)
+        
         if compra:
-            self._inventario.agregar_stock(compra._insumo, compra._cantidad)
+            # Hubo una recepción exitosa, persistimos los datos
             self._gestor_archivos.guardar_compras_csv()  
             self._gestor_archivos.guardar_inventario_csv()
-            return compra
-        return None
-        
+            return 1 # Avisamos al menú que se recibió 1 orden
+            
+        return 0 
 #==============================================================================================================
     #consigna de implementacion 
 
@@ -560,3 +557,87 @@ class Empresa:
         lista_mesa.agregar_al_final(tarea_mesa)
         mesa = ArticuloFabricadoInternamente("Mesa Completa", [bom_mesa], lista_mesa)
         self.registrar_producto_nuevo(mesa)
+        # GETTERS para lectura
+    def obtener_catalogo_habilidades(self) -> dict:
+        return self._catalogo_habilidades
+
+    def obtener_catalogo_tareas(self) -> dict:
+        return self._catalogo_tareas
+
+    def obtener_historial_compras(self) -> list:
+        # La empresa le delega al gestor la obtención del historial
+        return self._gestor_compras.obtener_historial()
+
+    # MÉTODOS para cargar datos desde los CSV sin pisar la lógica de negocio
+    def registrar_habilidad_desde_archivo(self, id_hab: int, nombre: str):
+        self._catalogo_habilidades[id_hab] = nombre
+
+    def registrar_tarea_desde_archivo(self, id_tarea: int, datos: dict):
+        self._catalogo_tareas[id_tarea] = datos
+
+    # ================================================
+    # Métodos de Acceso para GestorArchivos (Encapsulamiento)
+    # ================================================
+    
+    def agregar_elemento_al_catalogo(self, elemento):
+        """Agrega un elemento al catálogo desde GestorArchivos"""
+        self._catalogo_elementos.append(elemento)
+    
+    def obtener_elementos_catalogo(self):
+        """Retorna la lista de elementos del catálogo"""
+        return self._catalogo_elementos
+    
+    def agregar_solicitud(self, id_solicitud, solicitud):
+        """Agrega una solicitud al registro desde GestorArchivos"""
+        self._solicitudes[id_solicitud] = solicitud
+    
+    def obtener_solicitudes(self):
+        """Retorna el diccionario de solicitudes"""
+        return self._solicitudes
+    
+    def agregar_unidad(self, unidad):
+        """Agrega una unidad de trabajo al registro desde GestorArchivos"""
+        self._unidades.append(unidad)
+    
+    def obtener_unidades(self):
+        """Retorna la lista de unidades de trabajo"""
+        return self._unidades
+    
+    def agregar_colaborador(self, colaborador):
+        """Agrega un colaborador al registro desde GestorArchivos"""
+        self._colaboradores[colaborador.get_id()] = colaborador
+    
+    def obtener_colaboradores(self):
+        """Retorna el diccionario de colaboradores"""
+        return self._colaboradores
+    
+    def obtener_inventario(self):
+        """Retorna el inventario de la empresa"""
+        return self._inventario
+    
+    def obtener_gestor_compras(self):
+        """Retorna el gestor de compras para acceso de GestorArchivos"""
+        return self._gestor_compras
+    # --- MÉTODOS DE CARGA DESDE ARCHIVO (100% Encapsulados) ---
+    def cargar_inventario_desde_archivo(self):
+        # La empresa le ordena al inventario cargarse, pasándole su catálogo
+        self._inventario.cargar_desde_csv(self._catalogo_elementos)
+
+    def cargar_elemento_desde_archivo(self, elemento):
+        self._catalogo_elementos.append(elemento)
+
+    def cargar_unidad_desde_archivo(self, unidad):
+        self._unidades.append(unidad)
+
+    def cargar_colaborador_desde_archivo(self, colab):
+        self._colaboradores[colab.get_id()] = colab
+
+    def cargar_solicitud_desde_archivo(self, solicitud):
+        from solicitud_fabricacion import SolicitudDeFabricacion
+        # Evitamos que se pise el ID estático al cargar
+        if solicitud.get_id() > SolicitudDeFabricacion.id_solicitud:
+            SolicitudDeFabricacion.id_solicitud = solicitud.get_id()
+        self._solicitudes[solicitud.get_id()] = solicitud
+
+    def cargar_compra_desde_archivo(self, orden):
+        self._gestor_compras.agregar_compra(orden)

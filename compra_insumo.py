@@ -42,3 +42,14 @@ class Compra_Insumo:
         inventario.ingresar_stock(self._insumo,self._cantidad)
         self._fecha_recepcion = datetime.now()
         print(f"Se ingresaron con éxito {self._cantidad} unidades de {self._insumo.get_nombre()} al inventario (Orden: {self._id}).")       
+    # NUEVO GETTER
+    def get_estado(self) -> str:
+        return self._estado
+    def set_fechas_historicas(self, fecha_emision, fecha_recepcion):
+        self._fecha_emision = fecha_emision
+        self._fecha_recepcion = fecha_recepcion
+    def recibir_materiales(self, inventario): 
+        inventario.ingresar_stock(self._insumo, self._cantidad)
+        self._estado = "Recibida"  # <--- Encapsulamiento respetado: la clase modifica su propio estado
+        self._fecha_recepcion = datetime.now()
+        print(f"Se ingresaron con éxito {self._cantidad} unidades de {self._insumo.get_nombre()} al inventario (Orden: {self._id}).")
