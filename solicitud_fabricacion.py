@@ -29,8 +29,10 @@ class SolicitudDeFabricacion:
         self._estado = ESTADOS_VALIDOS[0]
         self._es_para_cliente = es_para_cliente 
         self._colaboradores_asignados = [] 
-        if 
-        self._fecha_creacion = 
+        if fecha_creacion is not None:
+            self._fecha_creacion = fecha_creacion
+        else:
+            self._fecha_creacion = datetime.now()
         self._fecha_finalizacion = None
 
 
