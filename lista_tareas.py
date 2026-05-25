@@ -34,5 +34,5 @@ class ListaEnlazadaTareas:
             yield nodo_actual.tarea
             nodo_actual = nodo_actual.siguiente
 
-    def costo_total(self):
+    def get_costo_total(self):
         return self._costo_total

@@ -36,5 +36,5 @@ class Elemento:
         pass
 
     def validar_ciclos(self) -> bool:
-        return True
+        pass
     

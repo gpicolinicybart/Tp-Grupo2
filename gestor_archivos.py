@@ -23,10 +23,10 @@ class GestorArchivos:
                     id_sol= solicitud.get_id()
                     producto= solicitud.get_item_solicitado().get_nombre()
                     cantidad= solicitud.get_cantidad()
-                    fecha_creacion= solicitud._fecha_creacion.strftime("%d/%m/%Y %H:%M")
-                    if solicitud._fecha_finalizacion:
-                        fecha_finalizacion= solicitud._fecha_finalizacion.strftime("%d/%m/%Y %H:%M")
-                        tiempo_hs=round((solicitud._fecha_finalizacion - solicitud._fecha_creacion).total_seconds()/3600,2)
+                    fecha_creacion= solicitud.get_fecha_creacion().strftime("%d/%m/%Y %H:%M")
+                    if solicitud.get_fecha_finalizacion():
+                        fecha_finalizacion= solicitud.get_fecha_finalizacion().strftime("%d/%m/%Y %H:%M")
+                        tiempo_hs=round((solicitud.get_fecha_finalizacion() - solicitud.get_fecha_creacion()).total_seconds()/3600,2)
                     else:
                         fecha_finalizacion="N/A"
                         tiempo_hs="N/A"
@@ -46,7 +46,7 @@ class GestorArchivos:
                         solicitud.get_item_solicitado().get_nombre(),
                         solicitud.get_cantidad(),
                             solicitud.get_estado(),
-                            solicitud._fecha_creacion.strftime("%d/%m/%Y %H:%M")])
+                            solicitud.get_fecha_creacion().strftime("%d/%m/%Y %H:%M")])
         except IOError as e:
             print(f"->[ERROR] Falla en el guardado de solicitudes activas CSV")
 
@@ -55,9 +55,9 @@ class GestorArchivos:
             with open("productos.csv", mode='w', newline='', encoding='utf-8') as archivo:
                 escritor_csv = csv.writer(archivo)
                 escritor_csv.writerow(["ID Producto", "Nombre Producto","Tipo", "Costo Fijo","Stock Fisico", "Stock Reservado", "Receta BOM"])
-                for prod in self.empresa._catalogo_elementos:
-                    fisico=self.empresa._inventario.consultar_stock(prod)
-                    reservado=self.empresa._inventario.obtener_stock_reservado(prod)
+                for prod in self.empresa.obtener_elementos_catalogo():
+                    fisico=self.empresa.obtener_inventario().consultar_stock(prod)
+                    reservado=self.empresa.obtener_inventario().obtener_stock_reservado(prod)
                     tipo=prod.get_tipo_elemento()
                     
                     if tipo=="Articulo Fabricado":
@@ -116,7 +116,7 @@ class GestorArchivos:
                                     prod.get_id(), t.get_id_tarea_maestra(), # Guardamos ID numérico
                                     t.get_unidad_requerida().get_id(), t.get_cant_colaboradores_req(),
                                     t.get_tiempo_por_unidad(), t.get_id_habilidad_requerida(), # Guardamos ID numérico
-                                    getattr(t, '_costo_mano_obra_hora', 0.0)
+                                    t.get_costo_mano_obra_hora()
                                 ])
             except IOError as e:
                 print(f"-> [ERROR] Falla en el guardado de tareas CSV")
@@ -129,13 +129,13 @@ class GestorArchivos:
     
                 # La empresa nos devuelve el historial a través de su propio getter
                 for compra in self.empresa.obtener_historial_compras(): 
-                    f_emision = compra._fecha_emision.strftime("%Y-%m-%d %H:%M:%S")
-                    if compra._fecha_recepcion is not None:
-                        f_recepcion = compra._fecha_recepcion.strftime("%Y-%m-%d %H:%M:%S")
+                    f_emision = compra.get_fecha_emision().strftime("%Y-%m-%d %H:%M:%S")
+                    if compra.get_fecha_recepcion() is not None:
+                        f_recepcion = compra.get_fecha_recepcion().strftime("%Y-%m-%d %H:%M:%S")
                     else:
                         f_recepcion = ""
             
-                    writer.writerow([compra.get_id(), compra._insumo.get_id(), compra._cantidad, compra._estado, f_emision, f_recepcion])
+                    writer.writerow([compra.get_id(), compra.get_insumo().get_id(), compra.get_cantidad(), compra.get_estado(), f_emision, f_recepcion])
                 
         except IOError as e:
             print(f"-> [ERROR] Falla al guardar compras CSV: {e}")
@@ -215,7 +215,7 @@ class GestorArchivos:
                                 if componente is not None:
                                     bom_items.append((componente, cantidad))
                         if bom_items:
-                            prod_obj._bom = [ItemBOM(f"Receta {prod_obj.get_nombre()}", dict(bom_items))]
+                            prod_obj.set_bom([ItemBOM(f"Receta {prod_obj.get_nombre()}", dict(bom_items))])
 
             except KeyError as e:
                 print(f"-> [ERROR] El archivo 'productos.csv' está mal formateado. Falta la columna")
@@ -248,17 +248,10 @@ class GestorArchivos:
                             estado = fila["Estado"]
                             fecha_creacion_str = fila["Fecha Creacion"]
                             
-                            nueva_sol = SolicitudDeFabricacion(producto_obj, cantidad, True)
-                            
-                            nueva_sol._id = id_sol
+                            fecha_creacion= datetime.strptime(fecha_creacion_str, "%d/%m/%Y %H:%M")
+                            nueva_sol= SolicitudDeFabricacion(producto_obj, cantidad, es_para_cliente=True, id=id_sol, fecha_creacion=fecha_creacion)
                             nueva_sol.set_estado(estado)
-                            nueva_sol._fecha_creacion = datetime.strptime(fecha_creacion_str, "%d/%m/%Y %H:%M")
-                            
                             self.empresa.agregar_solicitud(id_sol, nueva_sol)
-                            
-                            if id_sol > SolicitudDeFabricacion.id_solicitud:
-                                SolicitudDeFabricacion.id_solicitud = id_sol
-                                
             except KeyError as e:
                 print(f"-> [ERROR] El archivo 'solicitudes_activas.csv' está mal formateado. Falta la columna")
             except ValueError as e:
@@ -273,10 +266,7 @@ class GestorArchivos:
             with open("unidades.csv", mode='r', encoding='utf-8') as archivo:
                 reader = csv.DictReader(archivo)
                 for fila in reader:
-                    nueva_unidad = UnidadDeTrabajo(fila["Nombre"], float(fila["Capacidad"]), float(fila["Costo Operativo"]))
-                    nueva_unidad._id = int(fila["ID Unidad"])
-                    if hasattr(UnidadDeTrabajo, 'id_unidad') and nueva_unidad._id > UnidadDeTrabajo.id_unidad:
-                        UnidadDeTrabajo.id_unidad = nueva_unidad._id
+                    nueva_unidad = UnidadDeTrabajo(fila["Nombre"], float(fila["Capacidad"]), float(fila["Costo Operativo"]),id=int(fila["ID Unidad"]))
                     self.empresa.agregar_unidad(nueva_unidad)
         except KeyError as e:
             print(f"-> [ERROR] El archivo 'unidades.csv' está mal formateado. Falta la columna")
@@ -300,10 +290,7 @@ class GestorArchivos:
                             for texto_id in lista_textos:
                                 numero_id = int(texto_id.strip())
                                 h_ids.append(numero_id)
-                        nuevo_colaborador = Colaborador(h_ids, float(fila["Horas Disponibles"]), float(fila["Salario Hora"]))
-                        nuevo_colaborador._id = int(fila["ID Colaborador"])
-                        if hasattr(Colaborador, 'id_colaborador') and nuevo_colaborador._id > Colaborador.id_colaborador:
-                            Colaborador.id_colaborador = nuevo_colaborador._id
+                        nuevo_colaborador = Colaborador(h_ids, float(fila["Horas Disponibles"]), float(fila["Salario Hora"]), id=int(fila["ID Colaborador"]))
                         self.empresa.agregar_colaborador(nuevo_colaborador)
             except IOError as e:
                 print(f"-> [ERROR] Falla en la carga de colaboradores CSV")
@@ -416,10 +403,4 @@ class GestorArchivos:
         self.cargar_tareas_csv()
         self.cargar_compras_csv()
         self.cargar_solicitudes_csv()
-        
-   
-        self.empresa._inventario.cargar_desde_csv(self.empresa._catalogo_elementos)
-            
-        self.cargar_tareas_csv()
-        self.cargar_compras_csv()
-        self.cargar_solicitudes_csv()#ENCAPSULAMIENTOOOOO
+    

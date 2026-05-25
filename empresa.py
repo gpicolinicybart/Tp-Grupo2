@@ -127,40 +127,31 @@ class Empresa:
         asignaciones_pendientes = [] 
         lista_tareas = producto.get_lista_tareas() 
 
-        if not lista_tareas.cabecera:
-            print(f" [!] ERROR: El producto '{producto.get_nombre()}' no tiene tareas asignadas.")
-            return False, [], "error_configuracion"
+        if len(lista_tareas) == 0:
+            print(f"[!]ERROR: el producto '{producto.get_nombre()}' no tiene tareas asignadas en su receta. No se puede procesar la solicitud.")
+            return False, [], "eror_configuracion"
+        for tarea in lista_tareas:
+            horas_totales=tarea.calcular_horas_totales(cantidad_pedida)
+            unidad=tarea.get_unidad_requerida()
 
-        nodo_actual = lista_tareas.cabecera
-        while nodo_actual is not None:
-            tarea = nodo_actual.tarea
-            horas_totales = tarea.calcular_horas_totales(cantidad_pedida)
-            unidad = tarea.get_unidad_requerida()
-            
-            # Verificamos Disponibilidad de Máquina
             if not unidad.verificar_disponibilidad(horas_totales):
-                id_tarea_maestra = tarea.get_id_tarea_maestra()
-                datos_tarea = self._catalogo_tareas.get(id_tarea_maestra)
-                nombre_tarea = datos_tarea["nombre"] if isinstance(datos_tarea, dict) else f"Tarea ID {id_tarea_maestra}"
-                print(f" [!] Falta capacidad en la Unidad #{unidad.get_id()} para la tarea '{nombre_tarea}'.")
-                # Devolvemos "capacidad" como motivo de fallo
-                return False, [], "capacidad" 
-                
-            colabs_necesarios = tarea.get_cant_colaboradores_req()
-            colabs_aptos = tarea.filtrar_colaboradores_aptos(self._colaboradores, horas_totales)
-            
-            # Verificamos Disponibilidad de Personal
-            if len(colabs_aptos) < colabs_necesarios:
-                id_hab = tarea.get_id_habilidad_requerida()
-                nombre_hab = self._catalogo_habilidades.get(id_hab, f"Habilidad ID {id_hab}")
-                print(f" [!] No hay suficientes colaboradores con la habilidad '{nombre_hab}'.")
-                # Devolvemos "personal" como motivo de fallo
+                id_tarea_maestra=tarea.get_id_tarea_maestra()
+                datos_tarea=self._catalogo_tareas.get(id_tarea_maestra)
+                if isinstance(datos_tarea, dict):
+                    nombre_tarea=datos_tarea["nombre"]
+                else:
+                    print(f"Tarea ID {id_tarea_maestra} no encontrada en catálogo de tareas.")
+                print (f" [!] Falta capacidad en la unidad #{unidad.get.id()} para la tarea '{nombre_tarea}'.")
+                return False, [], "capacidad"
+            colabs_necesarios=tarea.get_cant_colaboradores_req()
+            colabs_aptos=tarea.filtrar_colaboradores_aptos(self._colaboradores, horas_totales)
+            if len(colabs_aptos)<colabs_necesarios:
+                id_hab=tarea.get_id_habilidad_requerida()
+                nombre_hab=self._catalogo_habilidades.get(id_hab, f"Habilidad ID {id_hab}")
+                print (f" [!] Falta personal con habilidad '{nombre_hab}' ")
                 return False, [], "personal"
-                
-            colabs_encontrados = colabs_aptos[:colabs_necesarios]
+            colabs_encontrados=colabs_aptos[:colabs_necesarios]
             asignaciones_pendientes.append((tarea, horas_totales, colabs_encontrados))
-            nodo_actual = nodo_actual.siguiente 
-            
         return True, asignaciones_pendientes, None
 
     def confirmar_reservas(self, solicitud, materiales_necesarios, asignaciones_pendientes):
@@ -515,7 +506,7 @@ class Empresa:
             
             tareas_producto.agregar_al_final(nueva_tarea) 
 
-        if not tareas_producto.cabecera:
+        if len(tareas_producto) == 0:
             raise ValueError("No se puede fabricar sin tareas.")
 
         
@@ -603,9 +594,6 @@ class Empresa:
         """Retorna la lista de unidades de trabajo"""
         return self._unidades
     
-    def agregar_colaborador(self, colaborador):
-        """Agrega un colaborador al registro desde GestorArchivos"""
-        self._colaboradores[colaborador.get_id()] = colaborador
     
     def obtener_colaboradores(self):
         """Retorna el diccionario de colaboradores"""
@@ -615,29 +603,22 @@ class Empresa:
         """Retorna el inventario de la empresa"""
         return self._inventario
     
-    def obtener_gestor_compras(self):
-        """Retorna el gestor de compras para acceso de GestorArchivos"""
-        return self._gestor_compras
+    
     # --- MÉTODOS DE CARGA DESDE ARCHIVO (100% Encapsulados) ---
     def cargar_inventario_desde_archivo(self):
         # La empresa le ordena al inventario cargarse, pasándole su catálogo
         self._inventario.cargar_desde_csv(self._catalogo_elementos)
 
-    def cargar_elemento_desde_archivo(self, elemento):
-        self._catalogo_elementos.append(elemento)
-
-    def cargar_unidad_desde_archivo(self, unidad):
-        self._unidades.append(unidad)
-
-    def cargar_colaborador_desde_archivo(self, colab):
-        self._colaboradores[colab.get_id()] = colab
-
-    def cargar_solicitud_desde_archivo(self, solicitud):
-        from solicitud_fabricacion import SolicitudDeFabricacion
-        # Evitamos que se pise el ID estático al cargar
-        if solicitud.get_id() > SolicitudDeFabricacion.id_solicitud:
-            SolicitudDeFabricacion.id_solicitud = solicitud.get_id()
-        self._solicitudes[solicitud.get_id()] = solicitud
-
     def cargar_compra_desde_archivo(self, orden):
         self._gestor_compras.agregar_compra(orden)
+
+    def cargar_todos_los_datos(self):
+        self._gestor_archivos.cargar_todos_los_csv()
+    def guardar_todos_los_datos(self):
+        self._gestor_archivos.guardar_todos_los_csv()
+    
+    def guardar_inventario(self):
+        self._gestor_archivos.guardar_inventario_csv()
+    
+    def guardar_solicitudes(self):
+        self._gestor_archivos.guardar_solicitudes_csv()

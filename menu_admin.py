@@ -69,7 +69,7 @@ class MenuAdministrativo(MenuBase):
 
         if not unidades or not insumos:
             return print(" [!] ERROR: Faltan unidades o insumos base.")
-        if not self.empresa._catalogo_tareas or not self.empresa._catalogo_habilidades:
+        if not self.empresa.obtener_catalogo_tareas() or not self.empresa.obtener_catalogo_habilidades():
             return print(" [!] ERROR: Cargue catálogos de tareas y habilidades primero.")
 
         try:
@@ -103,11 +103,11 @@ class MenuAdministrativo(MenuBase):
                     break
 
                 print("\nTipos de Tareas Maestras:")
-                for id_tarea, datos_tarea in self.empresa._catalogo_tareas.items():
+                for id_tarea, datos_tarea in self.empresa.obtener_catalogo_tareas().items():
                     print(f"  ID {id_tarea}: {datos_tarea['nombre']} (Máquina: #{datos_tarea['id_unidad']} | Hab: #{datos_tarea['id_habilidad']})")
                 
                 id_t_maestra = int(input("ID de tarea maestra a usar: "))
-                if id_t_maestra not in self.empresa._catalogo_tareas:
+                if id_t_maestra not in self.empresa.obtener_catalogo_tareas():
                     print(" [!] ERROR: ID de tarea no existe.")
                     continue
 
@@ -142,11 +142,11 @@ class MenuAdministrativo(MenuBase):
 
     def agregar_colaborador(self):
         print("\n--- REGISTRO DE COLABORADOR ---")
-        if not self.empresa._catalogo_habilidades:
+        if not self.empresa.obtener_catalogo_habilidades():
             return print(" [!] ERROR: No hay habilidades en el catálogo maestro.")
             
         print("\nCatálogo de Habilidades Disponibles:")
-        for id_h, nom in self.empresa._catalogo_habilidades.items():
+        for id_h, nom in self.empresa.obtener_catalogo_habilidades().items():
             print(f"  ID {id_h}: {nom}")
             
         try:
@@ -167,7 +167,7 @@ class MenuAdministrativo(MenuBase):
             colab = self.empresa.crear_colaborador(habilidades_ids, horas, salario)
             nombres_h = []
             for hid in habilidades_ids:
-                nombre_habilidad = self.empresa._catalogo_habilidades[hid]
+                nombre_habilidad = self.empresa.obtener_catalogo_habilidades().get(hid)
                 nombres_h.append(nombre_habilidad)
 
             print(f"CONFIRMACIÓN: Colaborador {colab.get_id()} registrado con habilidades: {nombres_h}")
@@ -205,7 +205,7 @@ class MenuAdministrativo(MenuBase):
 
         print("\nCatálogo de Insumos Básicos y Stock Disponible:")
         for id_ins, ins in insumos.items():
-            stock_actual = self.empresa._inventario.obtener_stock_disponible(ins)
+            stock_actual = self.empresa.obtener_inventario().obtener_stock_disponible(ins)
             print(f"  - ID: {id_ins} | {ins.get_nombre()} | Stock: {stock_actual} unid.")
 
         try:
@@ -305,7 +305,7 @@ class MenuAdministrativo(MenuBase):
         insumos = self.empresa.obtener_diccionario_insumos()
         print(f"\nCATÁLOGO DE INSUMOS: {len(insumos)}")
         for id_ins, ins in insumos.items():
-            disponible = self.empresa._inventario.obtener_stock_disponible(ins)
+            disponible = self.empresa.obtener_inventario().obtener_stock_disponible(ins)
             print(f"  ID {id_ins}: {ins.get_nombre()} | Stock Disponible: {disponible}")
         
         productos = self.empresa.obtener_diccionario_productos()
@@ -344,7 +344,7 @@ class MenuAdministrativo(MenuBase):
         print("\n--- NUEVA TAREA MAESTRA ---")
         unidades = self.empresa.obtener_diccionario_unidades()
         
-        if not unidades or not self.empresa._catalogo_habilidades:
+        if not unidades or not self.empresa.obtener_catalogo_habilidades():
             return print("ERROR: Debe cargar al menos una Unidad y una Habilidad primero.")
             
         nombre = input("Nombre del Tipo de Tarea: ")
@@ -356,11 +356,11 @@ class MenuAdministrativo(MenuBase):
         id_u = int(input("ID de la Unidad asociada: "))
         
         print("\nHabilidades Disponibles:")
-        for hid, hnom in self.empresa._catalogo_habilidades.items(): 
+        for hid, hnom in self.empresa.obtener_catalogo_habilidades().items(): 
             print(f"  ID {hid}: {hnom}")
         id_h = int(input("ID de la Habilidad requerida: "))
         
-        if id_u in unidades and id_h in self.empresa._catalogo_habilidades:
+        if id_u in unidades and id_h in self.empresa.obtener_catalogo_habilidades():
             self.empresa.agregar_tarea_maestra(nombre, id_u, id_h)
             print("CONFIRMACIÓN: Tarea Maestra creada exitosamente.")
         else:

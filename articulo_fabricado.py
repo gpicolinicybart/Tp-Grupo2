@@ -2,6 +2,7 @@
 from elemento import Elemento
 from lista_tareas import ListaEnlazadaTareas
 
+
 class ArticuloFabricadoInternamente(Elemento):
     def __init__(self, nombre: str, bom: list, lista_tareas: ListaEnlazadaTareas, id: int = None):
         super().__init__(nombre, id=id)
@@ -31,13 +32,12 @@ class ArticuloFabricadoInternamente(Elemento):
         
         costo_materiales = 0.0
         for item in self.get_bom():
-            costo_materiales += item.get_costo()
+            costo_materiales += item.get_costo_total()
             
         return costo_materiales + costo_tareas
   
     def validar_ciclos(self, camino_actual=None) -> bool:
         self.acumular_necesidades(1, {})
-
         return True
     
     def gestionar_reabastecimiento(self, empresa, cantidad_faltante: int):
@@ -48,6 +48,9 @@ class ArticuloFabricadoInternamente(Elemento):
     
     def get_bom(self):
         return self._bom
+    
+    def set_bom(self, nueva_bom: list):
+        self._bom = nueva_bom
         
     def get_lista_tareas(self):
         return self._lista_tareas
@@ -75,9 +78,7 @@ class ArticuloFabricadoInternamente(Elemento):
 
     def calcular_horas_en_unidad(self, unidad, cantidad: int) -> float:
         horas_acumuladas = 0
-        nodo_actual = self._lista_tareas.cabecera
-        while nodo_actual is not None:
-            if nodo_actual.tarea.get_unidad_requerida().get_id() == unidad.get_id():
-                horas_acumuladas += nodo_actual.tarea.get_tiempo_por_unidad() * cantidad
-            nodo_actual = nodo_actual.siguiente
+        for tarea in self.get_lista_tareas():
+            if tarea.get_unidad_requerida().get_id() == unidad.get_id():
+                horas_acumuladas += tarea.get_tiempo_por_unidad() * cantidad
         return horas_acumuladas

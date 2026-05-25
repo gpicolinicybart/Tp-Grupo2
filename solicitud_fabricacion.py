@@ -15,15 +15,22 @@ ESTADOS_VALIDOS = (
 
 class SolicitudDeFabricacion:
     id_solicitud=0
-    def __init__(self, item_solicitado, cantidad: int, es_para_cliente: bool):
-        SolicitudDeFabricacion.id_solicitud += 1
-        self._id = SolicitudDeFabricacion.id_solicitud
+    def __init__(self, item_solicitado, cantidad: int, es_para_cliente: bool,id: int = None, fecha_creacion=None):
+        if id is None:
+            SolicitudDeFabricacion.id_solicitud += 1
+            self._id = SolicitudDeFabricacion.id_solicitud
+        else:
+            self._id = id
+            if id > SolicitudDeFabricacion.id_solicitud:
+                SolicitudDeFabricacion.id_solicitud = id
+
         self._item_solicitado = item_solicitado
         self._cantidad =self.validar_entero_positivo(cantidad)
         self._estado = ESTADOS_VALIDOS[0]
         self._es_para_cliente = es_para_cliente 
         self._colaboradores_asignados = [] 
-        self._fecha_creacion = datetime.now()
+        if 
+        self._fecha_creacion = 
         self._fecha_finalizacion = None
 
 
@@ -65,3 +72,9 @@ class SolicitudDeFabricacion:
     def marcar_como_terminada(self):
         self.set_estado(ESTADOS_VALIDOS[3])  # Terminada
         self._fecha_finalizacion = datetime.now()
+    
+    def get_fecha_creacion(self):
+        return self._fecha_creacion
+    
+    def get_fecha_finalizacion(self):
+        return self._fecha_finalizacion

@@ -1,9 +1,14 @@
 from datetime import datetime
 class UnidadDeTrabajo:
     id_unidad=0
-    def __init__(self, nombre: str, capacidad_max_horas: float, costo_operativo_por_hora: float):
-        UnidadDeTrabajo.id_unidad += 1
-        self._id = UnidadDeTrabajo.id_unidad
+    def __init__(self, nombre: str, capacidad_max_horas: float, costo_operativo_por_hora: float, id: int = None):
+        if id is None:
+            UnidadDeTrabajo.id_unidad += 1
+            self._id = UnidadDeTrabajo.id_unidad
+        else:
+            self._id = id
+            if id > UnidadDeTrabajo.id_unidad:
+                UnidadDeTrabajo.id_unidad = id
         self._nombre = self.validar_nombre(nombre)
         self._capacidad_max_horas = self.validar_capacidad(capacidad_max_horas)
         self._horas_reservadas = 0.0 

@@ -32,6 +32,4 @@ class GestorCompras:
         """Devuelve la lista ordenada generada por el recorrido inorden del árbol"""
         return self._arbol_historico.obtener_lista_inorden()
         
-    def buscar_compra_especifica(self, id_compra):
-        """Aprovecha la velocidad del árbol binario (O(log n)) para buscar una orden"""
-        return self._arbol_historico.buscar_por_id(id_compra)
+    
