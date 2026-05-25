@@ -37,9 +37,7 @@ class InsumoBasico(Elemento):
         return f"Se ha generado una orden de compra para reabastecer {cantidad_faltante} unidades de '{self.get_nombre()}'. (Orden ID: {nueva_compra.get_id()})"
     
     def acumular_necesidades(self, cantidad: int, necesidades: dict):
-        #insumo basico solo suma su cantidad al diccionario de necesidades, no baja más niveles porque no tiene componentes
+        #insumo basico solo suma su cantidad al diccionario de necesidades, no baja más niveles porque no tiene componentes (caso base de la recursión)
         necesidades[self] = necesidades.get(self, 0) + cantidad
 
-    def validar_ciclos(self, camino_actual=None) -> bool:
-        # es el ultimo eslabon asi que no va a generar ciclos, siempre retorna True
-        return True
+    

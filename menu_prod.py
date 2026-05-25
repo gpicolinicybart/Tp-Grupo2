@@ -1,5 +1,6 @@
 
 from menu_base import MenuBase
+from gestor_archivos import GestorArchivos  
 
 class MenuProduccion(MenuBase):
     def __init__(self, empresa):
@@ -69,7 +70,7 @@ class MenuProduccion(MenuBase):
             solicitud = self.empresa.generar_solicitud_desde_menu(productos[id_p], cantidad)
             print(f"CONFIRMACIÓN: Solicitud #{solicitud.get_id()} creada.")
 
-            self.empresa.guardar_solicitudes_csv()
+            self.empresa._gestor_archivos.guardar_solicitudes_csv()
             
         except ValueError as e:
             print(f" [!] ERROR: {e}")
@@ -77,7 +78,7 @@ class MenuProduccion(MenuBase):
     def procesar_solicitud(self):
         try:
             self.empresa.procesar_solicitud()
-            self.empresa.guardar_solicitudes_csv()
+            self.empresa._gestor_archivos.guardar_solicitudes_csv()
         except ValueError as e:
             print(f"Error de validación al procesar (Estado incorrecto o falta de stock): {e}")
         except KeyError as e:
@@ -88,7 +89,7 @@ class MenuProduccion(MenuBase):
     def ejecutar_solicitud(self):
         try:
             self.empresa.ejecutar_solicitud()
-            self.empresa.guardar_solicitudes_csv()
+            self.empresa._gestor_archivos.guardar_solicitudes_csv()
         except ValueError as e:
             print(f"Error al ejecutar (La solicitud no está lista para producción): {e}")
         except KeyError as e:
@@ -99,7 +100,7 @@ class MenuProduccion(MenuBase):
     def finalizar_solicitud(self):
         try:
             self.empresa.finalizar_solicitud()
-            self.empresa.guardar_solicitudes_csv()
+            self.empresa._gestor_archivos.guardar_solicitudes_csv()
         except ValueError as e:
             print(f"Error de negocio al finalizar (Quizás la solicitud aún no está en ejecución): {e}")
         except KeyError as e:
@@ -115,7 +116,7 @@ class MenuProduccion(MenuBase):
                 print(f"\n-> ÉXITO: Se ingresaron {cantidad} órdenes al inventario.")
                 print("-> AVISO: Podés volver a presionar '6' para que las solicitudes demoradas retomen su curso.")
                 
-                self.empresa.guardar_inventario_csv()
+                self.empresa._gestor_archivos.guardar_inventario_csv()
             else:
                 print("No hay órdenes de compra en tránsito para recibir.")
         except ValueError as e:

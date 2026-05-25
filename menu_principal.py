@@ -5,6 +5,7 @@ from empresa import Empresa
 from menu_admin import MenuAdministrativo
 from menu_prod import MenuProduccion
 from inventario import Inventario
+from gestor_archivos import GestorArchivos
 
 class MenuPrincipal:
     def __init__(self):
@@ -27,7 +28,7 @@ class MenuPrincipal:
         print("Cargando memoria del sistema desde archivos CSV...")
         try:
             
-            self.empresa.cargar_todos_los_csv()
+            self.empresa._gestor_archivos.cargar_todos_los_csv()
             print("Memoria cargada exitosamente.")
         except Exception as e:
             print(f"Aviso al leer los CSV: {e}. Iniciando catálogos en blanco...")
@@ -35,7 +36,7 @@ class MenuPrincipal:
     def guardar_datos(self):
         print("Guardando progreso en archivos CSV...")
         try:
-            self.empresa.guardar_todos_los_csv()
+            self.empresa._gestor_archivos.guardar_todos_los_csv()
             print("\n Progreso guardado correctamente en los archivos CSV.")
         except OSError as e:
             print(f" Error crítico de escritura en el disco duro: {e}")

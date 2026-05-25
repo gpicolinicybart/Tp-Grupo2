@@ -36,21 +36,8 @@ class ArticuloFabricadoInternamente(Elemento):
         return costo_materiales + costo_tareas
   
     def validar_ciclos(self, camino_actual=None) -> bool:
-        if camino_actual is None:
-            camino_actual = set() 
-            
-        if self in camino_actual:
-            raise ValueError(f"CICLO DETECTADO: El artículo '{self.get_nombre()}' se requiere a sí mismo.")
-            
-        camino_actual.add(self)
-        
-        # iteramos los componentes del BOM, si alguno es un ArticuloFabricadoInternamente, baja un nivel y valida su ciclo, 
-        # pasando el camino actual para detectar si vuelve a aparecer el mismo artículo.
-        for bom in self.get_bom():
-            for elemento in bom.get_diccionario().keys():
-                elemento.validar_ciclos(camino_actual)
-        
-        camino_actual.remove(self)
+        self.acumular_necesidades(1, {})
+
         return True
     
     def gestionar_reabastecimiento(self, empresa, cantidad_faltante: int):
@@ -65,15 +52,20 @@ class ArticuloFabricadoInternamente(Elemento):
     def get_lista_tareas(self):
         return self._lista_tareas
         
-    def acumular_necesidades(self, cantidad: int, necesidades: dict):
-        #articulo fabricado acumula sus necesidades multiplicando la cantidad pedida por la cantidad unitaria de cada componente en su bom.
+    def acumular_necesidades(self, cantidad: int, necesidades: dict, camino=None):
+        if camino is None:
+            camino = set()
+        
+        #detectamos ciclos
+        if self in camino:
+            raise ValueError(f"Error: Se detectó un ciclo en la estructura de fabricación del producto '{self.get_nombre()}'.")
+        camino.add(self)
         for bom in self.get_bom():
-            for componente, cant_unitaria in bom.get_diccionario().items():
-                cant_total = cant_unitaria * cantidad
-                
-                # Si es insumo se suma, si es Artículo vuelve a bajar un nivel y acumula sus componentes multiplicados por 
-                # la cantidad total necesaria de ese componente. Esto se hace de forma recursiva hasta llegar a los insumos básicos.
-                componente.acumular_necesidades(cant_total, necesidades)
+            for componente,cant_unitaria in bom.get_diccionario().items():
+                cantidad_total = cant_unitaria * cantidad
+                #recursion: si es articulo fabricado, sigue bajando. Si es insumo basico, acumula en el diccionario
+                componente.acumular_necesidades(cantidad_total, necesidades,camino)
+        camino.remove(self) # liberamos para que ramas paralelas puedan usar el mismo elemento
             
     def calcular_materiales_necesarios(self, cantidad_pedida: int) -> dict:
         necesidades = {}
