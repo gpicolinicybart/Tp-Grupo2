@@ -133,7 +133,7 @@ class Empresa:
                     nombre_tarea=datos_tarea["nombre"]
                 else:
                     print(f"Tarea ID {id_tarea_maestra} no encontrada en catálogo de tareas.")
-                print (f" [!] Falta capacidad en la unidad #{unidad.get.id()} para la tarea '{nombre_tarea}'.")
+                print (f" [!] Falta capacidad en la unidad #{unidad.get_id()} para la tarea '{nombre_tarea}'.")
                 return False, [], "capacidad"
             colabs_necesarios=tarea.get_cant_colaboradores_req()
             colabs_aptos=tarea.filtrar_colaboradores_aptos(self._colaboradores, horas_totales)

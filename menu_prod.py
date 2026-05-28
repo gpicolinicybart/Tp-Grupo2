@@ -124,29 +124,3 @@ class MenuProduccion(MenuBase):
             print("Error: Se intentó procesar una cola de compras que ya estaba vacía.")
         except OSError as e:
             print(f"Error al intentar actualizar el archivo de inventario: {e}")
-
-    def ver_estado(self):
-        print("\n" + "="*60)
-        print("               ESTADO ACTUAL DEL SISTEMA")
-        print("="*60)
-        
-        insumos = self.empresa.obtener_diccionario_insumos()
-        productos = self.empresa.obtener_diccionario_productos()
-        unidades = self.empresa.obtener_diccionario_unidades()
-        
-        print(f"\nCATÁLOGO DE INSUMOS: {len(insumos)}")
-        for id_ins, ins in insumos.items():
-            disponible = self.empresa.consultar_stock_insumo(ins) 
-            print(f"  ID {id_ins}: {ins.get_nombre()} | Stock Disponible: {disponible}")
-            
-        print(f"\nPRODUCTOS REGISTRADOS: {len(productos)}")
-        for id_prod, prod in productos.items():
-            print(f"  ID {id_prod}: {prod.get_nombre()}")
-        
-        print(f"\nUNIDADES DE TRABAJO: {len(unidades)}")
-        for unit in unidades.values():
-            print(f"  {unit}")
-        
-        print("\nSOLICITUDES EN EL SISTEMA:")
-        self.empresa.mostrar_solicitudes()
-        print("="*60)
