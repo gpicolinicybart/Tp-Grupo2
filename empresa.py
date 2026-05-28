@@ -25,9 +25,10 @@ from gestor_archivos import GestorArchivos
 class Empresa:
     def __init__(self, inventario: Inventario):
         self._inventario = inventario
-        self._catalogo_elementos = []
+        self._insumos_basicos = {}
+        self._productos_fabricados = {}        
         self._solicitudes = {}
-        self._unidades = []
+        self._unidades = {}
         self._colaboradores = {}
         self._catalogo_habilidades = {}  # Formato  ID: Nombre
         self._catalogo_tareas = {}       # Formato  ID: Nombre
@@ -340,29 +341,32 @@ class Empresa:
             self._gestor_archivos.guardar_colaboradores_csv()
 
     def agregar_unidad_trabajo(self, nueva_unidad: UnidadDeTrabajo):
-        self._unidades.append(nueva_unidad)
-        self._gestor_archivos.guardar_unidades_csv()  
+        self._unidades[nueva_unidad.get_id()] = nueva_unidad
+        self._gestor_archivos.guardar_unidades_csv()
         
     
     def registrar_producto_nuevo(self, producto: Elemento) -> bool:
-            
             nombre_nuevo = producto.get_nombre().strip().lower()
-            for elem in self._catalogo_elementos:
-                if elem.get_nombre().strip().lower() == nombre_nuevo:
-                    print(f"-> [ERROR] Ya existe un elemento llamado '{elem.get_nombre()}' en el catálogo. Acción cancelada.")
+            for ins in self._insumos_basicos.values():
+                if ins.get_nombre().strip().lower() == nombre_nuevo:
+                    print(f"-> [ERROR] Ya existe '{ins.get_nombre()}' en insumos. Cancelado.")
                     return False
-                    
+            for prod in self._productos_fabricados.values():
+                if prod.get_nombre().strip().lower() == nombre_nuevo:
+                    print(f"-> [ERROR] Ya existe '{prod.get_nombre()}' en productos. Cancelado.")
+                    return False
             try:
                 producto.validar_ciclos() 
-                self._catalogo_elementos.append(producto)
+                if producto.get_tipo_elemento() == "Insumo Básico":
+                    self._insumos_basicos[producto.get_id()] = producto
+                else:
+                    self._productos_fabricados[producto.get_id()] = producto
                 print(f"EMPRESA: '{producto.get_nombre()}' registrado exitosamente en el catálogo.")
-                
-                # --- PERSISTENCIA ---
                 self._gestor_archivos.guardar_catalogo_csv() 
                 self._gestor_archivos.guardar_tareas_csv()  
                 return True
             except ValueError as e:
-                print(f"No se pudo registrar '{producto.get_nombre()}' por un ciclo en el BOM: {e}")
+                print(f"No se pudo registrar '{producto.get_nombre()}' por un ciclo en el BOM")
                 return False
                 
     def consultar_stock_insumo(self, insumo):
@@ -391,39 +395,18 @@ class Empresa:
         }
         self._gestor_archivos.guardar_catalogos_maestros()
         return nuevo_id
-
-
-    # ---------------------------------------
-    # metodos que cargan los datos en los menus
    
     def obtener_diccionario_insumos(self):
-        # creo un diccionario nuevo con solo los insumos basicos, filtrando el catalogo por tipo de elemento
-        insumos = {}
-        for elemento in self._catalogo_elementos:
-            if elemento.get_tipo_elemento() == "Insumo Básico":
-                insumos[elemento.get_id()] = elemento
-        return insumos
+        return self._insumos_basicos
 
     def obtener_diccionario_productos(self):
-        #lo mismo que el de insumos pero filtrando por Articulo Fabricado
-        productos = {}
-        for elemento in self._catalogo_elementos:
-            if elemento.get_tipo_elemento() == "Articulo Fabricado":
-                productos[elemento.get_id()] = elemento
-        return productos
+        return self._productos_fabricados
 
     def obtener_diccionario_unidades(self):
-        unidades_dict = {}
-        for u in self._unidades:
-            unidades_dict[u.get_id()] = u
-        return unidades_dict
+        return self._unidades
 
     def obtener_diccionario_colaboradores(self):
-        return self._colaboradores 
-
-    # ==========================================================
-    # los metodos que estaban en los menus
-    # ==========================================================
+        return self._colaboradores
 
     def crear_insumo_basico(self, nombre, costo):
         if not nombre: 
@@ -572,11 +555,14 @@ class Empresa:
     
     def agregar_elemento_al_catalogo(self, elemento):
         """Agrega un elemento al catálogo desde GestorArchivos"""
-        self._catalogo_elementos.append(elemento)
+        if elemento.get_tipo_elemento() == "Insumo Básico":
+            self._insumos_basicos[elemento.get_id()] = elemento
+        else:
+            self._productos_fabricados[elemento.get_id()] = elemento
     
     def obtener_elementos_catalogo(self):
-        """Retorna la lista de elementos del catálogo"""
-        return self._catalogo_elementos
+        """Retorna la lista de elementos combinada para guardar en el CSV"""
+        return list(self._insumos_basicos.values()) + list(self._productos_fabricados.values())
     
     def agregar_solicitud(self, id_solicitud, solicitud):
         """Agrega una solicitud al registro desde GestorArchivos"""
@@ -588,12 +574,11 @@ class Empresa:
     
     def agregar_unidad(self, unidad):
         """Agrega una unidad de trabajo al registro desde GestorArchivos"""
-        self._unidades.append(unidad)
-    
+        self._unidades[unidad.get_id()] = unidad    
+        
     def obtener_unidades(self):
         """Retorna la lista de unidades de trabajo"""
-        return self._unidades
-    
+        return list(self._unidades.values())
     
     def obtener_colaboradores(self):
         """Retorna el diccionario de colaboradores"""
@@ -603,17 +588,15 @@ class Empresa:
         """Retorna el inventario de la empresa"""
         return self._inventario
     
-    
-    # --- MÉTODOS DE CARGA DESDE ARCHIVO (100% Encapsulados) ---
     def cargar_inventario_desde_archivo(self):
-        # La empresa le ordena al inventario cargarse, pasándole su catálogo
-        self._inventario.cargar_desde_csv(self._catalogo_elementos)
-
+        self._inventario.cargar_desde_csv(self.obtener_elementos_catalogo())
+        
     def cargar_compra_desde_archivo(self, orden):
         self._gestor_compras.agregar_compra(orden)
 
     def cargar_todos_los_datos(self):
         self._gestor_archivos.cargar_todos_los_csv()
+        
     def guardar_todos_los_datos(self):
         self._gestor_archivos.guardar_todos_los_csv()
     

@@ -304,13 +304,8 @@ class GestorArchivos:
             return
         from tarea import Tarea
         try:
-            productos_dict = {}
-            for p in self.empresa.obtener_elementos_catalogo():
-                productos_dict[p.get_id()] = p
-                
-            unidades_dict = {}
-            for u in self.empresa.obtener_unidades():
-                unidades_dict[u.get_id()] = u
+            productos_dict = self.empresa.obtener_diccionario_productos()
+            unidades_dict = self.empresa.obtener_diccionario_unidades()
 
             with open("tareas.csv", mode='r', encoding='utf-8') as archivo:
                 reader = csv.DictReader(archivo)
