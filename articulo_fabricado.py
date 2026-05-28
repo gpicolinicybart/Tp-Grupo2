@@ -36,9 +36,13 @@ class ArticuloFabricadoInternamente(Elemento):
             
         return costo_materiales + costo_tareas
   
-    def validar_ciclos(self, camino_actual=None) -> bool:
-        self.acumular_necesidades(1, {})
-        return True
+    def validar_ciclos(self) -> bool:
+        try:
+            self.acumular_necesidades(1, {})
+            return True
+        except ValueError as e:
+            print(f"Error al validar '{self.get_nombre()}'")
+            return False
     
     def gestionar_reabastecimiento(self, empresa, cantidad_faltante: int):
             from solicitud_fabricacion import SolicitudDeFabricacion
