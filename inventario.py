@@ -40,11 +40,9 @@ class Inventario:
         else: 
             self._stock_fisico[elem]=cant
     
+
     def hay_disponibilidad(self, elem: Elemento, cant_pedida: int) -> bool:
-        # El inventario hace su propia cuenta interna
-        stock_real = self.consultar_stock(elem)
-        reservado = self._stock_reservado.get(elem, 0)
-        return (stock_real - reservado) >= cant_pedida
+        return self.obtener_stock_disponible(elem) >= cant_pedida
     
     def obtener_stock_disponible(self, elem: Elemento) -> int:
         #Retorna el stock disponible (físico - reservado) sin acceso directo a atributos privados

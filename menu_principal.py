@@ -1,11 +1,9 @@
 
 import csv
-import os
 from empresa import Empresa
 from menu_admin import MenuAdministrativo
 from menu_prod import MenuProduccion
 from inventario import Inventario
-from gestor_archivos import GestorArchivos
 
 class MenuPrincipal:
     def __init__(self):

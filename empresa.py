@@ -1,9 +1,4 @@
-#------------------------------------------------------------------------------------------------------------------------------
-# IMPORTANTE NOTA: La empresa centraliza el procesamiento (revisa stock, asigna tareas).
-# La solicitud queda como un objeto de datos puro.
-#------------------------------------------------------------------------------------------------------------------------------
 import csv
-from datetime import datetime
 from gestor_compras import GestorCompras
 from inventario import Inventario
 from tarea import Tarea
@@ -18,10 +13,6 @@ from itembom import ItemBOM
 from lista_tareas import ListaEnlazadaTareas
 from gestor_archivos import GestorArchivos
 
-# como la empresa confia en lo que colaboradores y insumo basico le devuelven al preguntar por 
-# su tipo de reabastecimiento, no es necesario importar la clase de cada uno, con importar el padre (Elemento)
-# alcanza para que la empresa pueda preguntar por el tipo de reabastecimiento sin necesidad de saber si es un 
-# insumo o un articulo fabricado.
 class Empresa:
     def __init__(self, inventario: Inventario):
         self._inventario = inventario
@@ -30,8 +21,8 @@ class Empresa:
         self._solicitudes = {}
         self._unidades = {}
         self._colaboradores = {}
-        self._catalogo_habilidades = {}  # Formato  ID: Nombre
-        self._catalogo_tareas = {}       # Formato  ID: Nombre
+        self._catalogo_habilidades = {}  
+        self._catalogo_tareas = {}       
         self._gestor_compras = GestorCompras()
         self._gestor_archivos = GestorArchivos(self)
 
@@ -549,10 +540,6 @@ class Empresa:
     def registrar_tarea_desde_archivo(self, id_tarea: int, datos: dict):
         self._catalogo_tareas[id_tarea] = datos
 
-    # ================================================
-    # Métodos de Acceso para GestorArchivos (Encapsulamiento)
-    # ================================================
-    
     def agregar_elemento_al_catalogo(self, elemento):
         """Agrega un elemento al catálogo desde GestorArchivos"""
         if elemento.get_tipo_elemento() == "Insumo Básico":
@@ -579,10 +566,6 @@ class Empresa:
     def obtener_unidades(self):
         """Retorna la lista de unidades de trabajo"""
         return list(self._unidades.values())
-    
-    def obtener_colaboradores(self):
-        """Retorna el diccionario de colaboradores"""
-        return self._colaboradores
     
     def obtener_inventario(self):
         """Retorna el inventario de la empresa"""
