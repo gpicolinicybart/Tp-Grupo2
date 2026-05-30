@@ -2,26 +2,21 @@ import pytest
 from inventario import Inventario
 from insumo_basico import InsumoBasico
 
-@pytest.fixture # el fixture es para hacer un escenario y no tener q repetirlo en todos los test
+@pytest.fixture 
 def inv_setup():
-    #Crea un inventario y le ingresa stock de dos materiales
     inv = Inventario()
     acero = InsumoBasico("Acero", 50.0)
     madera = InsumoBasico("Madera", 100.0)
-    inv.ingresar_stock(acero, 100) # Ingresamos 100 unidades
-    inv.ingresar_stock(madera, 50)  # Ingresamos 50 unidades
+    inv.ingresar_stock(acero, 100) 
+    inv.ingresar_stock(madera, 50)  
     return inv, acero, madera
 
 def test_reservar_disminuye_disponibilidad(inv_setup):
     inv, acero, madera = inv_setup
-    # Reservamos 30 unidades de acero
     inv.reservar_stock(acero, 30)
     
-    # Comprobaciones del acero
     assert inv.consultar_stock(acero) == 100
     assert inv.hay_disponibilidad(acero, 70) is True
-    
-    #  la madera sigue intacta 
     assert inv.consultar_stock(madera) == 50
     assert inv.hay_disponibilidad(madera, 50) is True
 
@@ -30,18 +25,38 @@ def test_descontar_stock_con_reserva(inv_setup):
     inv.reservar_stock(acero, 40)
     inv.descontar_stock(acero, 40)
     
-    #  stock físico debe haber bajado 
     assert inv.consultar_stock(acero) == 60
 
-def test_obtener_materiales_criticos(inv_setup): #Verifica que la regla del < 20% funcione correctamente 
+def test_obtener_materiales_criticos(inv_setup): 
     inv, acero, madera = inv_setup
-    # llega un pedido que necesita 1000 de acero y 100 de madera.
     necesidades = {acero: 1000, madera: 100}
-    # para el acero tenemos 100 y necesitamos 1000, el 20% es 200 asi que como solo hay 100 es critico
-    #  la madera tenemos 50 y necesitamos 100, el 20% es 20 asi q tenemos mas (no es critico)
     
     criticos_lista = inv.obtener_materiales_criticos(necesidades)
-    # la funcion devuelve tuplas asi q para q sea mas facil lo volvemos diccionario
     criticos_dict = dict(criticos_lista)
+    
     assert acero in criticos_dict
     assert madera not in criticos_dict
+
+def test_ingresar_reservar_cant_negativas(inv_setup):
+    inv, acero, _ = inv_setup
+    with pytest.raises(ValueError):
+        inv.ingresar_stock(acero, -10)
+        
+    with pytest.raises(ValueError):
+        inv.reservar_stock(acero, -5)
+
+def test_reservar_mas_stock_del_disponible_falla(inv_setup):
+    inv, acero, _ = inv_setup
+    inv.reservar_stock(acero, 200)
+    assert inv.obtener_stock_disponible(acero) == 100
+
+def test_descontar_mas_stock_del_reservado_falla(inv_setup):
+    inv, acero, _ = inv_setup
+    inv.reservar_stock(acero, 10)
+    inv.descontar_stock(acero, 50)
+    assert inv.consultar_stock(acero) == 100
+
+def test_obtener_stock_disponible_hace_bien_la_resta(inv_setup):
+    inv, acero, _ = inv_setup
+    inv.reservar_stock(acero, 25)
+    assert inv.obtener_stock_disponible(acero) == 75
