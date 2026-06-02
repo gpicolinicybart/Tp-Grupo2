@@ -1,6 +1,0 @@
-ID Producto,Nombre Producto,Tipo,Costo Fijo,Stock Fisico,Stock Reservado,Receta BOM
-1,Tablón de Madera,Insumo Básico,5000.0,1235678,0,
-2,Tornillos 10mm,Insumo Básico,5.0,1000,0,
-4,mas,Insumo Básico,123.0,0,0,
-7,Pata de Mesa,Articulo Fabricado,0.0,0,0,
-8,Mesa Completa,Articulo Fabricado,0.0,0,0,7: 4

@@ -29,7 +29,7 @@ class MenuPrincipal:
             self.empresa.cargar_todos_los_datos()
             print("Memoria cargada exitosamente.")
         except Exception as e:
-            print(f"Aviso al leer los CSV: {e}. Iniciando catálogos en blanco...")
+            print(f"Aviso al leer los CSV. Iniciando catálogos en blanco...")
 
     def guardar_datos(self):
         print("Guardando progreso en archivos CSV...")
@@ -37,12 +37,12 @@ class MenuPrincipal:
             self.empresa.guardar_todos_los_datos()
             print("\n Progreso guardado correctamente en los archivos CSV.")
         except OSError as e:
-            print(f" Error crítico de escritura en el disco duro: {e}")
+            print(f" Error crítico de escritura en el disco duro")
 
     def _leer_usuarios(self) -> dict:
         usuarios = {}
         try:
-            with open("usuarios.csv", "r", encoding="utf-8") as archivo:
+            with open("csv/usuarios.csv", "r", encoding="utf-8") as archivo:
                 lector = csv.DictReader(archivo)
                 for fila in lector:
                     usuarios[fila["id"].strip()] = {
@@ -55,7 +55,7 @@ class MenuPrincipal:
         except FileNotFoundError:
             print("Archivo 'usuarios.csv' no encontrado.")
         except KeyError as e:
-            print(f" El archivo 'usuarios.csv' está mal formateado. Falta la columna: {e}")
+            print(f" El archivo 'usuarios.csv' está mal formateado.")
             
         return usuarios
 

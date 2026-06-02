@@ -66,7 +66,7 @@ class Inventario:
     # MÉTODOS DE PERSISTENCIA (Sincronización con archivos CSV)
     
 
-    def guardar_en_csv(self, archivo_csv="inventario.csv"):
+    def guardar_en_csv(self, archivo_csv="csv/inventario.csv"):
         with open(archivo_csv, mode='w', newline='', encoding='utf-8') as archivo:
             writer = csv.writer(archivo)
             writer.writerow(["id_elemento", "nombre_referencia", "stock_fisico", "stock_reservado"])
@@ -94,7 +94,7 @@ class Inventario:
     def obtener_stock_reservado(self, elem: Elemento) -> int:
         return self._stock_reservado.get(elem, 0)
 
-    def cargar_desde_csv(self, elementos_catalogo: list, archivo_csv="inventario.csv"):
+    def cargar_desde_csv(self, elementos_catalogo: list, archivo_csv="csv/inventario.csv"):
         if not os.path.exists(archivo_csv):
             return
 
@@ -124,6 +124,6 @@ class Inventario:
                     if reservado:
                         self._stock_reservado[elemento] = reservado
         except ValueError as e:
-            print(f"-> [ERROR] Datos numéricos corruptos en 'inventario.csv'. Se esperaba un número entero: {e}")
+            print(f"-> [ERROR] Datos numéricos corruptos en 'inventario.csv'. Se esperaba un número entero")
         except OSError as e:
-            print(f"-> [ERROR] Problema de lectura o permisos con el archivo 'inventario.csv': {e}")
+            print(f"-> [ERROR] Problema de lectura o permisos con el archivo 'inventario.csv'")

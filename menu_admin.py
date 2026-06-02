@@ -60,7 +60,7 @@ class MenuAdministrativo(MenuBase):
             insumo = self.empresa.crear_insumo_basico(nombre, costo)
             print(f"CONFIRMACIÓN: Insumo '{nombre}' registrado con ID: {insumo.get_id()}")
         except ValueError as e:
-            print(f"ERROR: Datos inválidos. {e}")
+            print(f"ERROR: Datos inválidos.")
 
     def crear_producto(self):
         print("\n--- REGISTRO DE PRODUCTO FABRICADO ---")
@@ -126,7 +126,7 @@ class MenuAdministrativo(MenuBase):
             print(f"\n CONFIRMACIÓN: Producto '{nombre}' (ID: {producto.get_id()}) registrado.")
                 
         except ValueError as e:
-            print(f"ERROR: {e}")
+            print(f"ERROR: Ingresó texto donde se esperaba un número o viceversa.")
 
     def agregar_unidad_trabajo(self):
         print("\n--- REGISTRO DE UNIDAD DE TRABAJO ---")
@@ -138,7 +138,7 @@ class MenuAdministrativo(MenuBase):
             unidad = self.empresa.crear_unidad_trabajo(nombre, capacidad, costo)
             print(f"CONFIRMACIÓN: Unidad '{nombre}' registrada con ID: {unidad.get_id()}")
         except ValueError as e:
-            print(f"ERROR: {e}")
+            print(f"ERROR: Datos inválidos. Asegúrese de ingresar números donde se solicitan.")
 
     def agregar_colaborador(self):
         print("\n--- REGISTRO DE COLABORADOR ---")
@@ -195,7 +195,7 @@ class MenuAdministrativo(MenuBase):
             print(f"\n[ÉXITO] El colaborador {id_baja} ha sido dado de baja.")
             print(colab_baja)
         except ValueError as e:
-            print(f"ERROR: {e}")
+            print(f"ERROR: Ingrese un número entero válido para el ID.")
 
     def comprar_insumos_manual(self):
         print("\n=== GENERADOR DE ÓRDENES DE COMPRA MANUAL ===")
@@ -216,7 +216,7 @@ class MenuAdministrativo(MenuBase):
             
             print("\n-> AVISO: El pedido se encuentra en tránsito.")
         except ValueError as e:
-            print(f"ERROR: {e}")
+            print(f"ERROR: Ingrese números enteros válidos para ID y cantidad.")
         
 
     def generar_reporte_criticos(self):
@@ -239,7 +239,7 @@ class MenuAdministrativo(MenuBase):
             
             self.empresa.generar_reporte_materiales_criticos(productos[id_p], cantidad)
         except ValueError as e:
-            print(f"ERROR: {e}")
+            print(f"ERROR: Ingrese números enteros válidos para ID y cantidad.")
 
     def emitir_reporte_y_sobrecarga(self):
         unidades = self.empresa.obtener_diccionario_unidades()
@@ -274,7 +274,7 @@ class MenuAdministrativo(MenuBase):
         print("\n" + "="*70)
         print("    HISTORIAL DE PRODUCCIÓN TERMINADA    ")
         print("="*70)
-        nombre_archivo = "historial_solicitudes.csv"
+        nombre_archivo = "csv/historial_solicitudes.csv"
         if not os.path.isfile(nombre_archivo):
             return print("Todavía no hay un historial. Finalizá alguna solicitud primero.")
         try:
@@ -295,7 +295,7 @@ class MenuAdministrativo(MenuBase):
                 print("-" * 70)
                 print(f"Total de registros históricos: {filas}")
         except IOError as e:
-            print(f"[ERROR] No se pudo leer el archivo: {e}")
+            print(f"[ERROR] No se pudo leer el archivo de historial")
 
     def cargar_demo(self):
         print("\n--- CARGANDO DEMO INDUSTRIAL ---")
@@ -303,13 +303,13 @@ class MenuAdministrativo(MenuBase):
             self.empresa.cargar_demo_completa()
             print("[ÉXITO] Demo cargada con éxito")
         except ValueError as error_valor:
-            print(f"Error en los datos de la demo (valores inválidos): {error_valor}")
+            print(f"Error en los datos de la demo (valores inválidos)")
             
         except KeyError as error_clave:
-            print(f"Error de referencia en la demo (falta un ID): {error_clave}")
+            print(f"Error de referencia en la demo (falta un ID)")
     
         except TypeError as error_tipo:
-            print(f"Error de tipo de dato al armar la demo: {error_tipo}")
+            print(f"Error de tipo de dato al armar la demo")
         
 
     def crear_tarea_maestra(self):
@@ -353,9 +353,9 @@ class MenuAdministrativo(MenuBase):
                 return print(" ERROR: El DNI es obligatorio.")
             # Buscar DNI duplicado y calcular el próximo ID autoincremental
             max_id = 0
-            archivo_existe = os.path.isfile("usuarios.csv")
+            archivo_existe = os.path.isfile("csv/usuarios.csv")
             if archivo_existe:
-                with open("usuarios.csv", "r", encoding="utf-8") as f:
+                with open("csv/usuarios.csv", "r", encoding="utf-8") as f:
                     lector = csv.DictReader(f)
                     for fila in lector:
                         # Verificar DNI duplicado
@@ -377,7 +377,7 @@ class MenuAdministrativo(MenuBase):
             else:
                 return print(" ERROR: Opción de rol no válida.")
             # Guardar en el archivo
-            with open("usuarios.csv", mode="a", newline="", encoding="utf-8") as archivo:
+            with open("csv/usuarios.csv", mode="a", newline="", encoding="utf-8") as archivo:
                 escritor = csv.writer(archivo)
                 if not archivo_existe:
                     # Por si el archivo no existe, escribimos los encabezados primero
@@ -386,8 +386,8 @@ class MenuAdministrativo(MenuBase):
             print(f"\n-> Usuario '{nombre} {apellido}' registrado correctamente como '{rol}'.")
             print(f"-> AVISO IMPORTANTE: Su ID de acceso generado por el sistema es el número {nuevo_id}.")
         except KeyError as e:
-            print(f" ERROR: El archivo 'usuarios.csv' está dañado o no tiene los encabezados correctos. Falta la columna: {e}")
+            print(f" ERROR: El archivo 'usuarios.csv' está dañado o no tiene los encabezados correctos. ")
         except ValueError as e:
-            print(f" ERROR: Hay un ID incorrecto en 'usuarios.csv' que no es un número: {e}")
+            print(f" ERROR: Hay un ID incorrecto en 'usuarios.csv' que no es un número")
         except OSError as e:
-            print(f" ERROR: Falla al intentar guardar en 'usuarios.csv': {e}")
+            print(f" ERROR: Falla al intentar guardar en 'usuarios.csv'")

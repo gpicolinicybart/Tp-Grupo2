@@ -1,6 +1,5 @@
 
 from datetime import datetime
-from insumo_basico import InsumoBasico
 
 
 class Compra_Insumo:

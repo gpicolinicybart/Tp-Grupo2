@@ -1,7 +1,6 @@
 from unittest.mock import MagicMock
 from articulo_fabricado import ArticuloFabricadoInternamente
 from itembom import ItemBOM
-from tarea import Tarea
 from insumo_basico import InsumoBasico
 from lista_tareas import ListaEnlazadaTareas
 

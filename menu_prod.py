@@ -72,40 +72,40 @@ class MenuProduccion(MenuBase):
             self.empresa.guardar_solicitudes()
             
         except ValueError as e:
-            print(f" [!] ERROR: {e}")
+            print(f" [!] ERROR al crear la solicitud")
 
     def procesar_solicitud(self):
         try:
             self.empresa.procesar_solicitud()
             self.empresa.guardar_solicitudes()
         except ValueError as e:
-            print(f"Error de validación al procesar (Estado incorrecto o falta de stock): {e}")
+            print(f"Error de validación al procesar (Estado incorrecto o falta de stock)")
         except KeyError as e:
-            print(f"Error: No se encontró la solicitud en el sistema: {e}")
+            print(f"Error: No se encontró la solicitud en el sistema")
         except OSError as e:
-            print(f"Error de sistema al intentar guardar el archivo CSV: {e}")
+            print(f"Error de sistema al intentar guardar el archivo CSV")
 
     def ejecutar_solicitud(self):
         try:
             self.empresa.ejecutar_solicitud()
             self.empresa.guardar_solicitudes()
         except ValueError as e:
-            print(f"Error al ejecutar (La solicitud no está lista para producción): {e}")
+            print(f"Error al ejecutar (La solicitud no está lista para producción)")
         except KeyError as e:
-            print(f"Error: ID de solicitud no encontrado: {e}")
+            print(f"Error: ID de solicitud no encontrado")
         except OSError as e:
-            print(f"Error al guardar el avance en el disco: {e}")
+            print(f"Error al guardar el avance en el disco duro")
 
     def finalizar_solicitud(self):
         try:
             self.empresa.finalizar_solicitud()
             self.empresa.guardar_solicitudes()
         except ValueError as e:
-            print(f"Error de negocio al finalizar (Quizás la solicitud aún no está en ejecución): {e}")
+            print(f"Error de negocio al finalizar (Quizás la solicitud aún no está en ejecución)")
         except KeyError as e:
-            print(f"Error: No se encontró la solicitud a finalizar: {e}")
+            print(f"Error: No se encontró la solicitud a finalizar")
         except OSError as e:
-            print(f"Error al actualizar el historial CSV: {e}")
+            print(f"Error al actualizar el historial CSV")
     
     def recibir_compras_pendientes(self):
         print("\n--- RECEPCIÓN DE ÓRDENES DE COMPRA ---")
@@ -119,8 +119,8 @@ class MenuProduccion(MenuBase):
             else:
                 print("No hay órdenes de compra en tránsito para recibir.")
         except ValueError as e:
-            print(f"Error con los datos de las órdenes de compra: {e}")
+            print(f"Error con los datos de las órdenes de compra")
         except IndexError:
             print("Error: Se intentó procesar una cola de compras que ya estaba vacía.")
         except OSError as e:
-            print(f"Error al intentar actualizar el archivo de inventario: {e}")
+            print(f"Error al intentar actualizar el archivo de inventario")

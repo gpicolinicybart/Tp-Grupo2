@@ -1,9 +1,8 @@
-import csv
+
 from gestor_compras import GestorCompras
 from inventario import Inventario
 from tarea import Tarea
 from compra_insumo import Compra_Insumo
-from solicitud_fabricacion import SolicitudDeFabricacion, ESTADOS_VALIDOS
 from unidad_de_trabajo import UnidadDeTrabajo
 from elemento import Elemento
 from articulo_fabricado import ArticuloFabricadoInternamente
@@ -12,216 +11,46 @@ from colaboradores import Colaborador
 from itembom import ItemBOM
 from lista_tareas import ListaEnlazadaTareas
 from gestor_archivos import GestorArchivos
+from gestor_solicitudes import GestorSolicitudes
+from solicitud_fabricacion import SolicitudDeFabricacion, ESTADOS_VALIDOS
 
 class Empresa:
     def __init__(self, inventario: Inventario):
         self._inventario = inventario
         self._insumos_basicos = {}
         self._productos_fabricados = {}        
-        self._solicitudes = {}
         self._unidades = {}
         self._colaboradores = {}
         self._catalogo_habilidades = {}  
         self._catalogo_tareas = {}       
         self._gestor_compras = GestorCompras()
         self._gestor_archivos = GestorArchivos(self)
+        self._gestor_solicitudes = GestorSolicitudes(self) 
+
+    def crear_solicitud(self, solicitud: SolicitudDeFabricacion):
+        self._gestor_solicitudes.crear_solicitud(solicitud)
+
+    def generar_solicitud_desde_menu(self, producto, cantidad):
+        return self._gestor_solicitudes.generar_solicitud_desde_menu(producto, cantidad)
+
+    def procesar_solicitud(self):
+        self._gestor_solicitudes.procesar_solicitud()
+
+    def ejecutar_solicitud(self):
+        self._gestor_solicitudes.ejecutar_solicitud()
+
+    def finalizar_solicitud(self):
+        self._gestor_solicitudes.finalizar_solicitud()
+
+    def mostrar_solicitudes(self):
+        self._gestor_solicitudes.mostrar_solicitudes()
+
 
     def registrar_compra(self, orden: Compra_Insumo):
         self._gestor_compras.agregar_compra(orden)
         print(f"EMPRESA: Se registró la orden de compra {orden.get_id()}...")
         self._gestor_archivos.guardar_compras_csv()
         
-    def crear_solicitud(self, solicitud: SolicitudDeFabricacion):
-        self._solicitudes[solicitud.get_id()] = solicitud
-        print(f"EMPRESA: Se registró una nueva solicitud de fabricación (ID:{solicitud.get_id()})")
-
-    def generar_solicitud_desde_menu(self, producto, cantidad):
-        if cantidad <= 0:
-            raise ValueError("La cantidad a fabricar debe ser mayor a cero.")
-        
-        solicitud = SolicitudDeFabricacion(producto, cantidad, True)
-        self.crear_solicitud(solicitud)
-        return solicitud
-    
-    def procesar_solicitud(self):
-        print("\n--- PROCESANDO PLANIFICACIÓN DE PRODUCCIÓN ---")
-        
-        elegibles = []
-        for solicitud in self._solicitudes.values():
-            if solicitud.get_estado() == ESTADOS_VALIDOS[0] or solicitud.get_estado().startswith("Demorada"):
-                elegibles.append(solicitud)
-    
-        if not elegibles:
-            print("-> AVISO: No hay solicitudes para procesar. Creá una con la opción 5 o esperá a que lleguen insumos (opción 14) si hay demoradas.")
-            return
-        
-        for solicitud in elegibles:
-            try:
-                self.procesar_solicitud_individual(solicitud)
-            except ValueError as e:
-                print(f"-> AVISO: No se pudo completar la Solicitud {solicitud.get_id()} por falta de recursos/validación: {e}")
-                solicitud.set_estado(ESTADOS_VALIDOS[7])  # Demorada por falta de recursos/validación
-    
-    def procesar_solicitud_individual(self, solicitud):
-        producto = solicitud.get_item_solicitado()
-        cantidad_pedida = int(solicitud.get_cantidad()) 
-        print(f"\nProcesando Solicitud {solicitud.get_id()} -> Fabricar: {cantidad_pedida}x '{producto.get_nombre()}'")
-        
-        # 1: EXPLOSIÓN DE MATERIALES
-        materiales_necesarios = self.explotar_bom(producto, cantidad_pedida)
-        
-        # 2: VERIFICAR STOCK (Si falta stock, frena y retorna)
-        if not self.gestionar_stock(solicitud, materiales_necesarios):
-            return 
-
-        # 3: VERIFICAR CAPACIDAD (Delegación a Tarea)
-        # Ahora desempaquetamos 3 variables
-        exito_capacidad, asignaciones_pendientes, motivo_fallo = self.gestionar_capacidad(producto, cantidad_pedida)
-        
-        if not exito_capacidad:
-            if motivo_fallo == "capacidad":
-                solicitud.set_estado(ESTADOS_VALIDOS[5])  # Demorada por falta de capacidad
-                print(f" -> Solicitud {solicitud.get_id()} DEMORADA (Falta Capacidad Máquina).")
-            elif motivo_fallo == "personal":
-                solicitud.set_estado(ESTADOS_VALIDOS[6])  # Demorada por falta de colaboradores
-                print(f" -> Solicitud {solicitud.get_id()} DEMORADA (Falta Personal).")
-            return
-
-        # 4: CONFIRMACIÓN Y RESERVA
-        self.confirmar_reservas(solicitud, materiales_necesarios, asignaciones_pendientes)
-
-    def explotar_bom(self, producto, cantidad_pedida) -> dict:
-        return producto.calcular_materiales_necesarios(cantidad_pedida)
-
-    def gestionar_stock(self, solicitud, materiales_necesarios) -> bool:
-        # filtrar faltantes
-        materiales_faltantes = list(filter(lambda item: not self._inventario.hay_disponibilidad(item[0], item[1]), materiales_necesarios.items()))
-        
-        if not materiales_faltantes:
-            return True
-
-        # Evitar procesar demoradas que ya han generado compras
-        if solicitud.get_estado().startswith("Demorada"):
-            return False
-
-        for componente, cant_necesaria in materiales_faltantes:
-            stock_disponible = self._inventario.obtener_stock_disponible(componente)
-            faltante = int(cant_necesaria) - int(stock_disponible)
-            print(f" [!] Faltan {faltante} unidades de '{componente.get_nombre()}'.")
-            # la empresa ejecuta metodo de reabastecimiento
-            componente.gestionar_reabastecimiento(self, faltante)
-        
-        solicitud.set_estado(ESTADOS_VALIDOS[4])  # Demorada por falta de stock
-        print(f" -> Solicitud {solicitud.get_id()} DEMORADA (Falta Stock).")
-        return False
-
-    def gestionar_capacidad(self, producto, cantidad_pedida) -> tuple:
-        asignaciones_pendientes = [] 
-        lista_tareas = producto.get_lista_tareas() 
-
-        if len(lista_tareas) == 0:
-            print(f"[!]ERROR: el producto '{producto.get_nombre()}' no tiene tareas asignadas en su receta. No se puede procesar la solicitud.")
-            return False, [], "eror_configuracion"
-        for tarea in lista_tareas:
-            horas_totales=tarea.calcular_horas_totales(cantidad_pedida)
-            unidad=tarea.get_unidad_requerida()
-
-            if not unidad.verificar_disponibilidad(horas_totales):
-                id_tarea_maestra=tarea.get_id_tarea_maestra()
-                datos_tarea=self._catalogo_tareas.get(id_tarea_maestra)
-                if isinstance(datos_tarea, dict):
-                    nombre_tarea=datos_tarea["nombre"]
-                else:
-                    print(f"Tarea ID {id_tarea_maestra} no encontrada en catálogo de tareas.")
-                print (f" [!] Falta capacidad en la unidad #{unidad.get_id()} para la tarea '{nombre_tarea}'.")
-                return False, [], "capacidad"
-            colabs_necesarios=tarea.get_cant_colaboradores_req()
-            colabs_aptos=tarea.filtrar_colaboradores_aptos(self._colaboradores, horas_totales)
-            if len(colabs_aptos)<colabs_necesarios:
-                id_hab=tarea.get_id_habilidad_requerida()
-                nombre_hab=self._catalogo_habilidades.get(id_hab, f"Habilidad ID {id_hab}")
-                print (f" [!] Falta personal con habilidad '{nombre_hab}' ")
-                return False, [], "personal"
-            colabs_encontrados=colabs_aptos[:colabs_necesarios]
-            asignaciones_pendientes.append((tarea, horas_totales, colabs_encontrados))
-        return True, asignaciones_pendientes, None
-
-    def confirmar_reservas(self, solicitud, materiales_necesarios, asignaciones_pendientes):
-            print(" -> Stock y Capacidad OK. Confirmando reservas...")
-            for componente, cant_necesaria in materiales_necesarios.items():
-                self._inventario.reservar_stock(componente, cant_necesaria)
-                
-            for tarea, horas, colabs in asignaciones_pendientes:
-                # la tarea ejecuta sus reservas internamente
-                tarea.ejecutar_reservas(horas, colabs)
-                
-                # anoto a los colaboradores en la solicitud 
-                for colab in colabs:
-                    solicitud.agregar_colaborador(colab.get_id())
-                    
-            solicitud.set_estado(ESTADOS_VALIDOS[1])  # Procesada y Planificada
-            print(f" -> Solicitud {solicitud.get_id()} PROCESADA CON ÉXITO.")
-
-   
-    def ejecutar_solicitud(self):
-        print("\n--- EJECUTANDO ÓRDENES PLANIFICADAS ---")
-        contador_ejecutadas = 0
-        
-        for id_solicitud, solicitud in self._solicitudes.items():
-            
-            # Solo actuamos sobre las que están listas
-            if solicitud.get_estado() == ESTADOS_VALIDOS[1]:
-                try:
-                    producto = solicitud.get_item_solicitado()
-                    cantidad_pedida = solicitud.get_cantidad()
-
-                    materiales_necesarios = self.explotar_bom(producto, cantidad_pedida)
-                    
-                    for componente, cant_necesaria in materiales_necesarios.items():
-                        self._inventario.descontar_stock(componente, cant_necesaria)
-
-                    solicitud.set_estado(ESTADOS_VALIDOS[2])  # En Ejecución
-                    print(f"-> ÉXITO: Solicitud #{id_solicitud} ('{producto.get_nombre()}') enviada a producción.")
-                    contador_ejecutadas += 1
-                    
-                except Exception as e:
-                    print(f"-> ERROR CRÍTICO en Solicitud #{id_solicitud}: {e}")
-                    solicitud.set_estado(ESTADOS_VALIDOS[8])  # Demorada por Error Interno
-
-        
-        if contador_ejecutadas == 0:
-            print("-> AVISO: No se encontraron solicitudes en estado 'Procesada y Planificada' para ejecutar.")
-        else:
-            print(f"-> RESUMEN: {contador_ejecutadas} solicitudes han iniciado su producción.")
-
-    
-    def finalizar_solicitud(self):
-            
-        print("\n--- FINALIZANDO ÓRDENES EN PRODUCCIÓN ---")
-        contador_finalizadas = 0
-        solicitudes_a_archivar = []
-            
-        for id_solicitud, solicitud in list(self._solicitudes.items()):
-                
-            if solicitud.get_estado() == ESTADOS_VALIDOS[2]:  # En Ejecución
-                try:
-                    producto = solicitud.get_item_solicitado()
-                    cantidad_pedida = int(solicitud.get_cantidad())
-                    self._inventario.ingresar_stock(producto, cantidad_pedida)
-                    solicitud.marcar_como_terminada()
-                    print(f"-> ÉXITO: Solicitud #{id_solicitud} terminada. {cantidad_pedida}x '{producto.get_nombre()}' sumados al stock.")
-                    solicitudes_a_archivar.append(solicitud)
-                    contador_finalizadas += 1
-                except Exception as e:
-                    print(f"-> ERROR al finalizar Solicitud #{id_solicitud}: {e}")
-                                    
-        if contador_finalizadas > 0:
-            self._gestor_archivos.guardar_historial_csv(solicitudes_a_archivar)
-            self._solicitudes = dict(filter(lambda item: item[1].get_estado() != ESTADOS_VALIDOS[3], self._solicitudes.items()))
-            print(f"-> SISTEMA: Limpieza de memoria. {contador_finalizadas} solicitudes históricas archivadas/borradas.")
-        else:
-            print("-> AVISO: No hay solicitudes en producción para finalizar.")
-
             
     def recibir_compras(self) -> int:
         compra = self._gestor_compras.recibir_proxima_compra(self._inventario)
@@ -234,30 +63,11 @@ class Empresa:
             
         return 0 
 #==============================================================================================================
-    #consigna de implementacion 
 
     def generar_reporte_materiales_criticos(self, producto, cantidad_pedida: int):
         necesidades = producto.calcular_materiales_necesarios(cantidad_pedida)
         criticos = self._inventario.obtener_materiales_criticos(necesidades)
-        nombre_archivo = f"criticos_{producto.get_id()}.csv"
-        try:
-
-            with open(nombre_archivo, mode='w', newline='', encoding='utf-8') as archivo:
-                writer = csv.writer(archivo)
-                writer.writerow(["ID Insumo", "Nombre", "Cant. Necesaria", "Stock Actual", "Cobertura"])
-                if not criticos:
-                #si no hay críticos, solo avisamos por consola y dejamos el archivo con solo el encabezado.
-                    print(f"-> [INFO] Reporte: NO hay materiales críticos para '{producto.get_nombre()}'. Stock en niveles aceptables.")
-                else:
-                    for insumo, cant_nec in criticos:
-                        stock = self._inventario.consultar_stock(insumo)
-                        porcentaje = (stock / cant_nec) * 100  # se puede calcular directo xq cant_nec siempre es > 0 ya esta validado
-                        cobertura = f"{porcentaje:.1f}%"
-                        writer.writerow([insumo.get_id(), insumo.get_nombre(), cant_nec, stock, cobertura])
-            print(f"-> Reporte de críticos generado en: '{nombre_archivo}'.")
-                
-        except IOError as e:
-            print(f"-> [ERROR] Falló la escritura del archivo: {e}")
+        self._gestor_archivos.guardar_reporte_criticos_csv(producto, criticos)
 
     
     def generar_reporte_estado_planta(self, lista_unidades: list):
@@ -281,9 +91,10 @@ class Empresa:
         print("\n[2] ANÁLISIS DE DEMORAS (CUELLOS DE BOTELLA):")
         #ponemos en listas las solicitudes que estan demoradas por cada tipo de cuello de botella
         # y contamos cuantas hay de c/u
-        d_stock = len(list(filter(lambda t: t.get_estado() == ESTADOS_VALIDOS[4], self._solicitudes.values())))
-        d_capacidad = len(list(filter(lambda t: t.get_estado() == ESTADOS_VALIDOS[5], self._solicitudes.values())))
-        d_personal = len(list(filter(lambda t: t.get_estado() == ESTADOS_VALIDOS[6], self._solicitudes.values())))        
+        solicitudes=self._gestor_solicitudes.obtener_solicitudes()
+        d_stock = len(list(filter(lambda t: t.get_estado() == ESTADOS_VALIDOS[4],solicitudes.values())))
+        d_capacidad = len(list(filter(lambda t: t.get_estado() == ESTADOS_VALIDOS[5],solicitudes.values())))
+        d_personal = len(list(filter(lambda t: t.get_estado() == ESTADOS_VALIDOS[6],solicitudes.values())))        
         print(f"  - Frenadas por FALTA DE INSUMOS: {d_stock}")
         print(f"  - Frenadas por CAPACIDAD DE UNIDADES DE TRABAJO: {d_capacidad}")
         print(f"  - Frenadas por ESCASEZ DE COLABORADORES: {d_personal}")
@@ -314,15 +125,6 @@ class Empresa:
         else:
             print(">>> OK: La unidad tiene capacidad suficiente para absorber este pedido.")
 
-    def mostrar_solicitudes(self):
-        print("\n--- RESUMEN DE SOLICITUDES ---")
-        if not self._solicitudes:
-            print("No hay solicitudes registradas.")
-            return
-            
-        for solicitud in self._solicitudes.values():
-            print(solicitud)
-        print("-----------------------------\n")
 
     def agregar_colaborador(self, nuevo_colaborador):
             id_nuevo = nuevo_colaborador.get_id()
@@ -431,6 +233,7 @@ class Empresa:
         
         colab = self._colaboradores[id_colab]
         colab.dar_de_baja()
+        self._gestor_archivos.guardar_colaboradores_csv()
         return colab
 
     def comprar_insumo_manual(self, id_insumo, cantidad):
@@ -489,40 +292,76 @@ class Empresa:
         return producto
 
     def cargar_demo_completa(self):
-        
+        print("\n=== CARGANDO DEMO}===")
 
-        id_hab_armado = self.agregar_habilidad("Armado General")
-        ensambladora = UnidadDeTrabajo("Mesa de Ensamblaje", 80.0, 500.0)
-        self.agregar_unidad_trabajo(ensambladora)
-        
-        id_tarea_ensamble = self.agregar_tarea_maestra("Ensamblaje Manual", ensambladora.get_id(), id_hab_armado)
-        id_tarea_corte = self.agregar_tarea_maestra("Corte de Madera", ensambladora.get_id(), id_hab_armado)
-        
-        madera = InsumoBasico("Tablón de Madera", 5000.0)
+        # 1) Habilidades
+        id_corte = self.agregar_habilidad("Corte")
+        id_ensamblaje = self.agregar_habilidad("Ensamblaje")
+        id_pintura = self.agregar_habilidad("Pintura")
+
+        # 2) Unidades de trabajo (capacidad en horas, costo operativo por hora)
+        sierra = UnidadDeTrabajo("Sierra de Corte", 200.0, 500.0)
+        linea = UnidadDeTrabajo("Linea de Ensamblaje", 200.0, 800.0)
+        cabina = UnidadDeTrabajo("Cabina de Pintura", 150.0, 400.0)
+        for u in (sierra, linea, cabina):
+            self.agregar_unidad_trabajo(u)
+
+        # 3) Tareas maestras (nombre, id_unidad, id_habilidad)
+        id_t_corte = self.agregar_tarea_maestra("Corte de Madera", sierra.get_id(), id_corte)
+        id_t_ensamble = self.agregar_tarea_maestra("Ensamblaje General", linea.get_id(), id_ensamblaje)
+        id_t_pintado = self.agregar_tarea_maestra("Pintado y Acabado", cabina.get_id(), id_pintura)
+
+        # 4) Insumos basicos + stock inicial
+        madera = InsumoBasico("Tablon de Madera", 5000.0)
         tornillos = InsumoBasico("Tornillos 10mm", 5.0)
-        for insumo in [madera, tornillos]:
+        barniz = InsumoBasico("Barniz", 1200.0)
+        pegamento = InsumoBasico("Pegamento", 300.0)
+        for insumo in (madera, tornillos, barniz, pegamento):
             self.registrar_producto_nuevo(insumo)
-            self._inventario.ingresar_stock(insumo, 1000)
-            
-        carpintero = Colaborador([id_hab_armado], 40.0, 2500.0)
-        self.agregar_colaborador(carpintero)
+            self._inventario.ingresar_stock(insumo, 2000)
 
-        # Pata
-        tarea_pata = Tarea(id_tarea_corte, ensambladora, 1, 0.5, id_hab_armado, 1000.0)
-        bom_pata = ItemBOM("Receta Pata", {madera: 1, tornillos: 4})
+        # 5) Colaboradores (habilidades, horas disponibles, salario/hora)
+        colaboradores = [
+            Colaborador([id_corte], 40.0, 2500.0),
+            Colaborador([id_corte], 40.0, 2300.0),
+            Colaborador([id_ensamblaje], 40.0, 2800.0),
+            Colaborador([id_ensamblaje], 40.0, 2600.0),
+            Colaborador([id_pintura], 40.0, 2400.0),
+            Colaborador([id_corte, id_ensamblaje], 40.0, 3000.0),  # multi-habilidad
+        ]
+        for c in colaboradores:
+            self.agregar_colaborador(c)
+
+        # 6) Productos fabricados (BOM multinivel)
+        # --- Pata de Mesa ---
         lista_pata = ListaEnlazadaTareas()
-        lista_pata.agregar_al_final(tarea_pata)
-        pata = ArticuloFabricadoInternamente("Pata de Mesa", [bom_pata], lista_pata)
+        lista_pata.agregar_al_final(Tarea(id_t_corte, sierra, 1, 0.5, id_corte, 1000.0))
+        pata = ArticuloFabricadoInternamente("Pata de Mesa", [ItemBOM("Receta Pata", {madera: 1, tornillos: 4})], lista_pata)
         self.registrar_producto_nuevo(pata)
 
-        # Mesa
-        tarea_mesa = Tarea(id_tarea_ensamble, ensambladora, 1, 1.5, id_hab_armado, 2500.0)
-        bom_mesa = ItemBOM("Receta Mesa", {madera: 1, pata: 4})
+        # --- Tablero ---
+        lista_tablero = ListaEnlazadaTareas()
+        lista_tablero.agregar_al_final(Tarea(id_t_corte, sierra, 1, 0.8, id_corte, 1000.0))
+        tablero = ArticuloFabricadoInternamente("Tablero", [ItemBOM("Receta Tablero", {madera: 2, pegamento: 1})], lista_tablero)
+        self.registrar_producto_nuevo(tablero)
+
+        # --- Mesa Completa (usa tablero + patas) ---
         lista_mesa = ListaEnlazadaTareas()
-        lista_mesa.agregar_al_final(tarea_mesa)
-        mesa = ArticuloFabricadoInternamente("Mesa Completa", [bom_mesa], lista_mesa)
+        lista_mesa.agregar_al_final(Tarea(id_t_ensamble, linea, 1, 1.5, id_ensamblaje, 2500.0))
+        lista_mesa.agregar_al_final(Tarea(id_t_pintado, cabina, 1, 1.0, id_pintura, 2200.0))
+        mesa = ArticuloFabricadoInternamente("Mesa Completa", [ItemBOM("Receta Mesa", {tablero: 1, pata: 4, tornillos: 8})], lista_mesa)
         self.registrar_producto_nuevo(mesa)
-        # GETTERS para lectura
+
+        # --- Silla ---
+        lista_silla = ListaEnlazadaTareas()
+        lista_silla.agregar_al_final(Tarea(id_t_ensamble, linea, 1, 1.0, id_ensamblaje, 2500.0))
+        lista_silla.agregar_al_final(Tarea(id_t_pintado, cabina, 1, 0.8, id_pintura, 2200.0))
+        silla = ArticuloFabricadoInternamente("Silla", [ItemBOM("Receta Silla", {madera: 2, tornillos: 8, barniz: 1})], lista_silla)
+        self.registrar_producto_nuevo(silla)
+
+        print("=== DEMO CARGADA: 3 habilidades, 3 unidades, 4 insumos, 6 colaboradores, 4 productos ===\n")
+
+    # GETTERS para lectura
     def obtener_catalogo_habilidades(self) -> dict:
         return self._catalogo_habilidades
 
@@ -551,14 +390,6 @@ class Empresa:
         """Retorna la lista de elementos combinada para guardar en el CSV"""
         return list(self._insumos_basicos.values()) + list(self._productos_fabricados.values())
     
-    def agregar_solicitud(self, id_solicitud, solicitud):
-        """Agrega una solicitud al registro desde GestorArchivos"""
-        self._solicitudes[id_solicitud] = solicitud
-    
-    def obtener_solicitudes(self):
-        """Retorna el diccionario de solicitudes"""
-        return self._solicitudes
-    
     def agregar_unidad(self, unidad):
         """Agrega una unidad de trabajo al registro desde GestorArchivos"""
         self._unidades[unidad.get_id()] = unidad    
@@ -567,9 +398,18 @@ class Empresa:
         """Retorna la lista de unidades de trabajo"""
         return list(self._unidades.values())
     
+    def agregar_solicitud(self, id_solicitud, solicitud):
+        self._gestor_solicitudes.agregar_solicitud(id_solicitud, solicitud)
+
+    def obtener_solicitudes(self):
+        return self._gestor_solicitudes.obtener_solicitudes()
+    
     def obtener_inventario(self):
         """Retorna el inventario de la empresa"""
         return self._inventario
+    
+    def obtener_gestor_archivos(self):
+        return self._gestor_archivos
     
     def cargar_inventario_desde_archivo(self):
         self._inventario.cargar_desde_csv(self.obtener_elementos_catalogo())

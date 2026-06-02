@@ -5,7 +5,7 @@ class Colaborador:
     
     # 1. Agregamos id=None para cuando lo leemos del CSV
     # 2. Cambiamos 'habilidades' por 'habilidades_ids'
-    def __init__(self, habilidades_ids: list, horas_disponibles: float, salario_hora: float, id: int = None):
+    def __init__(self, habilidades_ids: list, horas_disponibles: float, salario_hora: float, id: int = None, fecha_alta=None, fecha_baja=None):
         
         # Persistencia de IDs 
         if id is None:
@@ -21,8 +21,11 @@ class Colaborador:
         self._horas_disponibles = self.validar_horas_disponibles(horas_disponibles)
         self._horas_asignadas = 0.0 
         self._salario_hora = self.validar_salario(salario_hora)
-        self._fecha_alta = datetime.now()
-        self._fecha_baja = None
+        if fecha_alta is not None:
+            self._fecha_alta = fecha_alta
+        else:   
+            self._fecha_alta = datetime.now()
+        self._fecha_baja = fecha_baja
 
     @staticmethod
     def validar_salario(salario: float) -> float:
@@ -51,6 +54,8 @@ class Colaborador:
     
     def get_fecha_baja(self):
         return self._fecha_baja
+    def get_fecha_alta(self):
+        return self._fecha_alta
     
     def get_id(self) -> int:
         return self._id

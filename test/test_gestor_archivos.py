@@ -27,7 +27,7 @@ def test_guardar_unidades_csv_simulado():
         gestor.guardar_unidades_csv()
         
     # Comprobamos que el gestor intentó abrir el archivo con el nombre y modo correcto
-    m_open.assert_called_once_with("unidades.csv", mode='w', newline='', encoding='utf-8')
+    m_open.assert_called_once_with("csv/unidades.csv", mode='w', newline='', encoding='utf-8')
     
     # Rescatamos todo el texto que el gestor intentó escribir en nuestro archivo virtual
     handle = m_open()
