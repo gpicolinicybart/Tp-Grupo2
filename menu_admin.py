@@ -270,32 +270,30 @@ class MenuAdministrativo(MenuBase):
             except ValueError:
                 print("Error: Ingrese números enteros válidos.")
 
-    def ver_historial_produccion(self):            
+    def ver_historial_produccion(self):
         print("\n" + "="*70)
-        print("    HISTORIAL DE PRODUCCIÓN TERMINADA    ")
+        print("    HISTORIAL DE PRODUCCIÓN TERMINADA (esta sesión)    ")
         print("="*70)
-        nombre_archivo = "csv/historial_solicitudes.csv"
-        if not os.path.isfile(nombre_archivo):
-            return print("Todavía no hay un historial. Finalizá alguna solicitud primero.")
-        try:
-            with open(nombre_archivo, mode='r', encoding='utf-8') as archivo:
-                lector = csv.reader(archivo)
-                encabezados = next(lector)
-                print(f"{encabezados[0]:<15} | {encabezados[1]:<20} | {encabezados[2]:<8} | {encabezados[5]:<15}")
-                print("-" * 70)
-                pila_historial = deque()
-                
-                for fila in lector:
-                    pila_historial.append(fila)
-                filas = len(pila_historial)
-                
-                while pila_historial:
-                    fila = pila_historial.pop()
-                    print(f"#{fila[0]:<14} | {fila[1]:<20} | {fila[2]:<8} | {fila[5]:<15} hs")
-                print("-" * 70)
-                print(f"Total de registros históricos: {filas}")
-        except IOError as e:
-            print(f"[ERROR] No se pudo leer el archivo de historial")
+        
+        terminadas = self.empresa.obtener_producciones_terminadas_lifo()
+        if not terminadas:
+            return print("Todavía no se finalizó ninguna producción en esta sesión.")
+
+        print(f"{'ID':<6} | {'Producto':<20} | {'Cantidad':<8} | {'Tiempo (hs)':<12}")
+        print("-" * 70)
+        for solicitud in terminadas:
+            id_sol = solicitud.get_id()
+            producto = solicitud.get_item_solicitado().get_nombre()
+            cantidad = solicitud.get_cantidad()
+            if solicitud.get_fecha_finalizacion():
+                tiempo = round(
+                        (solicitud.get_fecha_finalizacion() - solicitud.get_fecha_creacion()).total_seconds() / 3600, 2
+                    )
+            else:
+                    tiempo = "N/A"
+            print(f"#{id_sol:<5} | {producto:<20} | {cantidad:<8} | {tiempo:<12}")
+            print("-" * 70)
+            print(f"Total finalizadas en esta sesión: {len(terminadas)}")
 
     def cargar_demo(self):
         print("\n--- CARGANDO DEMO INDUSTRIAL ---")
@@ -338,33 +336,30 @@ class MenuAdministrativo(MenuBase):
         else:
             print("ERROR: IDs no válidos.")
 
-
-
     def agregar_usuario(self):
-        print("\n--- REGISTRO DE NUEVO USUARIO ---")
         try:
+            print("\n--- REGISTRO DE NUEVO USUARIO ---")
             contrasena = input("Ingrese la contraseña: ").strip()
             if not contrasena:
                 return print(" ERROR: La contraseña no puede estar vacía.")
             nombre = input("Nombre: ").strip()
             apellido = input("Apellido: ").strip()
             dni = input("DNI: ").strip()
-            if not dni: 
+            if not dni:
                 return print(" ERROR: El DNI es obligatorio.")
+
+            gestor = self.empresa.obtener_gestor_archivos()
+            usuarios = gestor.cargar_usuarios_csv()
+
             # Buscar DNI duplicado y calcular el próximo ID autoincremental
             max_id = 0
-            archivo_existe = os.path.isfile("csv/usuarios.csv")
-            if archivo_existe:
-                with open("csv/usuarios.csv", "r", encoding="utf-8") as f:
-                    lector = csv.DictReader(f)
-                    for fila in lector:
-                        # Verificar DNI duplicado
-                        if fila["dni"].strip() == dni:
-                            return print(f" ERROR: Ya existe un usuario registrado con el DNI {dni}.")
-                        id_actual = int(fila["id"].strip())
-                        if id_actual > max_id:
-                            max_id = id_actual
+            for uid, datos in usuarios.items():
+                if datos["dni"] == dni:
+                    return print(f" ERROR: Ya existe un usuario registrado con el DNI {dni}.")
+                if int(uid) > max_id:
+                    max_id = int(uid)
             nuevo_id = str(max_id + 1)
+
             # Selección de Rol
             print("\nSeleccione el rol:")
             print("  1. Producción")
@@ -376,13 +371,8 @@ class MenuAdministrativo(MenuBase):
                 rol = "administracion"
             else:
                 return print(" ERROR: Opción de rol no válida.")
-            # Guardar en el archivo
-            with open("csv/usuarios.csv", mode="a", newline="", encoding="utf-8") as archivo:
-                escritor = csv.writer(archivo)
-                if not archivo_existe:
-                    # Por si el archivo no existe, escribimos los encabezados primero
-                    escritor.writerow(["id", "clave", "rol", "nombre", "apellido", "dni"])
-                escritor.writerow([nuevo_id, contrasena, rol, nombre, apellido, dni])
+
+            gestor.guardar_usuario_csv([nuevo_id, contrasena, rol, nombre, apellido, dni])
             print(f"\n-> Usuario '{nombre} {apellido}' registrado correctamente como '{rol}'.")
             print(f"-> AVISO IMPORTANTE: Su ID de acceso generado por el sistema es el número {nuevo_id}.")
         except KeyError as e:

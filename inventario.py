@@ -64,66 +64,28 @@ class Inventario:
 
     # ---------------------------------------------------------------------
     # MÉTODOS DE PERSISTENCIA (Sincronización con archivos CSV)
-    
-
-    def guardar_en_csv(self, archivo_csv="csv/inventario.csv"):
-        with open(archivo_csv, mode='w', newline='', encoding='utf-8') as archivo:
-            writer = csv.writer(archivo)
-            writer.writerow(["id_elemento", "nombre_referencia", "stock_fisico", "stock_reservado"])
-            
-            # Unimos las claves de ambos diccionarios por si hay algo reservado pero sin stock físico
-            elementos_unicos = set(self._stock_fisico.keys()).union(set(self._stock_reservado.keys()))
-            
-            for elem in elementos_unicos:
-                # Usamos getattr por seguridad, asumiendo que todos tienen un ID o nombre
-                if hasattr(elem, 'get_id'):
-                    id_elem = elem.get_id()
-                else:
-                    id_elem = "N/A"
-                
-                if hasattr(elem, 'get_nombre'):
-                    nombre = elem.get_nombre()
-                else:
-                    nombre = "Desconocido"
-                
-                fisico = self._stock_fisico.get(elem, 0)
-                reservado = self._stock_reservado.get(elem, 0)
-                
-                writer.writerow([id_elem, nombre, fisico, reservado])
 
     def obtener_stock_reservado(self, elem: Elemento) -> int:
         return self._stock_reservado.get(elem, 0)
 
-    def cargar_desde_csv(self, elementos_catalogo: list, archivo_csv="csv/inventario.csv"):
-        if not os.path.exists(archivo_csv):
-            return
+    def exportar_stock(self) -> list:
+        # Reunir todos los elementos que aparezcan en cualquiera de los dos diccionarios
+        elementos = set()
+        for elemento in self._stock_fisico:
+            elementos.add(elemento)
+        for elemento in self._stock_reservado:
+            elementos.add(elemento)
 
-        elementos_por_id = {}
-        elementos_por_nombre = {}
-        for elemento in elementos_catalogo:
-            if hasattr(elemento, 'get_id'):
-                elementos_por_id[str(elemento.get_id())] = elemento
-            if hasattr(elemento, 'get_nombre'):
-                elementos_por_nombre[elemento.get_nombre()] = elemento
+        # Armar la lista de tuplas 
+        resultado = []
+        for elemento in elementos:
+            fisico = self._stock_fisico.get(elemento, 0)
+            reservado = self._stock_reservado.get(elemento, 0)
+            resultado.append((elemento, fisico, reservado))
+        return resultado
 
-        try:
-            with open(archivo_csv, mode='r', encoding='utf-8') as archivo:
-                reader = csv.DictReader(archivo)
-                for fila in reader:
-                    id_elem = fila.get('id_elemento', '').strip()
-                    nombre = fila.get('nombre_referencia', '').strip()
-                    fisico = int(fila.get('stock_fisico', 0))
-                    reservado = int(fila.get('stock_reservado', 0))
-
-                    elemento = elementos_por_id.get(id_elem) or elementos_por_nombre.get(nombre)
-                    if elemento is None:
-                        continue
-
-                    if fisico:
-                        self._stock_fisico[elemento] = fisico
-                    if reservado:
-                        self._stock_reservado[elemento] = reservado
-        except ValueError as e:
-            print(f"-> [ERROR] Datos numéricos corruptos en 'inventario.csv'. Se esperaba un número entero")
-        except OSError as e:
-            print(f"-> [ERROR] Problema de lectura o permisos con el archivo 'inventario.csv'")
+    def establecer_stock(self, elemento, fisico, reservado):
+        if fisico:
+            self._stock_fisico[elemento] = fisico
+        if reservado:
+            self._stock_reservado[elemento] = reservado

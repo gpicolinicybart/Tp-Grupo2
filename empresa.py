@@ -411,8 +411,6 @@ class Empresa:
     def obtener_gestor_archivos(self):
         return self._gestor_archivos
     
-    def cargar_inventario_desde_archivo(self):
-        self._inventario.cargar_desde_csv(self.obtener_elementos_catalogo())
         
     def cargar_compra_desde_archivo(self, orden):
         self._gestor_compras.agregar_compra(orden)
@@ -428,3 +426,6 @@ class Empresa:
     
     def guardar_solicitudes(self):
         self._gestor_archivos.guardar_solicitudes_csv()
+    
+    def obtener_producciones_terminadas_lifo(self):
+        return self._gestor_solicitudes.obtener_terminadas_lifo()

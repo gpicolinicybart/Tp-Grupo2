@@ -39,28 +39,10 @@ class MenuPrincipal:
         except OSError as e:
             print(f" Error crítico de escritura en el disco duro")
 
-    def _leer_usuarios(self) -> dict:
-        usuarios = {}
-        try:
-            with open("csv/usuarios.csv", "r", encoding="utf-8") as archivo:
-                lector = csv.DictReader(archivo)
-                for fila in lector:
-                    usuarios[fila["id"].strip()] = {
-                        "clave": fila["clave"].strip(),
-                        "rol": fila["rol"].strip(),
-                        "nombre": fila.get("nombre", "").strip(),
-                        "apellido": fila.get("apellido", "").strip(),
-                        "dni": fila.get("dni", "").strip()
-                    }
-        except FileNotFoundError:
-            print("Archivo 'usuarios.csv' no encontrado.")
-        except KeyError as e:
-            print(f" El archivo 'usuarios.csv' está mal formateado.")
-            
-        return usuarios
+   
 
     def iniciar_sesion(self) -> bool:
-        usuarios_registrados = self._leer_usuarios()
+        usuarios_registrados = self.empresa.obtener_gestor_archivos().cargar_usuarios_csv()
         if not usuarios_registrados: 
             return False
 

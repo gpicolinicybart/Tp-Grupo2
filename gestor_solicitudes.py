@@ -1,10 +1,11 @@
 from solicitud_fabricacion import SolicitudDeFabricacion, ESTADOS_VALIDOS
+from collections import deque
 
 class GestorSolicitudes:
     def __init__(self, empresa):
         self._empresa = empresa
         self._solicitudes = {}
-
+        self._producciones_terminadas = deque() 
     def crear_solicitud(self, solicitud: SolicitudDeFabricacion):
         self._solicitudes[solicitud.get_id()] = solicitud
         print(f"EMPRESA: Se registró una nueva solicitud de fabricación (ID:{solicitud.get_id()})")
@@ -185,6 +186,7 @@ class GestorSolicitudes:
                     solicitud.marcar_como_terminada()
                     print(f"-> ÉXITO: Solicitud #{id_solicitud} terminada. {cantidad_pedida}x '{producto.get_nombre()}' sumados al stock.")
                     solicitudes_a_archivar.append(solicitud)
+                    self._producciones_terminadas.append(solicitud)
                     contador_finalizadas += 1
                 except ValueError as e:
                     print(f"-> ERROR al finalizar Solicitud #{id_solicitud}")
@@ -211,3 +213,10 @@ class GestorSolicitudes:
     
     def obtener_solicitudes(self):
         return self._solicitudes
+
+    def obtener_terminadas_lifo(self) -> list:
+        copia = deque(self._producciones_terminadas)
+        resultado = []
+        while copia:
+            resultado.append(copia.pop())  
+        return resultado
