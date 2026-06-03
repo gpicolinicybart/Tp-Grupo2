@@ -158,8 +158,8 @@ class GestorSolicitudes:
                     print(f"-> ÉXITO: Solicitud #{id_solicitud} ('{producto.get_nombre()}') enviada a producción.")
                     contador_ejecutadas += 1
                     
-                except Exception as e:
-                    print(f"-> ERROR CRÍTICO en Solicitud #{id_solicitud}")
+                except ValueError as e:
+                    print(f"-> ERROR en Solicitud #{id_solicitud}")
                     solicitud.set_estado(ESTADOS_VALIDOS[8])  # Demorada por Error Interno
 
         
@@ -186,7 +186,7 @@ class GestorSolicitudes:
                     print(f"-> ÉXITO: Solicitud #{id_solicitud} terminada. {cantidad_pedida}x '{producto.get_nombre()}' sumados al stock.")
                     solicitudes_a_archivar.append(solicitud)
                     contador_finalizadas += 1
-                except Exception as e:
+                except ValueError as e:
                     print(f"-> ERROR al finalizar Solicitud #{id_solicitud}")
                                     
         if contador_finalizadas > 0:

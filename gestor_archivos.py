@@ -365,8 +365,14 @@ class GestorArchivos:
                             f_recepcion = datetime.strptime(fila["Fecha_Recepcion"], "%Y-%m-%d %H:%M:%S")
                         orden.set_fechas_historicas(f_emision, f_recepcion)
                         self.empresa.cargar_compra_desde_archivo(orden)
-        except Exception as e:
-            print(f"-> [ERROR] Falla en la carga de compras CSV")
+        except KeyError as e:
+            print(f"-> [ERROR] El archivo 'compras.csv' está mal formateado.")
+        except ValueError as e:
+            print(f"-> [ERROR] Dato numérico o fecha inválida en 'compras.csv'")
+        except OSError as e:
+            print(f"-> [ERROR] Problema de lectura en el disco con 'compras.csv'")
+
+
     def cargar_catalogos_maestros(self):
         if os.path.exists("csv/habilidades.csv"):
             with open("csv/habilidades.csv", mode='r', encoding='utf-8') as f:

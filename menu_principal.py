@@ -28,8 +28,8 @@ class MenuPrincipal:
             
             self.empresa.cargar_todos_los_datos()
             print("Memoria cargada exitosamente.")
-        except Exception as e:
-            print(f"Aviso al leer los CSV. Iniciando catálogos en blanco...")
+        except OSError:
+            print("Aviso al leer los CSV. Iniciando catálogos en blanco...")
 
     def guardar_datos(self):
         print("Guardando progreso en archivos CSV...")

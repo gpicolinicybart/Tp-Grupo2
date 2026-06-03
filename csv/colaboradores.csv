@@ -1,5 +1,5 @@
-ID Colaborador,Habilidades_IDs,Horas Disponibles,Salario Hora
-1,2,40.0,2500.0
-2,3,40.0,2500.0
-3,4,40.0,2500.0
-4,5,40.0,2500.0
+ID Colaborador,Habilidades_IDs,Horas Disponibles,Salario Hora,Fecha Alta,Fecha Baja
+1,2,40.0,2500.0,2026-06-03 14:58:48,
+2,3,40.0,2500.0,2026-06-03 14:58:48,
+3,4,40.0,2500.0,2026-06-03 14:58:48,
+4,5,40.0,2500.0,2026-06-03 14:58:48,

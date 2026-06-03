@@ -44,6 +44,10 @@ class Compra_Insumo:
         return self._fecha_emision  
     def get_fecha_recepcion(self):
         return self._fecha_recepcion
+    
+    def set_fechas_historicas(self, fecha_emision, fecha_recepcion=None):
+        self._fecha_emision = fecha_emision
+        self._fecha_recepcion = fecha_recepcion
 
     def recibir_materiales(self, inventario): 
         inventario.ingresar_stock(self._insumo, self._cantidad)
