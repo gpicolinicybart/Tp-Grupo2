@@ -53,8 +53,8 @@ class GestorArchivos:
                 escritor_csv = csv.writer(archivo)
                 escritor_csv.writerow(["ID Producto", "Nombre Producto","Tipo", "Costo Fijo","Stock Fisico", "Stock Reservado", "Receta BOM"])
                 for prod in self.empresa.obtener_elementos_catalogo():
-                    fisico=self.empresa.obtener_inventario().consultar_stock(prod)
-                    reservado=self.empresa.obtener_inventario().obtener_stock_reservado(prod)
+                    fisico=self.empresa.consultar_stock_elemento(prod)
+                    reservado=self.empresa.obtener_stock_reservado(prod)
                     tipo=prod.get_tipo_elemento()
                     
                     if tipo=="Articulo Fabricado":
@@ -71,11 +71,7 @@ class GestorArchivos:
             print(f"->[ERROR] Falla en el guardado del catálogo CSV")
 
     def guardar_inventario_csv(self):
-        inventario = self.empresa.obtener_inventario()
-        if hasattr(inventario, 'guardar_en_csv'):
-            inventario.guardar_en_csv()
-        else:
-            print(f"[AVISO] Falta implementar guardar_en_csv() en la clase Inventario.")
+        self.empresa.guardar_inventario_en_csv()
 
     def guardar_unidades_csv(self):
         try:
@@ -403,10 +399,46 @@ class GestorArchivos:
         self.cargar_unidades_csv()
         self.cargar_colaboradores_csv()
         self.cargar_catalogo_csv()
-        
+
         self.empresa.cargar_inventario_desde_archivo()
-            
+
         self.cargar_tareas_csv()
         self.cargar_compras_csv()
         self.cargar_solicitudes_csv()
+
+    def leer_historial_csv(self):
+        nombre_archivo = "csv/historial_solicitudes.csv"
+        if not os.path.isfile(nombre_archivo):
+            return None
+        try:
+            with open(nombre_archivo, mode='r', encoding='utf-8') as archivo:
+                lector = csv.reader(archivo)
+                encabezados = next(lector)
+                filas = list(lector)
+            return (encabezados, filas)
+        except IOError:
+            print("[ERROR] No se pudo leer el archivo de historial")
+            return None
+
+    def verificar_usuario_duplicado_y_proximo_id(self, dni: str) -> tuple:
+        max_id = 0
+        if not os.path.isfile("csv/usuarios.csv"):
+            return (1, False)
+        with open("csv/usuarios.csv", "r", encoding="utf-8") as f:
+            lector = csv.DictReader(f)
+            for fila in lector:
+                if fila["dni"].strip() == dni:
+                    return (0, True)
+                id_actual = int(fila["id"].strip())
+                if id_actual > max_id:
+                    max_id = id_actual
+        return (max_id + 1, False)
+
+    def guardar_nuevo_usuario_csv(self, nuevo_id, clave, rol, nombre, apellido, dni):
+        archivo_existe = os.path.isfile("csv/usuarios.csv")
+        with open("csv/usuarios.csv", mode="a", newline="", encoding="utf-8") as archivo:
+            escritor = csv.writer(archivo)
+            if not archivo_existe:
+                escritor.writerow(["id", "clave", "rol", "nombre", "apellido", "dni"])
+            escritor.writerow([nuevo_id, clave, rol, nombre, apellido, dni])
     

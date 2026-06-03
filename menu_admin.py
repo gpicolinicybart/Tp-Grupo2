@@ -1,6 +1,4 @@
 from collections import deque
-import os
-import csv
 from menu_base import MenuBase
 
 class MenuAdministrativo(MenuBase):
@@ -205,7 +203,7 @@ class MenuAdministrativo(MenuBase):
 
         print("\nCatálogo de Insumos Básicos y Stock Disponible:")
         for id_ins, ins in insumos.items():
-            stock_actual = self.empresa.obtener_inventario().obtener_stock_disponible(ins)
+            stock_actual = self.empresa.consultar_stock_insumo(ins)
             print(f"  - ID: {id_ins} | {ins.get_nombre()} | Stock: {stock_actual} unid.")
 
         try:
@@ -270,46 +268,39 @@ class MenuAdministrativo(MenuBase):
             except ValueError:
                 print("Error: Ingrese números enteros válidos.")
 
-    def ver_historial_produccion(self):            
+    def ver_historial_produccion(self):
         print("\n" + "="*70)
         print("    HISTORIAL DE PRODUCCIÓN TERMINADA    ")
         print("="*70)
-        nombre_archivo = "csv/historial_solicitudes.csv"
-        if not os.path.isfile(nombre_archivo):
+        resultado = self.empresa.leer_historial_produccion()
+        if resultado is None:
             return print("Todavía no hay un historial. Finalizá alguna solicitud primero.")
-        try:
-            with open(nombre_archivo, mode='r', encoding='utf-8') as archivo:
-                lector = csv.reader(archivo)
-                encabezados = next(lector)
-                print(f"{encabezados[0]:<15} | {encabezados[1]:<20} | {encabezados[2]:<8} | {encabezados[5]:<15}")
-                print("-" * 70)
-                pila_historial = deque()
-                
-                for fila in lector:
-                    pila_historial.append(fila)
-                filas = len(pila_historial)
-                
-                while pila_historial:
-                    fila = pila_historial.pop()
-                    print(f"#{fila[0]:<14} | {fila[1]:<20} | {fila[2]:<8} | {fila[5]:<15} hs")
-                print("-" * 70)
-                print(f"Total de registros históricos: {filas}")
-        except IOError as e:
-            print(f"[ERROR] No se pudo leer el archivo de historial")
+        encabezados, filas = resultado
+        print(f"{encabezados[0]:<15} | {encabezados[1]:<20} | {encabezados[2]:<8} | {encabezados[5]:<15}")
+        print("-" * 70)
+        pila_historial = deque()
+        for fila in filas:
+            pila_historial.append(fila)
+        total = len(pila_historial)
+        while pila_historial:
+            fila = pila_historial.pop()
+            print(f"#{fila[0]:<14} | {fila[1]:<20} | {fila[2]:<8} | {fila[5]:<15} hs")
+        print("-" * 70)
+        print(f"Total de registros históricos: {total}")
 
     def cargar_demo(self):
         print("\n--- CARGANDO DEMO INDUSTRIAL ---")
         try:
             self.empresa.cargar_demo_completa()
             print("[ÉXITO] Demo cargada con éxito")
-        except ValueError as error_valor:
-            print(f"Error en los datos de la demo (valores inválidos)")
-            
-        except KeyError as error_clave:
-            print(f"Error de referencia en la demo (falta un ID)")
-    
-        except TypeError as error_tipo:
-            print(f"Error de tipo de dato al armar la demo")
+        except ValueError as e:
+            print(f"Error en los datos de la demo (valores inválidos): {e}")
+
+        except KeyError as e:
+            print(f"Error de referencia en la demo (falta un ID): {e}")
+
+        except TypeError as e:
+            print(f"Error de tipo de dato al armar la demo: {e}")
         
 
     def crear_tarea_maestra(self):
@@ -349,23 +340,13 @@ class MenuAdministrativo(MenuBase):
             nombre = input("Nombre: ").strip()
             apellido = input("Apellido: ").strip()
             dni = input("DNI: ").strip()
-            if not dni: 
+            if not dni:
                 return print(" ERROR: El DNI es obligatorio.")
-            # Buscar DNI duplicado y calcular el próximo ID autoincremental
-            max_id = 0
-            archivo_existe = os.path.isfile("csv/usuarios.csv")
-            if archivo_existe:
-                with open("csv/usuarios.csv", "r", encoding="utf-8") as f:
-                    lector = csv.DictReader(f)
-                    for fila in lector:
-                        # Verificar DNI duplicado
-                        if fila["dni"].strip() == dni:
-                            return print(f" ERROR: Ya existe un usuario registrado con el DNI {dni}.")
-                        id_actual = int(fila["id"].strip())
-                        if id_actual > max_id:
-                            max_id = id_actual
-            nuevo_id = str(max_id + 1)
-            # Selección de Rol
+
+            proximo_id, es_duplicado = self.empresa.verificar_usuario_y_proximo_id(dni)
+            if es_duplicado:
+                return print(f" ERROR: Ya existe un usuario registrado con el DNI {dni}.")
+
             print("\nSeleccione el rol:")
             print("  1. Producción")
             print("  2. Administración")
@@ -376,17 +357,12 @@ class MenuAdministrativo(MenuBase):
                 rol = "administracion"
             else:
                 return print(" ERROR: Opción de rol no válida.")
-            # Guardar en el archivo
-            with open("csv/usuarios.csv", mode="a", newline="", encoding="utf-8") as archivo:
-                escritor = csv.writer(archivo)
-                if not archivo_existe:
-                    # Por si el archivo no existe, escribimos los encabezados primero
-                    escritor.writerow(["id", "clave", "rol", "nombre", "apellido", "dni"])
-                escritor.writerow([nuevo_id, contrasena, rol, nombre, apellido, dni])
+
+            self.empresa.guardar_nuevo_usuario(proximo_id, contrasena, rol, nombre, apellido, dni)
             print(f"\n-> Usuario '{nombre} {apellido}' registrado correctamente como '{rol}'.")
-            print(f"-> AVISO IMPORTANTE: Su ID de acceso generado por el sistema es el número {nuevo_id}.")
+            print(f"-> AVISO IMPORTANTE: Su ID de acceso generado por el sistema es el número {proximo_id}.")
         except KeyError as e:
-            print(f" ERROR: El archivo 'usuarios.csv' está dañado o no tiene los encabezados correctos. ")
+            print(f" ERROR: El archivo 'usuarios.csv' está dañado o no tiene los encabezados correctos.")
         except ValueError as e:
             print(f" ERROR: Hay un ID incorrecto en 'usuarios.csv' que no es un número")
         except OSError as e:

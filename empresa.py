@@ -165,6 +165,33 @@ class Empresa:
     def consultar_stock_insumo(self, insumo):
         return self._inventario.obtener_stock_disponible(insumo)
 
+    def hay_disponibilidad(self, elemento, cantidad) -> bool:
+        return self._inventario.hay_disponibilidad(elemento, cantidad)
+
+    def obtener_stock_disponible(self, elemento) -> int:
+        return self._inventario.obtener_stock_disponible(elemento)
+
+    def reservar_stock(self, elemento, cantidad):
+        self._inventario.reservar_stock(elemento, cantidad)
+
+    def descontar_stock(self, elemento, cantidad):
+        self._inventario.descontar_stock(elemento, cantidad)
+
+    def ingresar_stock(self, elemento, cantidad):
+        self._inventario.ingresar_stock(elemento, cantidad)
+
+    def consultar_stock_elemento(self, elemento) -> int:
+        return self._inventario.consultar_stock(elemento)
+
+    def obtener_stock_reservado(self, elemento) -> int:
+        return self._inventario.obtener_stock_reservado(elemento)
+
+    def guardar_historial_produccion(self, solicitudes: list):
+        self._gestor_archivos.guardar_historial_csv(solicitudes)
+
+    def guardar_inventario_en_csv(self):
+        self._inventario.guardar_en_csv()
+
    
 
     def agregar_habilidad(self, nombre: str):
@@ -428,3 +455,12 @@ class Empresa:
     
     def guardar_solicitudes(self):
         self._gestor_archivos.guardar_solicitudes_csv()
+
+    def leer_historial_produccion(self):
+        return self._gestor_archivos.leer_historial_csv()
+
+    def verificar_usuario_y_proximo_id(self, dni: str) -> tuple:
+        return self._gestor_archivos.verificar_usuario_duplicado_y_proximo_id(dni)
+
+    def guardar_nuevo_usuario(self, nuevo_id, clave, rol, nombre, apellido, dni):
+        self._gestor_archivos.guardar_nuevo_usuario_csv(nuevo_id, clave, rol, nombre, apellido, dni)

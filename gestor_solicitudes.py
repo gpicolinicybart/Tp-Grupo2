@@ -69,7 +69,7 @@ class GestorSolicitudes:
 
     def gestionar_stock(self, solicitud, materiales_necesarios) -> bool:
         # filtrar faltantes
-        materiales_faltantes = list(filter(lambda item: not self._empresa.obtener_inventario().hay_disponibilidad(item[0], item[1]), materiales_necesarios.items()))
+        materiales_faltantes = list(filter(lambda item: not self._empresa.hay_disponibilidad(item[0], item[1]), materiales_necesarios.items()))
         
         if not materiales_faltantes:
             return True
@@ -79,7 +79,7 @@ class GestorSolicitudes:
             return False
 
         for componente, cant_necesaria in materiales_faltantes:
-            stock_disponible = self._empresa.obtener_inventario().obtener_stock_disponible(componente)
+            stock_disponible = self._empresa.obtener_stock_disponible(componente)
             faltante = int(cant_necesaria) - int(stock_disponible)
             print(f" [!] Faltan {faltante} unidades de '{componente.get_nombre()}'.")
             # la empresa ejecuta metodo de reabastecimiento
@@ -123,7 +123,7 @@ class GestorSolicitudes:
     def confirmar_reservas(self, solicitud, materiales_necesarios, asignaciones_pendientes):
             print(" -> Stock y Capacidad OK. Confirmando reservas...")
             for componente, cant_necesaria in materiales_necesarios.items():
-                self._empresa.obtener_inventario().reservar_stock(componente, cant_necesaria)
+                self._empresa.reservar_stock(componente, cant_necesaria)
                 
             for tarea, horas, colabs in asignaciones_pendientes:
                 # la tarea ejecuta sus reservas internamente
@@ -152,7 +152,7 @@ class GestorSolicitudes:
                     materiales_necesarios = self.explotar_bom(producto, cantidad_pedida)
                     
                     for componente, cant_necesaria in materiales_necesarios.items():
-                        self._empresa.obtener_inventario().descontar_stock(componente, cant_necesaria)
+                        self._empresa.descontar_stock(componente, cant_necesaria)
 
                     solicitud.set_estado(ESTADOS_VALIDOS[2])  # En Ejecución
                     print(f"-> ÉXITO: Solicitud #{id_solicitud} ('{producto.get_nombre()}') enviada a producción.")
@@ -181,7 +181,7 @@ class GestorSolicitudes:
                 try:
                     producto = solicitud.get_item_solicitado()
                     cantidad_pedida = int(solicitud.get_cantidad())
-                    self._empresa.obtener_inventario().ingresar_stock(producto, cantidad_pedida)
+                    self._empresa.ingresar_stock(producto, cantidad_pedida)
                     solicitud.marcar_como_terminada()
                     print(f"-> ÉXITO: Solicitud #{id_solicitud} terminada. {cantidad_pedida}x '{producto.get_nombre()}' sumados al stock.")
                     solicitudes_a_archivar.append(solicitud)
@@ -190,7 +190,7 @@ class GestorSolicitudes:
                     print(f"-> ERROR al finalizar Solicitud #{id_solicitud}")
                                     
         if contador_finalizadas > 0:
-            self._empresa.obtener_gestor_archivos().guardar_historial_csv(solicitudes_a_archivar)
+            self._empresa.guardar_historial_produccion(solicitudes_a_archivar)
             self._solicitudes = dict(filter(lambda item: item[1].get_estado() != ESTADOS_VALIDOS[3], self._solicitudes.items()))
             print(f"-> SISTEMA: Limpieza de memoria. {contador_finalizadas} solicitudes históricas archivadas/borradas.")
         else:
