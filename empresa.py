@@ -165,7 +165,42 @@ class Empresa:
     def consultar_stock_insumo(self, insumo):
         return self._inventario.obtener_stock_disponible(insumo)
 
-   
+    def hay_disponibilidad(self, elemento, cantidad) -> bool:
+        return self._inventario.hay_disponibilidad(elemento, cantidad)
+
+    def obtener_stock_disponible(self, elemento) -> int:
+        return self._inventario.obtener_stock_disponible(elemento)
+
+    def reservar_stock(self, elemento, cantidad):
+        self._inventario.reservar_stock(elemento, cantidad)
+
+    def descontar_stock(self, elemento, cantidad):
+        self._inventario.descontar_stock(elemento, cantidad)
+
+    def ingresar_stock(self, elemento, cantidad):
+        self._inventario.ingresar_stock(elemento, cantidad)
+
+    def consultar_stock_elemento(self, elemento) -> int:
+        return self._inventario.consultar_stock(elemento)
+
+    def obtener_stock_reservado(self, elemento) -> int:
+        return self._inventario.obtener_stock_reservado(elemento)
+
+    def establecer_stock(self, elemento, fisico, reservado):
+        self._inventario.establecer_stock(elemento, fisico, reservado)
+
+    def exportar_stock(self):
+        return self._inventario.exportar_stock()
+
+    def guardar_historial_produccion(self, solicitudes: list):
+        self._gestor_archivos.guardar_historial_csv(solicitudes)
+
+    def cargar_usuarios(self) -> dict:
+        return self._gestor_archivos.cargar_usuarios_csv()
+
+    def guardar_usuario(self, nuevo_usuario: list):
+        self._gestor_archivos.guardar_usuario_csv(nuevo_usuario)
+
 
     def agregar_habilidad(self, nombre: str):
             if self._catalogo_habilidades:

@@ -42,7 +42,7 @@ class MenuPrincipal:
    
 
     def iniciar_sesion(self) -> bool:
-        usuarios_registrados = self.empresa.obtener_gestor_archivos().cargar_usuarios_csv()
+        usuarios_registrados = self.empresa.cargar_usuarios()
         if not usuarios_registrados: 
             return False
 

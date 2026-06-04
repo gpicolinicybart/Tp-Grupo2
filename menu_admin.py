@@ -1,6 +1,4 @@
 from collections import deque
-import os
-import csv
 from menu_base import MenuBase
 
 class MenuAdministrativo(MenuBase):
@@ -205,7 +203,7 @@ class MenuAdministrativo(MenuBase):
 
         print("\nCatálogo de Insumos Básicos y Stock Disponible:")
         for id_ins, ins in insumos.items():
-            stock_actual = self.empresa.obtener_inventario().obtener_stock_disponible(ins)
+            stock_actual = self.empresa.consultar_stock_insumo(ins)
             print(f"  - ID: {id_ins} | {ins.get_nombre()} | Stock: {stock_actual} unid.")
 
         try:
@@ -348,8 +346,7 @@ class MenuAdministrativo(MenuBase):
             if not dni:
                 return print(" ERROR: El DNI es obligatorio.")
 
-            gestor = self.empresa.obtener_gestor_archivos()
-            usuarios = gestor.cargar_usuarios_csv()
+            usuarios = self.empresa.cargar_usuarios()
 
             # Buscar DNI duplicado y calcular el próximo ID autoincremental
             max_id = 0
@@ -372,7 +369,7 @@ class MenuAdministrativo(MenuBase):
             else:
                 return print(" ERROR: Opción de rol no válida.")
 
-            gestor.guardar_usuario_csv([nuevo_id, contrasena, rol, nombre, apellido, dni])
+            self.empresa.guardar_usuario([nuevo_id, contrasena, rol, nombre, apellido, dni])
             print(f"\n-> Usuario '{nombre} {apellido}' registrado correctamente como '{rol}'.")
             print(f"-> AVISO IMPORTANTE: Su ID de acceso generado por el sistema es el número {nuevo_id}.")
         except KeyError as e:

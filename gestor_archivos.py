@@ -73,11 +73,10 @@ class GestorArchivos:
         self._guardar_csv("csv/solicitudes_activas.csv", encabezados, filas)
     
     def guardar_catalogo_csv(self):
-        inventario = self.empresa.obtener_inventario()
         filas = []
         for prod in self.empresa.obtener_elementos_catalogo():
-            fisico = inventario.consultar_stock(prod)
-            reservado = inventario.obtener_stock_reservado(prod)
+            fisico = self.empresa.consultar_stock_elemento(prod)
+            reservado = self.empresa.obtener_stock_reservado(prod)
             tipo = prod.get_tipo_elemento()
             if tipo == "Articulo Fabricado":
                 bom_str_lista = []
@@ -164,7 +163,6 @@ class GestorArchivos:
 
     def guardar_reporte_criticos_csv(self, producto, criticos):
         nombre_archivo = f"csv/criticos_{producto.get_id()}.csv"
-        inventario = self.empresa.obtener_inventario()
         try:
             with open(nombre_archivo, mode='w', newline='', encoding='utf-8') as archivo:
                 writer = csv.writer(archivo)
@@ -173,7 +171,7 @@ class GestorArchivos:
                     print(f"-> [INFO] Reporte: NO hay materiales críticos para '{producto.get_nombre()}'. Stock en niveles aceptables.")
                 else:
                     for insumo, cant_nec in criticos:
-                        stock = inventario.consultar_stock(insumo)
+                        stock = self.empresa.consultar_stock_elemento(insumo)
                         porcentaje = (stock / cant_nec) * 100
                         cobertura = f"{porcentaje:.1f}%"
                         writer.writerow([insumo.get_id(), insumo.get_nombre(), cant_nec, stock, cobertura])
@@ -390,7 +388,6 @@ class GestorArchivos:
             return None, []
         
     def cargar_inventario_csv(self, elementos_catalogo: list, archivo_csv="csv/inventario.csv"):
-        inventario = self.empresa.obtener_inventario()
         elementos_por_id = {}
         elementos_por_nombre = {}
         for elemento in elementos_catalogo:
@@ -406,13 +403,12 @@ class GestorArchivos:
             reservado = int(fila.get('stock_reservado', 0))
             elemento = elementos_por_id.get(id_elem) or elementos_por_nombre.get(nombre)
             if elemento is not None:
-                inventario.establecer_stock(elemento, fisico, reservado)
+                self.empresa.establecer_stock(elemento, fisico, reservado)
         self._leer_csv(archivo_csv, procesar)
 
     def guardar_inventario_csv(self, archivo_csv="csv/inventario.csv"):
-        inventario = self.empresa.obtener_inventario()
         filas = []
-        for elem, fisico, reservado in inventario.exportar_stock():
+        for elem, fisico, reservado in self.empresa.exportar_stock():
             if hasattr(elem, 'get_id'):
                 id_elem = elem.get_id()
             else:
