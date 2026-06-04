@@ -1,3 +1,4 @@
 id,clave,rol,nombre,apellido,dni
 1,1234,administracion,Juan,Perez,112223332,12345,produccion,Juana,Garcia,45879865
-2,456456,produccion,maria,gonzales,45564565
+2,5678,produccion,maria,gonzales,45564565
+3,hola,administracion,hola,hola,hola

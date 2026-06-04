@@ -15,6 +15,7 @@ class MenuProduccion(MenuBase):
         print("4. Finalizar Solicitud (Cierre)")
         print("5. Ver Estado General del Sistema")
         print("6. Recibir Órdenes de Compra")
+        print("7. Ver Historial de Producciones Finalizadas (Esta Sesión)")
         print("0. Cerrar Sesión")
         print("="*60)
 
@@ -31,6 +32,8 @@ class MenuProduccion(MenuBase):
             self.ver_estado()
         elif opcion == "6":
             self.recibir_compras_pendientes() 
+        elif opcion == "7":
+            self.ver_historial_produccion()
         elif opcion == "0":
             print("\nCerrando sistema de gestion de producción. Hasta luego.")
             return False
@@ -124,3 +127,28 @@ class MenuProduccion(MenuBase):
             print("Error: Se intentó procesar una cola de compras que ya estaba vacía.")
         except OSError as e:
             print(f"Error al intentar actualizar el archivo de inventario")
+
+    def ver_historial_produccion(self):
+        print("\n" + "="*70)
+        print("    HISTORIAL DE PRODUCCIÓN TERMINADA (esta sesión)    ")
+        print("="*70)
+        
+        terminadas = self.empresa.obtener_producciones_terminadas_lifo()
+        if not terminadas:
+            return print("Todavía no se finalizó ninguna producción en esta sesión.")
+
+        print(f"{'ID':<6} | {'Producto':<20} | {'Cantidad':<8} | {'Tiempo (hs)':<12}")
+        print("-" * 70)
+        for solicitud in terminadas:
+            id_sol = solicitud.get_id()
+            producto = solicitud.get_item_solicitado().get_nombre()
+            cantidad = solicitud.get_cantidad()
+            if solicitud.get_fecha_finalizacion():
+                tiempo = round(
+                        (solicitud.get_fecha_finalizacion() - solicitud.get_fecha_creacion()).total_seconds() / 3600, 2
+                    )
+            else:
+                    tiempo = "N/A"
+            print(f"#{id_sol:<5} | {producto:<20} | {cantidad:<8} | {tiempo:<12}")
+            print("-" * 70)
+            print(f"Total finalizadas en esta sesión: {len(terminadas)}")

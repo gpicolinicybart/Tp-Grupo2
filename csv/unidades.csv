@@ -1,6 +1,4 @@
 ID Unidad,Nombre,Capacidad,Costo Operativo
-1,Mesa de Ensamblaje,80.0,500.0
-2,Mesa de Ensamblaje,80.0,500.0
-3,Mesa de Ensamblaje,80.0,500.0
-4,Mesa de Ensamblaje,80.0,500.0
-5,Mesa de Ensamblaje,80.0,500.0
+1,Sierra de Corte,200.0,500.0
+2,Linea de Ensamblaje,200.0,800.0
+3,Cabina de Pintura,150.0,400.0

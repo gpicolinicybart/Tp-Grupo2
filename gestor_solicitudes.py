@@ -93,32 +93,49 @@ class GestorSolicitudes:
     def gestionar_capacidad(self, producto, cantidad_pedida) -> tuple:
         asignaciones_pendientes = [] 
         lista_tareas = producto.get_lista_tareas() 
-
         if len(lista_tareas) == 0:
-            print(f"[!]ERROR: el producto '{producto.get_nombre()}' no tiene tareas asignadas en su receta. No se puede procesar la solicitud.")
-            return False, [], "eror_configuracion"
-        for tarea in lista_tareas:
-            horas_totales=tarea.calcular_horas_totales(cantidad_pedida)
-            unidad=tarea.get_unidad_requerida()
+            print(f"[!]ERROR: el producto '{producto.get_nombre()}' no tiene tareas asignadas.")
+            return False, [], "error_configuracion"
 
-            if not unidad.verificar_disponibilidad(horas_totales):
-                id_tarea_maestra=tarea.get_id_tarea_maestra()
-                datos_tarea=self._empresa.obtener_catalogo_tareas().get(id_tarea_maestra)
-                if isinstance(datos_tarea, dict):
-                    nombre_tarea=datos_tarea["nombre"]
-                else:
-                    print(f"Tarea ID {id_tarea_maestra} no encontrada en catálogo de tareas.")
-                print (f" [!] Falta capacidad en la unidad #{unidad.get_id()} para la tarea '{nombre_tarea}'.")
+        uso_maq_temporal = {}
+        uso_emp_temporal = {}
+
+        for tarea in lista_tareas:
+            horas_totales = tarea.calcular_horas_totales(cantidad_pedida)
+            unidad = tarea.get_unidad_requerida()
+            id_unidad = unidad.get_id()
+
+            horas_maq_ya_usadas = uso_maq_temporal.get(id_unidad, 0.0)
+            if not unidad.verificar_disponibilidad(horas_totales + horas_maq_ya_usadas):
+                id_tarea_maestra = tarea.get_id_tarea_maestra()
+                datos_tarea = self._empresa.obtener_catalogo_tareas().get(id_tarea_maestra, {})
+                print (f" [!] Falta capacidad en la unidad #{unidad.get_id()} para la tarea '{datos_tarea.get('nombre', 'Desconocida')}'.")
                 return False, [], "capacidad"
-            colabs_necesarios=tarea.get_cant_colaboradores_req()
-            colabs_aptos=tarea.filtrar_colaboradores_aptos(self._empresa.obtener_diccionario_colaboradores(), horas_totales)
-            if len(colabs_aptos)<colabs_necesarios:
-                id_hab=tarea.get_id_habilidad_requerida()
-                nombre_hab=self._empresa.obtener_catalogo_habilidades().get(id_hab, f"Habilidad ID {id_hab}")
-                print (f" [!] Falta personal con habilidad '{nombre_hab}' ")
+            
+            uso_maq_temporal[id_unidad] = horas_maq_ya_usadas + horas_totales
+
+            colabs_necesarios = tarea.get_cant_colaboradores_req()
+            id_hab = tarea.get_id_habilidad_requerida()
+            colabs_encontrados = []
+
+            for colab in self._empresa.obtener_diccionario_colaboradores().values():
+                id_colab = colab.get_id()
+                horas_emp_ya_usadas = uso_emp_temporal.get(id_colab, 0.0)
+
+                if colab.tiene_habilidad(id_hab) and colab.verificar_disponibilidad(horas_totales + horas_emp_ya_usadas):
+                    colabs_encontrados.append(colab)
+                    uso_emp_temporal[id_colab] = horas_emp_ya_usadas + horas_totales
+                    
+                    if len(colabs_encontrados) == colabs_necesarios:
+                        break 
+
+            if len(colabs_encontrados) < colabs_necesarios:
+                nombre_hab = self._empresa.obtener_catalogo_habilidades().get(id_hab, f"Habilidad ID {id_hab}")
+                print (f" [!] Falta personal con habilidad '{nombre_hab}' y suficientes horas libres.")
                 return False, [], "personal"
-            colabs_encontrados=colabs_aptos[:colabs_necesarios]
+            
             asignaciones_pendientes.append((tarea, horas_totales, colabs_encontrados))
+            
         return True, asignaciones_pendientes, None
 
     def confirmar_reservas(self, solicitud, materiales_necesarios, asignaciones_pendientes):

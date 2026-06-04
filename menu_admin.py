@@ -17,12 +17,11 @@ class MenuAdministrativo(MenuBase):
         print("6. Generar Orden de Compra Manual para Insumo")
         print("7. Generar Reporte CSV de Materiales Críticos")
         print("8. Generar Reporte de Planta y Cuellos de Botella")
-        print("9. Ver Historial de Producción (Auditoría)")
-        print("10. Ver Estado General del Sistema")
-        print("11. Cargar Escenario de Prueba (Demo)")
-        print("12. Agregar Nueva Habilidad al Catálogo")
-        print("13. Agregar Nueva Tarea al Catálogo")
-        print("14. Agregar Nuevo Usuario")
+        print("9. Ver Estado General del Sistema")
+        print("10. Cargar Escenario de Prueba (Demo)")
+        print("11. Agregar Nueva Habilidad al Catálogo")
+        print("12. Agregar Nueva Tarea al Catálogo")
+        print("13. Agregar Nuevo Usuario")
         print("0. Cerrar Sesión")
         print("="*60)
 
@@ -35,13 +34,12 @@ class MenuAdministrativo(MenuBase):
                 elif opcion == "5": self.dar_baja_colaborador()  
                 elif opcion == "6": self.comprar_insumos_manual()  
                 elif opcion == "7": self.generar_reporte_criticos()  
-                elif opcion == "8": self.emitir_reporte_y_sobrecarga()   
-                elif opcion == "9": self.ver_historial_produccion()  
-                elif opcion == "10": self.ver_estado()
-                elif opcion == "11": self.cargar_demo()
-                elif opcion == "12": self.empresa.agregar_habilidad(input("Nombre de la nueva Habilidad: "))
-                elif opcion == "13": self.crear_tarea_maestra()
-                elif opcion == "14": self.agregar_usuario()
+                elif opcion == "8": self.emitir_reporte_y_sobrecarga()     
+                elif opcion == "9": self.ver_estado()
+                elif opcion == "10": self.cargar_demo()
+                elif opcion == "11": self.empresa.agregar_habilidad(input("Nombre de la nueva Habilidad: "))
+                elif opcion == "12": self.crear_tarea_maestra()
+                elif opcion == "13": self.agregar_usuario()
                 elif opcion == "0":
                     print("\nCerrando sistema de gestion administrativa. Hasta luego.")
                     return False
@@ -267,31 +265,6 @@ class MenuAdministrativo(MenuBase):
                     print("Datos inválidos o cantidad menor a 1.")
             except ValueError:
                 print("Error: Ingrese números enteros válidos.")
-
-    def ver_historial_produccion(self):
-        print("\n" + "="*70)
-        print("    HISTORIAL DE PRODUCCIÓN TERMINADA (esta sesión)    ")
-        print("="*70)
-        
-        terminadas = self.empresa.obtener_producciones_terminadas_lifo()
-        if not terminadas:
-            return print("Todavía no se finalizó ninguna producción en esta sesión.")
-
-        print(f"{'ID':<6} | {'Producto':<20} | {'Cantidad':<8} | {'Tiempo (hs)':<12}")
-        print("-" * 70)
-        for solicitud in terminadas:
-            id_sol = solicitud.get_id()
-            producto = solicitud.get_item_solicitado().get_nombre()
-            cantidad = solicitud.get_cantidad()
-            if solicitud.get_fecha_finalizacion():
-                tiempo = round(
-                        (solicitud.get_fecha_finalizacion() - solicitud.get_fecha_creacion()).total_seconds() / 3600, 2
-                    )
-            else:
-                    tiempo = "N/A"
-            print(f"#{id_sol:<5} | {producto:<20} | {cantidad:<8} | {tiempo:<12}")
-            print("-" * 70)
-            print(f"Total finalizadas en esta sesión: {len(terminadas)}")
 
     def cargar_demo(self):
         print("\n--- CARGANDO DEMO INDUSTRIAL ---")

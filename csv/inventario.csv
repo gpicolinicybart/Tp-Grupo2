@@ -1,3 +1,6 @@
 id_elemento,nombre_referencia,stock_fisico,stock_reservado
-2,Tornillos 10mm,1000,0
-1,Tablón de Madera,1235678,0
+4,Pegamento,1997,0
+3,Barniz,2000,0
+1,Tablon de Madera,1982,0
+2,Tornillos 10mm,1928,0
+7,Mesa Completa,3,0
