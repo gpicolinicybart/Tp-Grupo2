@@ -256,7 +256,7 @@ class Empresa:
         # Validar que las habilidades existan en el catálogo maestro
         for h in habilidades_ids:
             if h not in self._catalogo_habilidades:
-                raise ValueError(f"La habilidad con ID {h} no existe.")
+                raise KeyError(f"La habilidad con ID {h} no existe.")
                 
         colab = Colaborador(habilidades_ids, horas, salario)
         self.agregar_colaborador(colab)
@@ -281,12 +281,14 @@ class Empresa:
         return insumo
 
     def crear_producto_completo(self, nombre, dict_bom_cantidades, lista_datos_tareas):
-        insumos_disp = self.obtener_diccionario_insumos()
-
-        #  Armar Receta BOM
+        catalogo_completo = {elem.get_id(): elem for elem in self.obtener_elementos_catalogo()}
         bom_dict = {}
-        for id_ins, cant in dict_bom_cantidades.items():
-            bom_dict[insumos_disp[id_ins]] = cant
+        for id_elem, cant in dict_bom_cantidades.items():
+            if id_elem in catalogo_completo:
+                bom_dict[catalogo_completo[id_elem]] = cant
+            else:
+                raise ValueError(f"ID {id_elem} no encontrado en el catálogo.")
+        
         bom = ItemBOM(f"Receta {nombre}", bom_dict)
 
         tareas_producto = ListaEnlazadaTareas() 

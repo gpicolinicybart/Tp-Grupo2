@@ -60,69 +60,84 @@ class MenuAdministrativo(MenuBase):
 
     def crear_producto(self):
         print("\n--- REGISTRO DE PRODUCTO FABRICADO ---")
-        insumos = self.empresa.obtener_diccionario_insumos()
+        
+        elementos = self.empresa.obtener_elementos_catalogo() 
         unidades = self.empresa.obtener_diccionario_unidades()
 
-        if not unidades or not insumos:
-            return print(" [!] ERROR: Faltan unidades o insumos base.")
-        if not self.empresa.obtener_catalogo_tareas() or not self.empresa.obtener_catalogo_habilidades():
-            return print(" [!] ERROR: Cargue catálogos de tareas y habilidades primero.")
-
-        try:
-            nombre = input("Nombre del producto: ").strip()
+        if not unidades or not elementos:
+            print(" [!] ERROR: Faltan unidades o elementos base en el sistema para crear un producto.")
+            return
             
-            #receta bom
-            print("\nInsumos disponibles:")
-            for id_ins, ins in insumos.items():
-                print(f"  ID {id_ins}: {ins.get_nombre()}")
+        nombre = input("Nombre del Producto nuevo: ")
+        
+        print("\nElementos disponibles para la receta (Insumos y Sub-ensambles):")
+        elementos_dict = {elem.get_id(): elem for elem in elementos}
+        
+        for id_elem, elem in elementos_dict.items():
+            print(f"  ID {id_elem}: {elem.get_nombre()} ({elem.get_tipo_elemento()})")
             
-            dict_bom_cantidades = {} 
-            while True:
-                entrada = input("\nIngrese ID del insumo (o '0' para finalizar receta): ")
-                if entrada == "0": 
-                    break
+        dict_bom_cantidades = {} 
+        while True:
+            entrada = input("\nIngrese ID del elemento para la receta (o '0' para finalizar lista): ")
+            if entrada == "0": 
+                break
+            try:
                 id_i = int(entrada)
-                if id_i in insumos:
-                    cant = int(input(f"Cantidad de '{insumos[id_i].get_nombre()}': "))
-                    dict_bom_cantidades[id_i] = cant
+                if id_i in elementos_dict:
+                    cant = int(input(f"Cantidad requerida de '{elementos_dict[id_i].get_nombre()}': "))
+                    if cant > 0:
+                        dict_bom_cantidades[id_i] = cant
+                    else:
+                        print(" [!] La cantidad debe ser mayor a 0.")
                 else: 
-                    print("ID no encontrado.")
+                    print(" [!] ID no encontrado en el catálogo. Intente nuevamente.")
+            except ValueError:
+                print(" [!] Por favor, ingrese un número válido.")
+        
+        if not dict_bom_cantidades:
+            print(" [!] Cancelando... Un producto fabricado no puede tener una receta vacía.")
+            return
+
+        print("\n--- TAREAS DE FABRICACIÓN ---")
+        tareas_maestras = self.empresa.obtener_catalogo_tareas()
+        
+        if not tareas_maestras:
+            print(" [!] ERROR: No hay tareas maestras registradas en el sistema.")
+            return
             
-            if not dict_bom_cantidades: 
-                return print("CANCELADO: Requiere materiales.")
-
-            # tareas
-            print("\n--- ASIGNACIÓN DE TAREAS ---")
-            lista_datos_tareas = [] 
-            while True:
-                if input("¿Desea agregar una Tarea? (S/N): ").strip().upper() != 'S':
-                    break
-
-                print("\nTipos de Tareas Maestras:")
-                for id_tarea, datos_tarea in self.empresa.obtener_catalogo_tareas().items():
-                    print(f"  ID {id_tarea}: {datos_tarea['nombre']} (Máquina: #{datos_tarea['id_unidad']} | Hab: #{datos_tarea['id_habilidad']})")
+        for id_t, tarea in tareas_maestras.items():
+            print(f"  ID {id_t}: {tarea['nombre']}")
+            
+        lista_datos_tareas = []
+        while True:
+            entrada_t = input("\nIngrese ID de la tarea a agregar (o '0' para finalizar): ")
+            if entrada_t == "0":
+                break
+            try:
+                id_t = int(entrada_t)
+                if id_t in tareas_maestras:
+                    # CORRECCIÓN 2: Accedemos a la clave "nombre" del diccionario
+                    tiempo = int(input(f"Tiempo en minutos estimado para '{tareas_maestras[id_t]['nombre']}': "))
+                    if tiempo > 0:
+                        lista_datos_tareas.append({'id_maestra': id_t, 'cant_colabs': 1, 'tiempo': tiempo / 60.0}) # Ajustado a formato diccionario para la empresa
+                    else:
+                        print(" [!] El tiempo debe ser mayor a 0.")
+                else:
+                    print(" [!] ID de tarea no encontrado.")
+            except ValueError:
+                print(" [!] Por favor, ingrese un número válido.")
                 
-                id_t_maestra = int(input("ID de tarea maestra a usar: "))
-                if id_t_maestra not in self.empresa.obtener_catalogo_tareas():
-                    print(" [!] ERROR: ID de tarea no existe.")
-                    continue
-
-                cant_colabs = int(input("Cantidad de operarios para esta tarea: "))
-                tiempo = float(input("Tiempo (hs/unidad): "))
-                
-                lista_datos_tareas.append({
-                    'id_maestra': id_t_maestra, 
-                    'cant_colabs': cant_colabs, 
-                    'tiempo': tiempo
-                })
-                print("-> Tarea añadida a la hoja de ruta.")
-
-            #la empresa crea todo
-            producto = self.empresa.crear_producto_completo(nombre, dict_bom_cantidades, lista_datos_tareas)
-            print(f"\n CONFIRMACIÓN: Producto '{nombre}' (ID: {producto.get_id()}) registrado.")
-                
+        if not lista_datos_tareas:
+            print(" [!] Cancelando... Un producto debe tener al menos una tarea asignada.")
+            return
+            
+        try:
+            self.empresa.crear_producto_completo(nombre, dict_bom_cantidades, lista_datos_tareas)
+            print(f"\n [*] ¡ÉXITO! Producto '{nombre}' creado y registrado correctamente en el catálogo.")
         except ValueError as e:
-            print(f"ERROR: Ingresó texto donde se esperaba un número o viceversa.")
+            print(f"\n [!] ERROR DE VALOR")
+        except KeyError as e:
+            print(f"\n [!] ERROR DE REFERENCIA: No se encontró un elemento o tarea especificada")
 
     def agregar_unidad_trabajo(self):
         print("\n--- REGISTRO DE UNIDAD DE TRABAJO ---")
