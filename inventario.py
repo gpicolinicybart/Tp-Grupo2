@@ -89,3 +89,13 @@ class Inventario:
             self._stock_fisico[elemento] = fisico
         if reservado:
             self._stock_reservado[elemento] = reservado
+            
+    COLUMNAS_STOCK = ["id_elemento", "nombre_referencia", "stock_fisico", "stock_reservado"]
+
+    def serializar_stock(self):
+        filas = []
+        for elem in self._stock_fisico:
+            fisico = self._stock_fisico.get(elem, 0)
+            reservado = self._stock_reservado.get(elem, 0)
+            filas.append([elem.get_id(), elem.get_nombre(), fisico, reservado])
+        return filas

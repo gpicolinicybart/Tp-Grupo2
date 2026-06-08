@@ -106,3 +106,32 @@ class Colaborador:
             
     def get_horas_disponibles(self) -> float:
         return self._horas_disponibles
+    
+    ARCHIVO = "csv/colaboradores.csv"
+    COLUMNAS = ["ID Colaborador", "Habilidades_IDs", "Horas Disponibles",
+            "Salario Hora", "Fecha Alta", "Fecha Baja"]
+
+    def serialize(self):
+        habilidades_str = ";".join(map(str, self._habilidades_ids))
+        f_alta = self._fecha_alta.strftime("%Y-%m-%d %H:%M:%S")
+        if self._fecha_baja is not None:
+            f_baja = self._fecha_baja.strftime("%Y-%m-%d %H:%M:%S")
+        else:
+            f_baja = ""
+        return [self._id, habilidades_str, self._horas_disponibles,
+                self._salario_hora, f_alta, f_baja]
+
+    @classmethod
+    def deserialize(cls, fila):
+        ids = []
+        if fila["Habilidades_IDs"].strip():
+            for texto in fila["Habilidades_IDs"].split(";"):
+                ids.append(int(texto.strip()))
+        f_alta = None
+        if fila.get("Fecha Alta"):
+            f_alta = datetime.strptime(fila["Fecha Alta"], "%Y-%m-%d %H:%M:%S")
+        f_baja = None
+        if fila.get("Fecha Baja"):
+            f_baja = datetime.strptime(fila["Fecha Baja"], "%Y-%m-%d %H:%M:%S")
+        return cls(ids, float(fila["Horas Disponibles"]), float(fila["Salario Hora"]),
+                id=int(fila["ID Colaborador"]), fecha_alta=f_alta, fecha_baja=f_baja)

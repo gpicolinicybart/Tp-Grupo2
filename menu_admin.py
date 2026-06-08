@@ -22,6 +22,7 @@ class MenuAdministrativo(MenuBase):
         print("11. Agregar Nueva Habilidad al Catálogo")
         print("12. Agregar Nueva Tarea al Catálogo")
         print("13. Agregar Nuevo Usuario")
+        print("14. Buscar Orden de Compra por ID")
         print("0. Cerrar Sesión")
         print("="*60)
 
@@ -40,6 +41,7 @@ class MenuAdministrativo(MenuBase):
                 elif opcion == "11": self.empresa.agregar_habilidad(input("Nombre de la nueva Habilidad: "))
                 elif opcion == "12": self.crear_tarea_maestra()
                 elif opcion == "13": self.agregar_usuario()
+                elif opcion == "14":self.buscar_orden_compra()
                 elif opcion == "0":
                     print("\nCerrando sistema de gestion administrativa. Hasta luego.")
                     return False
@@ -366,3 +368,24 @@ class MenuAdministrativo(MenuBase):
             print(f" ERROR: Hay un ID incorrecto en 'usuarios.csv' que no es un número")
         except OSError as e:
             print(f" ERROR: Falla al intentar guardar en 'usuarios.csv'")
+    
+    def buscar_orden_compra(self):
+        import math
+        print("\n--- BUSCAR ORDEN DE COMPRA ---")
+        try:
+            id_buscado = int(input("Ingrese el ID de la orden: "))
+        except ValueError:
+            print("ID inválido.")
+            return
+
+        compra = self.empresa.buscar_compra_por_id(id_buscado)
+        n = self.empresa.cantidad_compras()
+        saltos = self.empresa.saltos_ultima_busqueda()
+
+        if compra is None:
+            print(f"No existe la orden #{id_buscado}.")
+        else:
+            print(f"Encontrada: {compra}")
+
+        if n > 0:
+            print(f"Saltos del árbol: {saltos}  |  Cota O(log n) = log2({n}) = {math.log2(n):.2f}")

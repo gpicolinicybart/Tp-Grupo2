@@ -1,7 +1,7 @@
 
 from elemento import Elemento
 from lista_tareas import ListaEnlazadaTareas
-
+from itembom import ItemBOM
 
 class ArticuloFabricadoInternamente(Elemento):
     def __init__(self, nombre: str, bom: list, lista_tareas: ListaEnlazadaTareas, id: int = None):
@@ -86,3 +86,31 @@ class ArticuloFabricadoInternamente(Elemento):
             if tarea.get_unidad_requerida().get_id() == unidad.get_id():
                 horas_acumuladas += tarea.get_tiempo_por_unidad() * cantidad
         return horas_acumuladas
+    
+    def serialize(self):
+        receta = []
+        for bom_item in self._bom:
+            for elemento, cantidad in bom_item.get_diccionario().items():
+                receta.append(f"{elemento.get_id()}:{cantidad}")
+        receta_str = ";".join(receta)
+        return [self._id, self.get_nombre(), self.get_tipo_elemento(), 0.0, receta_str]
+
+    @classmethod
+    def deserialize(cls, fila):
+        
+        return cls(nombre=fila["Nombre Producto"], bom=[],lista_tareas=ListaEnlazadaTareas(), id=int(fila["ID Producto"]))
+
+    @staticmethod
+    def reconstruir_bom(producto, receta_str, elementos_por_id):
+        if not receta_str:
+            return
+        items = []
+        for par in receta_str.split(";"):
+            if not par.strip():
+                continue
+            comp_id_str, cant_str = par.split(":")
+            componente = elementos_por_id.get(int(comp_id_str))
+            if componente is not None:
+                items.append((componente, int(cant_str)))
+        if items:
+            producto.set_bom([ItemBOM(f"Receta {producto.get_nombre()}", dict(items))])

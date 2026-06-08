@@ -80,3 +80,22 @@ class SolicitudDeFabricacion:
     
     def get_fecha_finalizacion(self):
         return self._fecha_finalizacion
+
+
+    ARCHIVO = "csv/solicitudes_activas.csv"
+    COLUMNAS = ["ID Solicitud", "Producto", "Cantidad", "Estado", "Fecha Creacion"]
+
+    def serialize(self):
+        return [self._id, self._item_solicitado.get_nombre(), self._cantidad,
+                self._estado, self._fecha_creacion.strftime("%d/%m/%Y %H:%M")]
+
+    @classmethod
+    def deserialize(cls, fila, productos_por_nombre):
+        producto = productos_por_nombre.get(fila["Producto"])
+        if producto is None:
+            return None
+        fecha = datetime.strptime(fila["Fecha Creacion"], "%d/%m/%Y %H:%M")
+        sol = cls(producto, int(fila["Cantidad"]), es_para_cliente=True,
+                  id=int(fila["ID Solicitud"]), fecha_creacion=fecha)
+        sol.set_estado(fila["Estado"])
+        return sol

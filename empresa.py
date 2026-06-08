@@ -14,6 +14,7 @@ from gestor_archivos import GestorArchivos
 from gestor_solicitudes import GestorSolicitudes
 from solicitud_fabricacion import SolicitudDeFabricacion, ESTADOS_VALIDOS
 
+
 class Empresa:
     def __init__(self, inventario: Inventario):
         self._inventario = inventario
@@ -203,25 +204,24 @@ class Empresa:
 
 
     def agregar_habilidad(self, nombre: str):
-            if self._catalogo_habilidades:
-                nuevo_id = len(self._catalogo_habilidades) + 1
-            else:
-                nuevo_id = 1
-            self._catalogo_habilidades[nuevo_id] = nombre.strip().title()
-            self._gestor_archivos.guardar_catalogos_maestros()
-            return nuevo_id
+        if self._catalogo_habilidades:
+            nuevo_id = len(self._catalogo_habilidades) + 1
+        else:
+            nuevo_id = 1
+        from habilidad import Habilidad
+        self._catalogo_habilidades[nuevo_id] = Habilidad(nuevo_id, nombre.strip().title())
+        self._gestor_archivos.guardar_habilidades_csv()
+        return nuevo_id
 
     def agregar_tarea_maestra(self, nombre: str, id_unidad: int, id_habilidad: int):
         if self._catalogo_tareas:
             nuevo_id = len(self._catalogo_tareas) + 1
         else:
             nuevo_id = 1
-        self._catalogo_tareas[nuevo_id] = {
-            "nombre": nombre.strip().title(),
-            "id_unidad": id_unidad,
-            "id_habilidad": id_habilidad
-        }
-        self._gestor_archivos.guardar_catalogos_maestros()
+        from tarea_maestra import TareaMaestra
+        self._catalogo_tareas[nuevo_id] = TareaMaestra(nuevo_id, nombre.strip().title(),
+                                                       id_unidad, id_habilidad)
+        self._gestor_archivos.guardar_tareas_maestras_csv()
         return nuevo_id
    
     def obtener_diccionario_insumos(self):
@@ -294,10 +294,10 @@ class Empresa:
         tareas_producto = ListaEnlazadaTareas() 
         
         for dt in lista_datos_tareas:
-            id_t_maestra = dt['id_maestra']
+            id_t_maestra = dt['id_tarea_maestra']
             datos_maestros = self._catalogo_tareas[id_t_maestra]
-            id_unidad = datos_maestros["id_unidad"]
-            id_hab = datos_maestros["id_habilidad"]
+            id_unidad = datos_maestros.get_id_unidad()
+            id_hab = datos_maestros.get_id_habilidad()
 
             # colaboradores aptos para esta tarea
             aptos = []
@@ -399,22 +399,46 @@ class Empresa:
         print("=== DEMO CARGADA: 3 habilidades, 3 unidades, 4 insumos, 6 colaboradores, 4 productos ===\n")
 
     # GETTERS para lectura
-    def obtener_catalogo_habilidades(self) -> dict:
-        return self._catalogo_habilidades
+    
+    def obtener_catalogo_habilidades(self):
+        resultado = {}
+        for id_h, hab in self._catalogo_habilidades.items():
+            resultado[id_h] = hab.get_nombre()
+        return resultado
 
-    def obtener_catalogo_tareas(self) -> dict:
-        return self._catalogo_tareas
+    def obtener_catalogo_tareas(self):
+        resultado = {}
+        for id_t, tm in self._catalogo_tareas.items():
+            resultado[id_t] = {"nombre": tm.get_nombre(),
+                               "id_unidad": tm.get_id_unidad(),
+                               "id_habilidad": tm.get_id_habilidad()}
+        return resultado
+    
+    def obtener_habilidades(self):
+        return list(self._catalogo_habilidades.values())
+
+    def registrar_habilidad(self, habilidad):
+        self._catalogo_habilidades[habilidad.get_id()] = habilidad
+
+    def obtener_tareas_maestras(self):
+        return list(self._catalogo_tareas.values())
+
+    def registrar_tarea_maestra(self, tarea_maestra):
+        self._catalogo_tareas[tarea_maestra.get_id()] = tarea_maestra
 
     def obtener_historial_compras(self) -> list:
         # La empresa le delega al gestor la obtención del historial
         return self._gestor_compras.obtener_historial()
+    def buscar_compra_por_id(self, id_compra):
+        return self._gestor_compras.buscar_compra(id_compra)
 
+    def cantidad_compras(self):
+        return len(self._gestor_compras.obtener_historial())
+
+    def saltos_ultima_busqueda(self):
+        return self._gestor_compras.obtener_saltos_ultima_busqueda()
+    
     # MÉTODOS para cargar datos desde los CSV sin pisar la lógica de negocio
-    def registrar_habilidad_desde_archivo(self, id_hab: int, nombre: str):
-        self._catalogo_habilidades[id_hab] = nombre
-
-    def registrar_tarea_desde_archivo(self, id_tarea: int, datos: dict):
-        self._catalogo_tareas[id_tarea] = datos
 
     def agregar_elemento_al_catalogo(self, elemento):
         """Agrega un elemento al catálogo desde GestorArchivos"""
@@ -456,13 +480,13 @@ class Empresa:
         self._gestor_archivos.cargar_todos_los_csv()
         
     def guardar_todos_los_datos(self):
-        self._gestor_archivos.guardar_todos_los_csv()
+        return self._gestor_archivos.guardar_todos_los_csv()
     
     def guardar_inventario(self):
-        self._gestor_archivos.guardar_inventario_csv()
-    
+        return self._gestor_archivos.guardar_inventario_csv()
+
     def guardar_solicitudes(self):
-        self._gestor_archivos.guardar_solicitudes_csv()
+        return self._gestor_archivos.guardar_solicitudes_csv()
     
     def obtener_producciones_terminadas_lifo(self):
         return self._gestor_solicitudes.obtener_terminadas_lifo()

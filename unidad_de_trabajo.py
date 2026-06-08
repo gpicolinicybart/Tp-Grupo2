@@ -70,3 +70,14 @@ class UnidadDeTrabajo:
                 return 0.0
             porcentaje = (self._horas_reservadas * 100) / self._capacidad_max_horas
             return porcentaje
+
+    ARCHIVO = "csv/unidades.csv"
+    COLUMNAS = ["ID Unidad", "Nombre", "Capacidad", "Costo Operativo"]
+
+    def serialize(self):
+        return [self._id, self._nombre, self._capacidad_max_horas, self._costo_operativo_por_hora]
+
+    @classmethod
+    def deserialize(cls, fila):
+        return cls(fila["Nombre"], float(fila["Capacidad"]),
+                float(fila["Costo Operativo"]), id=int(fila["ID Unidad"]))

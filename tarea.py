@@ -55,3 +55,23 @@ class Tarea:
         self._unidad_requerida.reservar_horas(horas_totales)
         for colab in colaboradores:
             colab.asignar_tarea(self._id_habilidad_requerida, horas_totales)
+    
+
+    
+    COLUMNAS = ["ID_Tarea_M", "ID Unidad", "Cant Colab", "Tiempo", "ID_Hab_Req", "Costo MO"]
+
+    def serialize(self):
+        return [self._id_tarea_maestra, self._unidad_requerida.get_id(),
+                self._cant_colaboradores_req, self._tiempo_por_unidad,
+                self._id_habilidad_requerida, self._costo_mano_obra_hora]
+
+    @classmethod
+    def deserialize(cls, fila, unidades_por_id):
+        unidad = unidades_por_id.get(int(fila["ID Unidad"]))
+        if unidad is None:
+            return None
+        return cls(id_tarea_maestra=int(fila["ID_Tarea_M"]), unidad_requerida=unidad,
+                   cant_colaboradores_req=int(fila["Cant Colab"]),
+                   tiempo_por_unidad=float(fila["Tiempo"]),
+                   id_habilidad_requerida=int(fila["ID_Hab_Req"]),
+                   costo_mano_obra_hora=float(fila["Costo MO"]))

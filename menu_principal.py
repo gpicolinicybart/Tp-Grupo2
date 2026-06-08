@@ -32,12 +32,12 @@ class MenuPrincipal:
             print("Aviso al leer los CSV. Iniciando catálogos en blanco...")
 
     def guardar_datos(self):
-        print("Guardando progreso en archivos CSV...")
-        try:
-            self.empresa.guardar_todos_los_datos()
-            print("\n Progreso guardado correctamente en los archivos CSV.")
-        except OSError as e:
-            print(f" Error crítico de escritura en el disco duro")
+        print("Guardando progreso...")
+        guardado_ok = self.empresa.guardar_todos_los_datos()  
+        if guardado_ok:
+            print("Progreso guardado correctamente.")
+        else:
+            print("No se pudo guardar todo. Revisá los permisos de la carpeta csv/.")
 
    
 
@@ -63,12 +63,12 @@ class MenuPrincipal:
             if id_ingresado not in usuarios_registrados:
                 print(" Usuario incorrecto.")
                 intentos_realizados += 1
-            elif usuarios_registrados[id_ingresado]["clave"] != clave_ingresada:
+            elif usuarios_registrados[id_ingresado].get_clave() != clave_ingresada:
                 print(" Contraseña incorrecta.")
                 intentos_realizados += 1
             else:
                 self.id_actual = id_ingresado
-                self.rol_actual = usuarios_registrados[id_ingresado]["rol"]
+                self.rol_actual = usuarios_registrados[id_ingresado].get_rol()
                 print(f"\n Sesión iniciada. Acceso concedido al rol: {self.rol_actual.upper()}")
                 return True
                 

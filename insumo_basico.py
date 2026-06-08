@@ -10,7 +10,8 @@ class InsumoBasico(Elemento):
         if costo < 0:
             raise ValueError("Error: El costo fijo no puede ser negativo.")
         return costo
-    
+    def get_lista_tareas(self):
+        return []
     def __str__(self):
         return f"Insumo Básico -> {super().__str__()} | Costo Fijo: ${self._costo_fijo}"
     
@@ -39,4 +40,13 @@ class InsumoBasico(Elemento):
     def acumular_necesidades(self, cantidad: int, necesidades: dict, camino=None):
         necesidades[self] = necesidades.get(self, 0) + cantidad
 
-    
+    ARCHIVO = "csv/productos.csv"
+    COLUMNAS = ["ID Producto", "Nombre Producto", "Tipo", "Costo Fijo"]
+
+    def serialize(self):
+        return [self._id, self.get_nombre(), self.get_tipo_elemento(), self._costo_fijo]
+
+    @classmethod
+    def deserialize(cls, fila):
+        return cls(fila["Nombre Producto"], float(fila["Costo Fijo"]),
+                id=int(fila["ID Producto"]))
