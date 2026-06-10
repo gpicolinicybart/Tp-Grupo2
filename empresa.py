@@ -256,7 +256,7 @@ class Empresa:
         # Validar que las habilidades existan en el catálogo maestro
         for h in habilidades_ids:
             if h not in self._catalogo_habilidades:
-                raise KeyError(f"La habilidad con ID {h} no existe.")
+                raise ValueError(f"La habilidad con ID {h} no existe.")
                 
         colab = Colaborador(habilidades_ids, horas, salario)
         self.agregar_colaborador(colab)
