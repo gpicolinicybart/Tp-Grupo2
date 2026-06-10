@@ -135,3 +135,10 @@ class Colaborador:
             f_baja = datetime.strptime(fila["Fecha Baja"], "%Y-%m-%d %H:%M:%S")
         return cls(ids, float(fila["Horas Disponibles"]), float(fila["Salario Hora"]),
                 id=int(fila["ID Colaborador"]), fecha_alta=f_alta, fecha_baja=f_baja)
+    
+    def liberar_tarea(self, duracion: float):
+        if self._horas_asignadas >= duracion:
+            self._horas_asignadas -= duracion
+        else:
+            self._horas_asignadas = 0.0
+        print(f"-> CHECK: Se liberaron {duracion}hs del Colaborador #{self._id}.")

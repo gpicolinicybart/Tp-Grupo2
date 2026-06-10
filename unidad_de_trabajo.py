@@ -81,3 +81,11 @@ class UnidadDeTrabajo:
     def deserialize(cls, fila):
         return cls(fila["Nombre"], float(fila["Capacidad"]),
                 float(fila["Costo Operativo"]), id=int(fila["ID Unidad"]))
+    
+    def liberar_horas(self, horas_liberadas: float) -> bool:
+        if self._horas_reservadas >= horas_liberadas:
+            self._horas_reservadas -= horas_liberadas
+        else:
+            self._horas_reservadas = 0.0
+        print(f"-> CHECK: Se liberaron {horas_liberadas}hs en la Unidad #{self._id}.")
+        return True

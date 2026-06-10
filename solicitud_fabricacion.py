@@ -29,6 +29,7 @@ class SolicitudDeFabricacion:
         self._estado = ESTADOS_VALIDOS[0]
         self._es_para_cliente = es_para_cliente 
         self._colaboradores_asignados = [] 
+        self._asignaciones_memoria = []
         if fecha_creacion is not None:
             self._fecha_creacion = fecha_creacion
         else:
@@ -52,6 +53,12 @@ class SolicitudDeFabricacion:
     def agregar_colaborador(self, id_colaborador: int):
         if id_colaborador not in self._colaboradores_asignados:
             self._colaboradores_asignados.append(id_colaborador)
+
+    def guardar_asignaciones(self, asignaciones: list):
+        self._asignaciones_memoria = asignaciones
+
+    def get_asignaciones(self) -> list:
+        return self._asignaciones_memoria
 
     def __str__(self):
         fecha_str= self._fecha_creacion.strftime("%d/%m/%Y %H:%M")

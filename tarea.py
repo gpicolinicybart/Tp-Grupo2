@@ -56,8 +56,11 @@ class Tarea:
         for colab in colaboradores:
             colab.asignar_tarea(self._id_habilidad_requerida, horas_totales)
     
+    def liberar_reservas(self, horas_totales: float, colaboradores: list):
+        self._unidad_requerida.liberar_horas(horas_totales)
+        for colab in colaboradores:
+            colab.liberar_tarea(horas_totales)
 
-    
     COLUMNAS = ["ID_Tarea_M", "ID Unidad", "Cant Colab", "Tiempo", "ID_Hab_Req", "Costo MO"]
 
     def serialize(self):

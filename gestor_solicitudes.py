@@ -150,7 +150,7 @@ class GestorSolicitudes:
                 # anoto a los colaboradores en la solicitud 
                 for colab in colabs:
                     solicitud.agregar_colaborador(colab.get_id())
-                    
+            solicitud.guardar_asignaciones(asignaciones_pendientes)        
             solicitud.set_estado(ESTADOS_VALIDOS[1])  # Procesada y Planificada
             print(f" -> Solicitud {solicitud.get_id()} PROCESADA CON ÉXITO.")
 
@@ -200,6 +200,9 @@ class GestorSolicitudes:
                     producto = solicitud.get_item_solicitado()
                     cantidad_pedida = int(solicitud.get_cantidad())
                     self._empresa.ingresar_stock(producto, cantidad_pedida)
+                    asignaciones = solicitud.get_asignaciones()
+                    for tarea, horas, colabs in asignaciones:
+                        tarea.liberar_reservas(horas, colabs)
                     solicitud.marcar_como_terminada()
                     print(f"-> ÉXITO: Solicitud #{id_solicitud} terminada. {cantidad_pedida}x '{producto.get_nombre()}' sumados al stock.")
                     solicitudes_a_archivar.append(solicitud)
