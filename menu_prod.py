@@ -151,4 +151,4 @@ class MenuProduccion(MenuBase):
                     tiempo = "N/A"
             print(f"#{id_sol:<5} | {producto:<20} | {cantidad:<8} | {tiempo:<12}")
             print("-" * 70)
-            print(f"Total finalizadas en esta sesión: {len(terminadas)}")
+        print(f"Total finalizadas en esta sesión: {len(terminadas)}")
