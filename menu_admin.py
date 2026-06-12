@@ -2,7 +2,6 @@ from collections import deque
 from menu_base import MenuBase
 import math
 
-
 class MenuAdministrativo(MenuBase):
     def __init__(self, empresa):
         super().__init__(empresa)
