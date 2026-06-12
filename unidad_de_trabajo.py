@@ -36,13 +36,10 @@ class UnidadDeTrabajo:
 
     def get_id(self) -> int:
         return self._id
-    
     def get_nombre(self) -> str:
         return self._nombre
-    
     def get_capacidad_max_horas(self) -> float:
         return self._capacidad_max_horas
-    
     def get_costo_operativo(self) -> float:
         return self._costo_operativo_por_hora
         
@@ -65,6 +62,7 @@ class UnidadDeTrabajo:
             else:
                 print(f"-> ERROR: La Unidad #{self._id} no tiene {horas_necesarias}hs disponibles.")
                 return False
+            
     def get_porcentaje_uso(self) -> float:
             if self._capacidad_max_horas == 0:
                 return 0.0

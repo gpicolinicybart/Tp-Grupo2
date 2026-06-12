@@ -1,4 +1,3 @@
-
 from gestor_compras import GestorCompras
 from inventario import Inventario
 from tarea import Tarea
@@ -46,31 +45,25 @@ class Empresa:
     def mostrar_solicitudes(self):
         self._gestor_solicitudes.mostrar_solicitudes()
 
-
     def registrar_compra(self, orden: Compra_Insumo):
         self._gestor_compras.agregar_compra(orden)
         print(f"EMPRESA: Se registró la orden de compra {orden.get_id()}...")
         self._gestor_archivos.guardar_compras_csv()
-        
-            
+    
     def recibir_compras(self) -> int:
         compra = self._gestor_compras.recibir_proxima_compra(self._inventario)
-        
         if compra:
             # Hubo una recepción exitosa, persistimos los datos
             self._gestor_archivos.guardar_compras_csv()  
             self._gestor_archivos.guardar_inventario_csv()
-            return 1 # Avisamos al menú que se recibió 1 orden
-            
+            return 1 # Avisamos al menú que se recibió 1 orden            
         return 0 
-#==============================================================================================================
 
     def generar_reporte_materiales_criticos(self, producto, cantidad_pedida: int):
         necesidades = producto.calcular_materiales_necesarios(cantidad_pedida)
         criticos = self._inventario.obtener_materiales_criticos(necesidades)
         self._gestor_archivos.guardar_reporte_criticos_csv(producto, criticos)
 
-    
     def generar_reporte_estado_planta(self, lista_unidades: list):
         print("\n" + "="*55)
         print("   REPORTE GLOBAL DE ESTADO DE PLANTA Y CUELLOS DE BOTELLA")
@@ -84,14 +77,11 @@ class Empresa:
             unidad_critica = max(lista_unidades, key=lambda unidad: unidad.get_porcentaje_uso())
             for unidad in lista_unidades:
                 print(f"  - Unidad #{unidad.get_id()} ({unidad.get_nombre()}): {unidad.get_porcentaje_uso():.1f}% de ocupación.")
-            
             if unidad_critica.get_porcentaje_uso() > 0:
                 print(f"  >>> UNIDAD DE TRABAJO MÁS EXIGIDA: {unidad_critica.get_nombre()}")
 
-       
         print("\n[2] ANÁLISIS DE DEMORAS (CUELLOS DE BOTELLA):")
-        #ponemos en listas las solicitudes que estan demoradas por cada tipo de cuello de botella
-        # y contamos cuantas hay de c/u
+        #ponemos en listas las solicitudes que estan demoradas por cada tipo de cuello de botella y contamos cuantas hay de c/u
         solicitudes=self._gestor_solicitudes.obtener_solicitudes()
         d_stock = len(list(filter(lambda t: t.get_estado() == ESTADOS_VALIDOS[4],solicitudes.values())))
         d_capacidad = len(list(filter(lambda t: t.get_estado() == ESTADOS_VALIDOS[5],solicitudes.values())))
@@ -105,9 +95,7 @@ class Empresa:
             "SOBRECARGA DE UNIDADES DE TRABAJO": d_capacidad,
             "ESCASEZ DE COLABORADORES": d_personal
         }
-        
         cuello_principal = max(demoras, key=demoras.get)
-        
         if demoras[cuello_principal] > 0:
             print(f"\n>>> CONCLUSIÓN: El cuello de botella principal del sistema es {cuello_principal}.")
         else:
@@ -126,7 +114,6 @@ class Empresa:
         else:
             print(">>> OK: La unidad tiene capacidad suficiente para absorber este pedido.")
 
-
     def agregar_colaborador(self, nuevo_colaborador):
             id_nuevo = nuevo_colaborador.get_id()
             if id_nuevo in self._colaboradores:
@@ -137,7 +124,6 @@ class Empresa:
     def agregar_unidad_trabajo(self, nueva_unidad: UnidadDeTrabajo):
         self._unidades[nueva_unidad.get_id()] = nueva_unidad
         self._gestor_archivos.guardar_unidades_csv()
-        
     
     def registrar_producto_nuevo(self, producto: Elemento) -> bool:
             nombre_nuevo = producto.get_nombre().strip().lower()
@@ -202,7 +188,6 @@ class Empresa:
     def guardar_usuario(self, nuevo_usuario: list):
         self._gestor_archivos.guardar_usuario_csv(nuevo_usuario)
 
-
     def agregar_habilidad(self, nombre: str):
         if self._catalogo_habilidades:
             nuevo_id = len(self._catalogo_habilidades) + 1
@@ -253,11 +238,9 @@ class Empresa:
         return unidad
 
     def crear_colaborador(self, habilidades_ids, horas, salario):
-        # Validar que las habilidades existan en el catálogo maestro
         for h in habilidades_ids:
             if h not in self._catalogo_habilidades:
                 raise ValueError(f"La habilidad con ID {h} no existe.")
-                
         colab = Colaborador(habilidades_ids, horas, salario)
         self.agregar_colaborador(colab)
         return colab
@@ -265,7 +248,6 @@ class Empresa:
     def dar_baja_colaborador_por_id(self, id_colab):
         if id_colab not in self._colaboradores:
             raise ValueError("ID de colaborador no encontrado.")
-        
         colab = self._colaboradores[id_colab]
         colab.dar_de_baja()
         self._gestor_archivos.guardar_colaboradores_csv()
@@ -275,7 +257,6 @@ class Empresa:
         insumos_disp = self.obtener_diccionario_insumos()
         if id_insumo not in insumos_disp:
             raise ValueError("ID de insumo no válido.")
-            
         insumo = insumos_disp[id_insumo]
         insumo.gestionar_reabastecimiento(self, cantidad)
         return insumo
@@ -288,9 +269,7 @@ class Empresa:
                 bom_dict[catalogo_completo[id_elem]] = cant
             else:
                 raise ValueError(f"ID {id_elem} no encontrado en el catálogo.")
-        
         bom = ItemBOM(f"Receta {nombre}", bom_dict)
-
         tareas_producto = ListaEnlazadaTareas() 
         
         for dt in lista_datos_tareas:
@@ -299,107 +278,30 @@ class Empresa:
             id_unidad = datos_maestros.get_id_unidad()
             id_hab = datos_maestros.get_id_habilidad()
 
-            # colaboradores aptos para esta tarea
-            aptos = []
+            aptos = [] # colaboradores aptos para esta tarea
             for colaborador in self._colaboradores.values():
                 if colaborador.tiene_habilidad(id_hab):
                     aptos.append(colaborador)
 
-            # calculo del costo de mano de obra promedio
-            if len(aptos) > 0:
+            if len(aptos) > 0:   # calculo del costo de mano de obra promedio
                 suma_salarios = 0.0
                 for colaborador in aptos:
                     suma_salarios += colaborador.get_salario_hora()
-                
                 costo_mo = suma_salarios / len(aptos)
             else:
                 costo_mo = 0.0
             unidades_disp = self.obtener_diccionario_unidades()
             unidad_obj = unidades_disp[id_unidad]
             nueva_tarea = Tarea(id_t_maestra, unidad_obj, dt['cant_colabs'], dt['tiempo'], id_hab, costo_mo)
-            
             tareas_producto.agregar_al_final(nueva_tarea) 
 
         if len(tareas_producto) == 0:
             raise ValueError("No se puede fabricar sin tareas.")
-
-        
         producto = ArticuloFabricadoInternamente(nombre, [bom], tareas_producto)
         self.registrar_producto_nuevo(producto)
+        
         return producto
 
-    def cargar_demo_completa(self):
-        print("\n=== CARGANDO DEMO}===")
-
-        # 1) Habilidades
-        id_corte = self.agregar_habilidad("Corte")
-        id_ensamblaje = self.agregar_habilidad("Ensamblaje")
-        id_pintura = self.agregar_habilidad("Pintura")
-
-        # 2) Unidades de trabajo (capacidad en horas, costo operativo por hora)
-        sierra = UnidadDeTrabajo("Sierra de Corte", 200.0, 500.0)
-        linea = UnidadDeTrabajo("Linea de Ensamblaje", 200.0, 800.0)
-        cabina = UnidadDeTrabajo("Cabina de Pintura", 150.0, 400.0)
-        for u in (sierra, linea, cabina):
-            self.agregar_unidad_trabajo(u)
-
-        # 3) Tareas maestras (nombre, id_unidad, id_habilidad)
-        id_t_corte = self.agregar_tarea_maestra("Corte de Madera", sierra.get_id(), id_corte)
-        id_t_ensamble = self.agregar_tarea_maestra("Ensamblaje General", linea.get_id(), id_ensamblaje)
-        id_t_pintado = self.agregar_tarea_maestra("Pintado y Acabado", cabina.get_id(), id_pintura)
-
-        # 4) Insumos basicos + stock inicial
-        madera = InsumoBasico("Tablon de Madera", 5000.0)
-        tornillos = InsumoBasico("Tornillos 10mm", 5.0)
-        barniz = InsumoBasico("Barniz", 1200.0)
-        pegamento = InsumoBasico("Pegamento", 300.0)
-        for insumo in (madera, tornillos, barniz, pegamento):
-            self.registrar_producto_nuevo(insumo)
-            self._inventario.ingresar_stock(insumo, 2000)
-
-        # 5) Colaboradores (habilidades, horas disponibles, salario/hora)
-        colaboradores = [
-            Colaborador([id_corte], 40.0, 2500.0),
-            Colaborador([id_corte], 40.0, 2300.0),
-            Colaborador([id_ensamblaje], 40.0, 2800.0),
-            Colaborador([id_ensamblaje], 40.0, 2600.0),
-            Colaborador([id_pintura], 40.0, 2400.0),
-            Colaborador([id_corte, id_ensamblaje], 40.0, 3000.0),  # multi-habilidad
-        ]
-        for c in colaboradores:
-            self.agregar_colaborador(c)
-
-        # 6) Productos fabricados (BOM multinivel)
-        # --- Pata de Mesa ---
-        lista_pata = ListaEnlazadaTareas()
-        lista_pata.agregar_al_final(Tarea(id_t_corte, sierra, 1, 0.5, id_corte, 1000.0))
-        pata = ArticuloFabricadoInternamente("Pata de Mesa", [ItemBOM("Receta Pata", {madera: 1, tornillos: 4})], lista_pata)
-        self.registrar_producto_nuevo(pata)
-
-        # --- Tablero ---
-        lista_tablero = ListaEnlazadaTareas()
-        lista_tablero.agregar_al_final(Tarea(id_t_corte, sierra, 1, 0.8, id_corte, 1000.0))
-        tablero = ArticuloFabricadoInternamente("Tablero", [ItemBOM("Receta Tablero", {madera: 2, pegamento: 1})], lista_tablero)
-        self.registrar_producto_nuevo(tablero)
-
-        # --- Mesa Completa (usa tablero + patas) ---
-        lista_mesa = ListaEnlazadaTareas()
-        lista_mesa.agregar_al_final(Tarea(id_t_ensamble, linea, 1, 1.5, id_ensamblaje, 2500.0))
-        lista_mesa.agregar_al_final(Tarea(id_t_pintado, cabina, 1, 1.0, id_pintura, 2200.0))
-        mesa = ArticuloFabricadoInternamente("Mesa Completa", [ItemBOM("Receta Mesa", {tablero: 1, pata: 4, tornillos: 8})], lista_mesa)
-        self.registrar_producto_nuevo(mesa)
-
-        # --- Silla ---
-        lista_silla = ListaEnlazadaTareas()
-        lista_silla.agregar_al_final(Tarea(id_t_ensamble, linea, 1, 1.0, id_ensamblaje, 2500.0))
-        lista_silla.agregar_al_final(Tarea(id_t_pintado, cabina, 1, 0.8, id_pintura, 2200.0))
-        silla = ArticuloFabricadoInternamente("Silla", [ItemBOM("Receta Silla", {madera: 2, tornillos: 8, barniz: 1})], lista_silla)
-        self.registrar_producto_nuevo(silla)
-
-        print("=== DEMO CARGADA: 3 habilidades, 3 unidades, 4 insumos, 6 colaboradores, 4 productos ===\n")
-
-    # GETTERS para lectura
-    
     def obtener_catalogo_habilidades(self):
         resultado = {}
         for id_h, hab in self._catalogo_habilidades.items():
@@ -438,25 +340,19 @@ class Empresa:
     def saltos_ultima_busqueda(self):
         return self._gestor_compras.obtener_saltos_ultima_busqueda()
     
-    # MÉTODOS para cargar datos desde los CSV sin pisar la lógica de negocio
-
     def agregar_elemento_al_catalogo(self, elemento):
-        """Agrega un elemento al catálogo desde GestorArchivos"""
         if elemento.get_tipo_elemento() == "Insumo Básico":
             self._insumos_basicos[elemento.get_id()] = elemento
         else:
             self._productos_fabricados[elemento.get_id()] = elemento
     
-    def obtener_elementos_catalogo(self):
-        """Retorna la lista de elementos combinada para guardar en el CSV"""
+    def obtener_elementos_catalogo(self): # retorna la lista de elem para guardarlo en el csv
         return list(self._insumos_basicos.values()) + list(self._productos_fabricados.values())
     
-    def agregar_unidad(self, unidad):
-        """Agrega una unidad de trabajo al registro desde GestorArchivos"""
+    def agregar_unidad(self, unidad): # para guardar una nueva unidad al catalogo de unidades
         self._unidades[unidad.get_id()] = unidad    
         
     def obtener_unidades(self):
-        """Retorna la lista de unidades de trabajo"""
         return list(self._unidades.values())
     
     def agregar_solicitud(self, id_solicitud, solicitud):
@@ -466,13 +362,11 @@ class Empresa:
         return self._gestor_solicitudes.obtener_solicitudes()
     
     def obtener_inventario(self):
-        """Retorna el inventario de la empresa"""
         return self._inventario
     
     def obtener_gestor_archivos(self):
         return self._gestor_archivos
     
-        
     def cargar_compra_desde_archivo(self, orden):
         self._gestor_compras.agregar_compra(orden)
 

@@ -1,5 +1,3 @@
-
-import csv
 from empresa import Empresa
 from menu_admin import MenuAdministrativo
 from menu_prod import MenuProduccion
@@ -10,11 +8,8 @@ class MenuPrincipal:
         self.empresa = None
         self.id_actual = None
         self.rol_actual = None
-        
         self._inicializar()
-        
         self.cargar_datos()
-        
         self.menu_admin = MenuAdministrativo(self.empresa)
         self.menu_prod = MenuProduccion(self.empresa)
 
@@ -39,27 +34,22 @@ class MenuPrincipal:
         else:
             print("No se pudo guardar todo. Revisá los permisos de la carpeta csv/.")
 
-   
-
     def iniciar_sesion(self) -> bool:
         usuarios_registrados = self.empresa.cargar_usuarios()
         if not usuarios_registrados: 
             return False
-
+        
         print("\n" + "="*40)
         print(" INICIO DE SESIÓN - SISTEMA TECNOMECÁNICA ITBA ")
         print("="*40)
-        
         intentos_maximos = 3
         intentos_realizados = 0
-        
         while intentos_realizados < intentos_maximos:
             if intentos_realizados > 0:
                 print(f"\n Te quedan {intentos_maximos - intentos_realizados} intento(s).")
                 
             id_ingresado = input("Ingrese su ID de Empleado: ").strip()
             clave_ingresada = input("Contraseña: ").strip()
-            
             if id_ingresado not in usuarios_registrados:
                 print(" Usuario incorrecto.")
                 intentos_realizados += 1
@@ -79,23 +69,19 @@ class MenuPrincipal:
         if not self.iniciar_sesion():
             print("Apagando el sistema...")
             return 
-
         menu_activo = None
         if self.rol_actual == "administracion":
             menu_activo = self.menu_admin
         elif self.rol_actual == "produccion":
             menu_activo = self.menu_prod
-
         try:
             continuar = True
             while continuar:
                 menu_activo.mostrar_opciones()
                 opcion = input("\nSeleccione una opción: ").strip()
                 continuar = menu_activo.ejecutar_opcion(opcion)
-                
         except KeyboardInterrupt:
             print("\n\n[!] Programa interrumpido por el usuario (Ctrl+C).")
-            
         finally:
             self.guardar_datos()
             if self.id_actual:

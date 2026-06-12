@@ -1,4 +1,3 @@
-
 from elemento import Elemento
 from lista_tareas import ListaEnlazadaTareas
 from itembom import ItemBOM
@@ -14,10 +13,7 @@ class ArticuloFabricadoInternamente(Elemento):
         for bom in self._bom:
             for elemento, cantidad in bom.get_diccionario().items():
                 materiales.append(f"{elemento.get_nombre()} (x{cantidad})")
-                
         materiales_str = ", ".join(materiales)
-        
-        
         return f"Artículo Fabricado -> {super().__str__()} | Componentes BOM: {len(self._bom)} | Tareas: {len(self._lista_tareas)} | Materiales: [{materiales_str}]"
     
     def get_tipo_elemento(self):
@@ -26,14 +22,11 @@ class ArticuloFabricadoInternamente(Elemento):
     def get_costo_unitario(self) -> float:
         costo_tareas = 0.0
         lista_tareas = self.get_lista_tareas()
-        
         if lista_tareas is not None:
             costo_tareas = lista_tareas.get_costo_total()
-        
         costo_materiales = 0.0
         for item in self.get_bom():
             costo_materiales += item.get_costo_total()
-            
         return costo_materiales + costo_tareas
   
     def validar_ciclos(self) -> bool:
@@ -62,21 +55,17 @@ class ArticuloFabricadoInternamente(Elemento):
     def acumular_necesidades(self, cantidad: int, necesidades: dict, camino=None):
         if camino is None:
             camino = set()
-        
-        #detectamos ciclos
         if self in camino:
             raise ValueError(f"Error: Se detectó un ciclo en la estructura de fabricación del producto '{self.get_nombre()}'.")
         camino.add(self)
         for bom in self.get_bom():
             for componente,cant_unitaria in bom.get_diccionario().items():
                 cantidad_total = cant_unitaria * cantidad
-                #recursion: si es articulo fabricado, sigue bajando. Si es insumo basico, acumula en el diccionario
                 componente.acumular_necesidades(cantidad_total, necesidades,camino)
         camino.remove(self) # liberamos para que ramas paralelas puedan usar el mismo elemento
             
     def calcular_materiales_necesarios(self, cantidad_pedida: int) -> dict:
         necesidades = {}
-        #arranca la reaccion en cadena
         self.acumular_necesidades(cantidad_pedida, necesidades)
         return necesidades
 

@@ -6,6 +6,7 @@ class GestorSolicitudes:
         self._empresa = empresa
         self._solicitudes = {}
         self._producciones_terminadas = deque() 
+        
     def crear_solicitud(self, solicitud: SolicitudDeFabricacion):
         self._solicitudes[solicitud.get_id()] = solicitud
         print(f"EMPRESA: Se registró una nueva solicitud de fabricación (ID:{solicitud.get_id()})")
@@ -13,14 +14,12 @@ class GestorSolicitudes:
     def generar_solicitud_desde_menu(self, producto, cantidad):
         if cantidad <= 0:
             raise ValueError("La cantidad a fabricar debe ser mayor a cero.")
-        
         solicitud = SolicitudDeFabricacion(producto, cantidad, True)
         self.crear_solicitud(solicitud)
         return solicitud
 
     def procesar_solicitud(self):
         print("\n--- PROCESANDO PLANIFICACIÓN DE PRODUCCIÓN ---")
-        
         elegibles = []
         for solicitud in self._solicitudes.values():
             if solicitud.get_estado() == ESTADOS_VALIDOS[0] or solicitud.get_estado().startswith("Demorada"):
@@ -41,19 +40,13 @@ class GestorSolicitudes:
         producto = solicitud.get_item_solicitado()
         cantidad_pedida = int(solicitud.get_cantidad()) 
         print(f"\nProcesando Solicitud {solicitud.get_id()} -> Fabricar: {cantidad_pedida}x '{producto.get_nombre()}'")
-        
-        # 1: EXPLOSIÓN DE MATERIALES
         materiales_necesarios = self.explotar_bom(producto, cantidad_pedida)
         
-        # 2: VERIFICAR STOCK (Si falta stock, frena y retorna)
-        if not self.gestionar_stock(solicitud, materiales_necesarios):
+        if not self.gestionar_stock(solicitud, materiales_necesarios): # verifica stock, si falta, frena y retorna
             return 
-
-        # 3: VERIFICAR CAPACIDAD (Delegación a Tarea)
-        # Ahora desempaquetamos 3 variables
         exito_capacidad, asignaciones_pendientes, motivo_fallo = self.gestionar_capacidad(producto, cantidad_pedida)
-        
-        if not exito_capacidad:
+
+        if not exito_capacidad: # verifica capacidad
             if motivo_fallo == "capacidad":
                 solicitud.set_estado(ESTADOS_VALIDOS[5])  # Demorada por falta de capacidad
                 print(f" -> Solicitud {solicitud.get_id()} DEMORADA (Falta Capacidad Máquina).")
@@ -61,29 +54,23 @@ class GestorSolicitudes:
                 solicitud.set_estado(ESTADOS_VALIDOS[6])  # Demorada por falta de colaboradores
                 print(f" -> Solicitud {solicitud.get_id()} DEMORADA (Falta Personal).")
             return
-
-        # 4: CONFIRMACIÓN Y RESERVA
         self.confirmar_reservas(solicitud, materiales_necesarios, asignaciones_pendientes)
 
     def explotar_bom(self, producto, cantidad_pedida) -> dict:
         return producto.calcular_materiales_necesarios(cantidad_pedida)
 
-    def gestionar_stock(self, solicitud, materiales_necesarios) -> bool:
-        # filtrar faltantes
+    def gestionar_stock(self, solicitud, materiales_necesarios) -> bool: # filtrar faltantes
         materiales_faltantes = list(filter(lambda item: not self._empresa.hay_disponibilidad(item[0], item[1]), materiales_necesarios.items()))
         
         if not materiales_faltantes:
             return True
-
-        # Evitar procesar demoradas que ya han generado compras
-        if solicitud.get_estado().startswith("Demorada"):
+        if solicitud.get_estado().startswith("Demorada"): 
             return False
 
         for componente, cant_necesaria in materiales_faltantes:
             stock_disponible = self._empresa.obtener_stock_disponible(componente)
             faltante = int(cant_necesaria) - int(stock_disponible)
             print(f" [!] Faltan {faltante} unidades de '{componente.get_nombre()}'.")
-            # la empresa ejecuta metodo de reabastecimiento
             componente.gestionar_reabastecimiento(self._empresa, faltante)
         
         solicitud.set_estado(ESTADOS_VALIDOS[4])  # Demorada por falta de stock
@@ -96,10 +83,8 @@ class GestorSolicitudes:
         if len(lista_tareas) == 0:
             print(f"[!]ERROR: el producto '{producto.get_nombre()}' no tiene tareas asignadas.")
             return False, [], "error_configuracion"
-
         uso_maq_temporal = {}
         uso_emp_temporal = {}
-
         for tarea in lista_tareas:
             horas_totales = tarea.calcular_horas_totales(cantidad_pedida)
             unidad = tarea.get_unidad_requerida()
@@ -144,29 +129,22 @@ class GestorSolicitudes:
                 self._empresa.reservar_stock(componente, cant_necesaria)
                 
             for tarea, horas, colabs in asignaciones_pendientes:
-                # la tarea ejecuta sus reservas internamente
-                tarea.ejecutar_reservas(horas, colabs)
-                
-                # anoto a los colaboradores en la solicitud 
-                for colab in colabs:
+                tarea.ejecutar_reservas(horas, colabs) # la tarea ejecuta sus reservas internamente
+                for colab in colabs: # anoto a los colaboradores en la solicitud
                     solicitud.agregar_colaborador(colab.get_id())
             solicitud.guardar_asignaciones(asignaciones_pendientes)        
             solicitud.set_estado(ESTADOS_VALIDOS[1])  # Procesada y Planificada
             print(f" -> Solicitud {solicitud.get_id()} PROCESADA CON ÉXITO.")
 
-    
     def ejecutar_solicitud(self):
         print("\n--- EJECUTANDO ÓRDENES PLANIFICADAS ---")
         contador_ejecutadas = 0
-        
         for id_solicitud, solicitud in self._solicitudes.items():
             
-            # Solo actuamos sobre las que están listas
-            if solicitud.get_estado() == ESTADOS_VALIDOS[1]:
+            if solicitud.get_estado() == ESTADOS_VALIDOS[1]: # Procesada y Planificada
                 try:
                     producto = solicitud.get_item_solicitado()
                     cantidad_pedida = solicitud.get_cantidad()
-
                     materiales_necesarios = self.explotar_bom(producto, cantidad_pedida)
                     
                     for componente, cant_necesaria in materiales_necesarios.items():
@@ -180,21 +158,17 @@ class GestorSolicitudes:
                     print(f"-> ERROR en Solicitud #{id_solicitud}")
                     solicitud.set_estado(ESTADOS_VALIDOS[8])  # Demorada por Error Interno
 
-        
         if contador_ejecutadas == 0:
             print("-> AVISO: No se encontraron solicitudes en estado 'Procesada y Planificada' para ejecutar.")
         else:
             print(f"-> RESUMEN: {contador_ejecutadas} solicitudes han iniciado su producción.")
 
-    
     def finalizar_solicitud(self):
-            
         print("\n--- FINALIZANDO ÓRDENES EN PRODUCCIÓN ---")
         contador_finalizadas = 0
         solicitudes_a_archivar = []
             
         for id_solicitud, solicitud in list(self._solicitudes.items()):
-                
             if solicitud.get_estado() == ESTADOS_VALIDOS[2]:  # En Ejecución
                 try:
                     producto = solicitud.get_item_solicitado()
@@ -210,7 +184,6 @@ class GestorSolicitudes:
                     contador_finalizadas += 1
                 except ValueError as e:
                     print(f"-> ERROR al finalizar Solicitud #{id_solicitud}")
-                                    
         if contador_finalizadas > 0:
             self._empresa.guardar_historial_produccion(solicitudes_a_archivar)
             self._solicitudes = dict(filter(lambda item: item[1].get_estado() != ESTADOS_VALIDOS[3], self._solicitudes.items()))

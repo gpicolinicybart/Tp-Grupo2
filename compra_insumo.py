@@ -1,6 +1,4 @@
-
 from datetime import datetime
-
 
 class Compra_Insumo:
     id = 0
@@ -37,11 +35,12 @@ class Compra_Insumo:
     def get_cantidad(self) -> int:
         return self._cantidad
         
-    # NUEVO GETTER
     def get_estado(self) -> str:
         return self._estado
+    
     def get_fecha_emision(self):
-        return self._fecha_emision  
+        return self._fecha_emision
+      
     def get_fecha_recepcion(self):
         return self._fecha_recepcion
     
@@ -51,7 +50,7 @@ class Compra_Insumo:
 
     def recibir_materiales(self, inventario): 
         inventario.ingresar_stock(self._insumo, self._cantidad)
-        self._estado = "Recibida"  # <--- Encapsulamiento respetado: la clase modifica su propio estado
+        self._estado = "Recibida" 
         self._fecha_recepcion = datetime.now()
         print(f"Se ingresaron con éxito {self._cantidad} unidades de {self._insumo.get_nombre()} al inventario (Orden: {self._id}).")
     
@@ -68,7 +67,7 @@ class Compra_Insumo:
                 self._estado, f_emision, f_recepcion]
 
     @classmethod
-    def deserialize(cls, fila, insumos_por_id):     # <-- recibe el contexto
+    def deserialize(cls, fila, insumos_por_id):   
         insumo = insumos_por_id.get(int(fila["Insumo_ID"]))
         if insumo is None:
             return None

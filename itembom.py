@@ -1,4 +1,3 @@
-
 class ItemBOM:
     id_item=0
     def __init__(self,nombre: str, diccionario_elementos: dict):

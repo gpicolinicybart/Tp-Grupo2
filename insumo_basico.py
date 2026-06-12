@@ -4,7 +4,6 @@ class InsumoBasico(Elemento):
         super().__init__(nombre, id=id)
         self._costo_fijo = self.validar_costo_fijo(costo_fijo)
 
-
     @staticmethod
     def validar_costo_fijo(costo: float) -> float:
         if costo < 0:

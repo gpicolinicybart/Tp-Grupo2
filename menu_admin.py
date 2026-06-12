@@ -1,5 +1,7 @@
 from collections import deque
 from menu_base import MenuBase
+import math
+
 
 class MenuAdministrativo(MenuBase):
     def __init__(self, empresa):
@@ -18,16 +20,14 @@ class MenuAdministrativo(MenuBase):
         print("7. Generar Reporte CSV de Materiales Críticos")
         print("8. Generar Reporte de Planta y Cuellos de Botella")
         print("9. Ver Estado General del Sistema")
-        print("10. Cargar Escenario de Prueba (Demo)")
-        print("11. Agregar Nueva Habilidad al Catálogo")
-        print("12. Agregar Nueva Tarea al Catálogo")
-        print("13. Agregar Nuevo Usuario")
-        print("14. Buscar Orden de Compra por ID")
+        print("10. Agregar Nueva Habilidad al Catálogo")
+        print("11. Agregar Nueva Tarea al Catálogo")
+        print("12. Agregar Nuevo Usuario")
+        print("13. Buscar Orden de Compra por ID")
         print("0. Cerrar Sesión")
         print("="*60)
 
     def ejecutar_opcion(self, opcion: str) -> bool:
-
                 if opcion == "1": self.crear_insumo()
                 elif opcion == "2": self.crear_producto()    
                 elif opcion == "3": self.agregar_unidad_trabajo()  
@@ -37,18 +37,16 @@ class MenuAdministrativo(MenuBase):
                 elif opcion == "7": self.generar_reporte_criticos()  
                 elif opcion == "8": self.emitir_reporte_y_sobrecarga()     
                 elif opcion == "9": self.ver_estado()
-                elif opcion == "10": self.cargar_demo()
-                elif opcion == "11": self.empresa.agregar_habilidad(input("Nombre de la nueva Habilidad: "))
-                elif opcion == "12": self.crear_tarea_maestra()
-                elif opcion == "13": self.agregar_usuario()
-                elif opcion == "14":self.buscar_orden_compra()
+                elif opcion == "10": self.empresa.agregar_habilidad(input("Nombre de la nueva Habilidad: "))
+                elif opcion == "11": self.crear_tarea_maestra()
+                elif opcion == "12": self.agregar_usuario()
+                elif opcion == "13":self.buscar_orden_compra()
                 elif opcion == "0":
                     print("\nCerrando sistema de gestion administrativa. Hasta luego.")
                     return False
                 else:
                     print("Opción no válida.")
                 return True
-                    
 
     def crear_insumo(self):
         print("\n--- REGISTRO DE INSUMO BÁSICO ---")
@@ -62,16 +60,13 @@ class MenuAdministrativo(MenuBase):
 
     def crear_producto(self):
         print("\n--- REGISTRO DE PRODUCTO FABRICADO ---")
-        
         elementos = self.empresa.obtener_elementos_catalogo() 
         unidades = self.empresa.obtener_diccionario_unidades()
-
         if not unidades or not elementos:
             print(" [!] ERROR: Faltan unidades o elementos base en el sistema para crear un producto.")
             return
             
         nombre = input("Nombre del Producto nuevo: ")
-        
         print("\nElementos disponibles para la receta (Insumos y Sub-ensambles):")
         elementos_dict = {elem.get_id(): elem for elem in elementos}
         
@@ -118,7 +113,6 @@ class MenuAdministrativo(MenuBase):
             try:
                 id_t = int(entrada_t)
                 if id_t in tareas_maestras:
-                    # CORRECCIÓN 2: Accedemos a la clave "nombre" del diccionario
                     tiempo = int(input(f"Tiempo en minutos estimado para '{tareas_maestras[id_t]['nombre']}': "))
                     if tiempo > 0:
                         lista_datos_tareas.append({'id_maestra': id_t, 'cant_colabs': 1, 'tiempo': tiempo / 60.0}) # Ajustado a formato diccionario para la empresa
@@ -147,7 +141,6 @@ class MenuAdministrativo(MenuBase):
             nombre = input("Descripción de la unidad: ").strip()
             capacidad = float(input("Capacidad máxima de horas: "))
             costo = float(input("Costo operativo por hora: $"))
-            
             unidad = self.empresa.crear_unidad_trabajo(nombre, capacidad, costo)
             print(f"CONFIRMACIÓN: Unidad '{nombre}' registrada con ID: {unidad.get_id()}")
         except ValueError as e:
@@ -157,14 +150,11 @@ class MenuAdministrativo(MenuBase):
         print("\n--- REGISTRO DE COLABORADOR ---")
         if not self.empresa.obtener_catalogo_habilidades():
             return print(" [!] ERROR: No hay habilidades en el catálogo maestro.")
-            
         print("\nCatálogo de Habilidades Disponibles:")
         for id_h, nom in self.empresa.obtener_catalogo_habilidades().items():
             print(f"  ID {id_h}: {nom}")
-            
         try:
             entrada = input("\nIDs de habilidades (separados por coma): ").split(",")
-
             habilidades_ids = set()
             for i in entrada:
                 texto_limpio = i.strip()
@@ -176,15 +166,12 @@ class MenuAdministrativo(MenuBase):
             
             horas = float(input("Horas de disponibilidad: "))
             salario = float(input("Salario por hora: $"))
-            
             colab = self.empresa.crear_colaborador(habilidades_ids, horas, salario)
             nombres_h = []
             for hid in habilidades_ids:
                 nombre_habilidad = self.empresa.obtener_catalogo_habilidades().get(hid)
                 nombres_h.append(nombre_habilidad)
-
             print(f"CONFIRMACIÓN: Colaborador {colab.get_id()} registrado con habilidades: {nombres_h}")
-            
         except ValueError as e:
             print(f"ERROR: Ingresó texto donde iba un número")
         except KeyError as e:
@@ -194,14 +181,13 @@ class MenuAdministrativo(MenuBase):
         print("\n--- BAJA DE PERSONAL ---")
         colaboradores = self.empresa.obtener_diccionario_colaboradores()
         hay_activos = False
-        
         for id_col, colab in colaboradores.items():
             if colab.get_fecha_baja() is None:
                 print(f"  ID {id_col}: {colab}")
                 hay_activos = True
 
-        if not hay_activos: return print("No hay colaboradores activos.")
-
+        if not hay_activos: 
+            return print("No hay colaboradores activos.")
         try:
             id_baja = int(input("Ingrese el ID del colaborador a dar de baja: "))
             colab_baja = self.empresa.dar_baja_colaborador_por_id(id_baja)
@@ -231,7 +217,6 @@ class MenuAdministrativo(MenuBase):
         except ValueError as e:
             print(f"ERROR: Ingrese números enteros válidos para ID y cantidad.")
         
-
     def generar_reporte_criticos(self):
         print("\n--- REPORTE DE MATERIALES CRÍTICOS ---")
         productos = self.empresa.obtener_diccionario_productos()
@@ -245,11 +230,9 @@ class MenuAdministrativo(MenuBase):
             id_p = int(input("Ingrese el ID del producto a evaluar: "))
             if id_p not in productos: 
                 return print("Error: ID no encontrado.")
-            
             cantidad = int(input("Ingrese la cantidad a simular: "))
             if cantidad <= 0: 
                 raise ValueError("La cantidad debe ser mayor a cero.")
-            
             self.empresa.generar_reporte_materiales_criticos(productos[id_p], cantidad)
         except ValueError as e:
             print(f"ERROR: Ingrese números enteros válidos para ID y cantidad.")
@@ -257,9 +240,7 @@ class MenuAdministrativo(MenuBase):
     def emitir_reporte_y_sobrecarga(self):
         unidades = self.empresa.obtener_diccionario_unidades()
         productos = self.empresa.obtener_diccionario_productos()
-        
         self.empresa.generar_reporte_estado_planta(list(unidades.values()))
-        
         print("\n¿Desea calcular la sobrecarga para un pedido específico?")
         if input("Ingrese 'S' para calcular o 'N' para salir: ").strip().upper() == 'S':
             if not unidades or not productos:
@@ -275,28 +256,12 @@ class MenuAdministrativo(MenuBase):
                 id_u = int(input("\nID Unidad de Trabajo: "))
                 id_p = int(input("ID Producto: "))
                 cant = int(input("Cantidad a fabricar: "))
-                
                 if id_u in unidades and id_p in productos and cant > 0:
                     self.empresa.calcular_sobrecarga_unidad_trabajo(unidades[id_u], productos[id_p], cant)
                 else:
                     print("Datos inválidos o cantidad menor a 1.")
             except ValueError:
                 print("Error: Ingrese números enteros válidos.")
-
-    def cargar_demo(self):
-        print("\n--- CARGANDO DEMO INDUSTRIAL ---")
-        try:
-            self.empresa.cargar_demo_completa()
-            print("[ÉXITO] Demo cargada con éxito")
-        except ValueError as error_valor:
-            print(f"Error en los datos de la demo (valores inválidos)")
-            
-        except KeyError as error_clave:
-            print(f"Error de referencia en la demo (falta un ID)")
-    
-        except TypeError as error_tipo:
-            print(f"Error de tipo de dato al armar la demo")
-        
 
     def crear_tarea_maestra(self):
         print("\n--- NUEVA TAREA MAESTRA ---")
@@ -312,7 +277,6 @@ class MenuAdministrativo(MenuBase):
             print(f"  ID {uid}: {u.get_nombre()}")
 
         id_u = int(input("ID de la Unidad asociada: "))
-        
         print("\nHabilidades Disponibles:")
         for hid, hnom in self.empresa.obtener_catalogo_habilidades().items(): 
             print(f"  ID {hid}: {hnom}")
@@ -337,17 +301,14 @@ class MenuAdministrativo(MenuBase):
                 return print(" ERROR: El DNI es obligatorio.")
 
             usuarios = self.empresa.cargar_usuarios()
-
-            # Buscar DNI duplicado y calcular el próximo ID autoincremental
             max_id = 0
-            for uid, datos in usuarios.items():
+            for uid, datos in usuarios.items(): # busca DNI duplicado y calcula el prox ID autoincremental
                 if datos["dni"] == dni:
                     return print(f" ERROR: Ya existe un usuario registrado con el DNI {dni}.")
                 if int(uid) > max_id:
                     max_id = int(uid)
             nuevo_id = str(max_id + 1)
 
-            # Selección de Rol
             print("\nSeleccione el rol:")
             print("  1. Producción")
             print("  2. Administración")
@@ -358,7 +319,6 @@ class MenuAdministrativo(MenuBase):
                 rol = "administracion"
             else:
                 return print(" ERROR: Opción de rol no válida.")
-
             self.empresa.guardar_usuario([nuevo_id, contrasena, rol, nombre, apellido, dni])
             print(f"\n-> Usuario '{nombre} {apellido}' registrado correctamente como '{rol}'.")
             print(f"-> AVISO IMPORTANTE: Su ID de acceso generado por el sistema es el número {nuevo_id}.")
@@ -370,22 +330,18 @@ class MenuAdministrativo(MenuBase):
             print(f" ERROR: Falla al intentar guardar en 'usuarios.csv'")
     
     def buscar_orden_compra(self):
-        import math
         print("\n--- BUSCAR ORDEN DE COMPRA ---")
         try:
             id_buscado = int(input("Ingrese el ID de la orden: "))
         except ValueError:
             print("ID inválido.")
             return
-
         compra = self.empresa.buscar_compra_por_id(id_buscado)
         n = self.empresa.cantidad_compras()
         saltos = self.empresa.saltos_ultima_busqueda()
-
         if compra is None:
             print(f"No existe la orden #{id_buscado}.")
         else:
             print(f"Encontrada: {compra}")
-
         if n > 0:
             print(f"Saltos del árbol: {saltos}  |  Cota O(log n) = log2({n}) = {math.log2(n):.2f}")

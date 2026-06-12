@@ -1,4 +1,3 @@
-
 from menu_base import MenuBase
 
 class MenuProduccion(MenuBase):
@@ -52,7 +51,6 @@ class MenuProduccion(MenuBase):
             print(f"  ID {id_producto}: {producto.get_nombre()}")
             
         try:
-            # 1. Validamos el ingreso del ID
             entrada_id = input("\nID del producto a fabricar: ").strip()
             if not entrada_id.isdigit():
                 return print(" [!] ERROR: Por favor, ingrese un número de ID válido.")
@@ -61,14 +59,12 @@ class MenuProduccion(MenuBase):
             if id_p not in productos:
                 return print(" [!] ERROR: Ese ID de producto no existe.")
                 
-            # 2. Validamos el ingreso de la cantidad
             entrada_cant = input("Cantidad de unidades: ").strip()
             if not entrada_cant.isdigit():
                 return print(" [!] ERROR: Por favor, ingrese una cantidad numérica válida.")
                 
             cantidad = int(entrada_cant)
             
-            # 3. Generamos la solicitud
             solicitud = self.empresa.generar_solicitud_desde_menu(productos[id_p], cantidad)
             print(f"CONFIRMACIÓN: Solicitud #{solicitud.get_id()} creada.")
 
@@ -117,7 +113,6 @@ class MenuProduccion(MenuBase):
             if cantidad > 0:
                 print(f"\n-> ÉXITO: Se ingresaron {cantidad} órdenes al inventario.")
                 print("-> AVISO: Podés volver a presionar '6' para que las solicitudes demoradas retomen su curso.")
-                
                 self.empresa.guardar_inventario()
             else:
                 print("No hay órdenes de compra en tránsito para recibir.")

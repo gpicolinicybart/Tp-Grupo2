@@ -3,7 +3,6 @@ class NodoTarea:
         self.tarea = tarea
         self.siguiente = None
 
-
 class ListaEnlazadaTareas:
     def __init__(self):
         self.cabecera = None
@@ -28,6 +27,7 @@ class ListaEnlazadaTareas:
             contador += 1
             nodo_actual = nodo_actual.siguiente
         return contador
+    
     def __iter__(self):
         nodo_actual = self.cabecera
         while nodo_actual is not None:

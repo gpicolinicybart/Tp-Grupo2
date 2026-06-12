@@ -1,4 +1,3 @@
-
 from datetime import datetime
 
 ESTADOS_VALIDOS = (
@@ -36,7 +35,6 @@ class SolicitudDeFabricacion:
             self._fecha_creacion = datetime.now()
         self._fecha_finalizacion = None
 
-
     def get_id(self):
         return self._id
     def get_item_solicitado(self):
@@ -45,6 +43,13 @@ class SolicitudDeFabricacion:
         return self._estado
     def get_cantidad(self):
         return self._cantidad
+    def get_asignaciones(self) -> list:
+        return self._asignaciones_memoria
+    def get_fecha_creacion(self):
+        return self._fecha_creacion
+    def get_fecha_finalizacion(self):
+        return self._fecha_finalizacion
+    
     def set_estado(self, nuevo_estado: str):
         if nuevo_estado not in ESTADOS_VALIDOS:
             raise ValueError(f"Error: Estado inválido: '{nuevo_estado}'.")
@@ -57,9 +62,6 @@ class SolicitudDeFabricacion:
     def guardar_asignaciones(self, asignaciones: list):
         self._asignaciones_memoria = asignaciones
 
-    def get_asignaciones(self) -> list:
-        return self._asignaciones_memoria
-
     def __str__(self):
         fecha_str= self._fecha_creacion.strftime("%d/%m/%Y %H:%M")
         
@@ -68,7 +70,6 @@ class SolicitudDeFabricacion:
             estado_visual = f"TERMINADA el {fin_str}, Tiempo transcurrido: {(self._fecha_finalizacion - self._fecha_creacion).total_seconds()/3600:.2f} horas"
         else:
             estado_visual = f"Estado: {self._estado}"
-            
         return f"-> SOLICITUD: ID {self._id} ({fecha_str}) | {estado_visual} | Fabricar: {self._cantidad} unidades de '{self._item_solicitado.get_nombre()}' | Colaboradores: {self._colaboradores_asignados}"
     
     def validar_entero_positivo(self, cantidad: int):
@@ -82,13 +83,6 @@ class SolicitudDeFabricacion:
         self.set_estado(ESTADOS_VALIDOS[3])  # Terminada
         self._fecha_finalizacion = datetime.now()
     
-    def get_fecha_creacion(self):
-        return self._fecha_creacion
-    
-    def get_fecha_finalizacion(self):
-        return self._fecha_finalizacion
-
-
     ARCHIVO = "csv/solicitudes_activas.csv"
     COLUMNAS = ["ID Solicitud", "Producto", "Cantidad", "Estado", "Fecha Creacion"]
 

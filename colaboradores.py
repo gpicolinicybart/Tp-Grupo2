@@ -2,12 +2,7 @@ from datetime import datetime
 
 class Colaborador:
     id_colaborador = 0
-    
-    # 1. Agregamos id=None para cuando lo leemos del CSV
-    # 2. Cambiamos 'habilidades' por 'habilidades_ids'
-    def __init__(self, habilidades_ids: list, horas_disponibles: float, salario_hora: float, id: int = None, fecha_alta=None, fecha_baja=None):
-        
-        # Persistencia de IDs 
+    def __init__(self, habilidades_ids: list, horas_disponibles: float, salario_hora: float, id: int = None, fecha_alta=None, fecha_baja=None):        
         if id is None:
             Colaborador.id_colaborador += 1
             self._id = Colaborador.id_colaborador
@@ -15,9 +10,8 @@ class Colaborador:
             self._id = id
             if id > Colaborador.id_colaborador:
                 Colaborador.id_colaborador = id
-        
-        
-        self._habilidades_ids = set(habilidades_ids)  # Ahora guarda una lista de enteros (ej: [1, 4])
+                
+        self._habilidades_ids = set(habilidades_ids) 
         self._horas_disponibles = self.validar_horas_disponibles(horas_disponibles)
         self._horas_asignadas = 0.0 
         self._salario_hora = self.validar_salario(salario_hora)
@@ -41,14 +35,12 @@ class Colaborador:
     
     def __str__(self):
         alta_str = self._fecha_alta.strftime("%d/%m/%Y")
-        
         if self._fecha_baja is not None:
             baja_str = self._fecha_baja.strftime("%d/%m/%Y")
             estado = f"BAJA ({baja_str})"
         else:
             estado = f"ACTIVO desde {alta_str}"
         horas_libres = self._horas_disponibles - self._horas_asignadas
-        # Convertimos los IDs numéricos a texto para poder unirlos con comas
         habilidades_str = ", ".join(str(h_id) for h_id in self._habilidades_ids) 
         return f"Colaborador #{self._id} [{estado}] | Disp: {horas_libres}hs | Habilidades (IDs): [{habilidades_str}]"
     

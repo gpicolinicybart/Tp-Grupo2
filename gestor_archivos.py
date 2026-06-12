@@ -6,8 +6,7 @@ class GestorArchivos:
     def __init__(self, empresa):
         self.empresa = empresa
 
-    def _leer_csv(self, ruta, procesar_fila):
-        """Abre un CSV y le pasa cada fila (dict) a procesar_fila."""
+    def _leer_csv(self, ruta, procesar_fila): # abre un CSV y le pasa cada fila (dict) a procesar_fila
         if not os.path.exists(ruta):
             return
         try:
@@ -17,8 +16,7 @@ class GestorArchivos:
         except (KeyError, ValueError, OSError):
             pass
 
-    def _guardar_csv(self, ruta, encabezados, filas):
-        """Escribe encabezados + filas en un CSV nuevo. Devuelve True/False."""
+    def _guardar_csv(self, ruta, encabezados, filas): #escribe encabezados + filas en un CSV nuevo
         try:
             with open(ruta, mode='w', newline='', encoding='utf-8') as archivo:
                 escritor = csv.writer(archivo)
@@ -29,14 +27,12 @@ class GestorArchivos:
             return False
 
     def _guardar_objetos(self, ruta, columnas, objetos):
-        """Genérico para clases TIPO A (autocontenidas): usa obj.serialize()."""
         filas = []
         for obj in objetos:
             filas.append(obj.serialize())
         return self._guardar_csv(ruta, columnas, filas)
 
     def _cargar_objetos(self, ruta, clase):
-        """Genérico para clases TIPO A: usa clase.deserialize(fila)."""
         objetos = []
         def procesar(fila):
             obj = clase.deserialize(fila)
@@ -46,7 +42,6 @@ class GestorArchivos:
         return objetos
 
     def _cargar_objetos_con_contexto(self, ruta, clase, contexto):
-        """Genérico para clases TIPO B (referencian otros objetos)."""
         objetos = []
         def procesar(fila):
             obj = clase.deserialize(fila, contexto)
@@ -54,7 +49,7 @@ class GestorArchivos:
                 objetos.append(obj)
         self._leer_csv(ruta, procesar)
         return objetos
-    #-----------------------------------------------------------        
+    
     def guardar_historial_csv (self,solicitudes_terminadas: list):
         nombre_archivo = "csv/historial_solicitudes.csv"
         archivo_existe=os.path.isfile(nombre_archivo)
@@ -91,7 +86,7 @@ class GestorArchivos:
         except OSError:
             print("[ERROR] No se pudo leer el archivo de historial")
             return None, []
-    #--------------------------------------------------------------------------
+
     def guardar_solicitudes_csv(self):
         from solicitud_fabricacion import SolicitudDeFabricacion
         return self._guardar_objetos(SolicitudDeFabricacion.ARCHIVO, SolicitudDeFabricacion.COLUMNAS,
@@ -107,7 +102,6 @@ class GestorArchivos:
         for sol in solicitudes:
             self.empresa.agregar_solicitud(sol.get_id(), sol)
     
-
     def guardar_colaboradores_csv(self):
         from colaboradores import Colaborador
         return self._guardar_objetos(Colaborador.ARCHIVO, Colaborador.COLUMNAS,
@@ -155,7 +149,6 @@ class GestorArchivos:
             print(f"-> Reporte de críticos generado en: '{nombre_archivo}'.")
         except IOError as e:
             print(f"-> [ERROR] Falló la escritura del archivo")
-#------------------------------------------------------------------------------------------------------
     COLUMNAS_CATALOGO = ["ID Producto", "Nombre Producto", "Tipo", "Costo Fijo", "Receta BOM"]
 
     def guardar_catalogo_csv(self):
@@ -170,7 +163,6 @@ class GestorArchivos:
         ruta = "csv/productos.csv"
         if not os.path.exists(ruta):
             return
-
         filas_articulos = []
         # creamos cada elemento (sin receta todavía)
         def procesar(fila):
@@ -190,7 +182,6 @@ class GestorArchivos:
             prod = elementos_por_id.get(int(fila["ID Producto"]))
             if prod is not None:
                 ArticuloFabricadoInternamente.reconstruir_bom(prod, fila.get("Receta BOM", ""), elementos_por_id)
-#------------------------------------------------------------------------------------------------------
     
     def guardar_unidades_csv(self):
         from unidad_de_trabajo import UnidadDeTrabajo
@@ -213,7 +204,6 @@ class GestorArchivos:
         compras = self._cargar_objetos_con_contexto(Compra_Insumo.ARCHIVO, Compra_Insumo, insumos)
         for compra in compras:
             self.empresa.cargar_compra_desde_archivo(compra)
-
 
     def guardar_habilidades_csv(self):
         from habilidad import Habilidad

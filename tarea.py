@@ -18,30 +18,23 @@ class Tarea:
     def __str__(self):
         return f"Tarea (ID Maestro: {self._id_tarea_maestra}) | Req. Habilidad ID: {self._id_habilidad_requerida} | Tiempo: {self._tiempo_por_unidad}hs/u | Colab: {self._cant_colaboradores_req} | Unidad: {self._unidad_requerida.get_id()}"
     
-    #
     def get_id_tarea_maestra(self) -> int:
         return self._id_tarea_maestra
-        
     def get_id_habilidad_requerida(self) -> int:
         return self._id_habilidad_requerida
-
     def get_tiempo_por_unidad(self) -> float:
         return self._tiempo_por_unidad
-    
     def get_unidad_requerida(self) -> UnidadDeTrabajo:
         return self._unidad_requerida
-
     def get_cant_colaboradores_req(self) -> int:
         return self._cant_colaboradores_req
-    
     def get_costo_mano_obra_hora(self) -> float:
         return self._costo_mano_obra_hora
-
     def get_costo(self) -> float:
         costo_maquina = self._unidad_requerida.get_costo_operativo() * self._tiempo_por_unidad
         costo_personal = self._costo_mano_obra_hora * self._cant_colaboradores_req * self._tiempo_por_unidad
         return costo_maquina + costo_personal
-
+    
     def calcular_horas_totales(self, cantidad_pedida: float) -> float:
         return float(self._tiempo_por_unidad) * float(cantidad_pedida)
 
