@@ -1,0 +1,21 @@
+id_unidad,nombre,capacidad_horas_periodo,max_colaboradores,costo_hora
+1,Corte CNC,524.7,10,798.66
+2,Soldadura MIG,393.6,5,299.97
+3,Ensamble A,575.5,7,801.12
+4,Ensamble B,724.8,8,256.41
+5,Pintura,733.2,8,200.78
+6,Pruebas Eléctricas,895.3,3,504.24
+7,Torneado,614.9,11,491.23
+8,Fresado,667.1,12,246.67
+9,Control Calidad,884.3,5,582.46
+10,Hidráulica,889.9,11,246.45
+11,Corte Plasma,664.5,7,650.5
+12,Soldadura TIG,308.0,11,1165.63
+13,Ensamble Final,785.0,11,215.97
+14,Pintura Electrostática,438.5,9,810.0
+15,Pruebas Hidráulicas,799.9,5,1109.32
+16,Desbaste,455.3,10,955.36
+17,Pulido,555.1,8,746.71
+18,Mecanizado CNC,410.9,4,975.13
+19,Inspección Final,863.7,6,797.9
+20,Almacén,853.1,10,770.44

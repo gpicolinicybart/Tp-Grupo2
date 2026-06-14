@@ -1,0 +1,101 @@
+id_colaborador,especialidad,horas_disponibles,periodo
+1,Pintura,37.1,Mañana
+2,Control de Calidad,29.0,Mañana
+3,Ensamblaje,30.2,Tarde
+4,Mecanizado,36.4,Tarde
+5,Ensamblaje,32.6,Noche
+6,Soldadura,25.9,Mañana
+7,Pintura,26.8,Mañana
+8,Hidráulica,34.7,Tarde
+9,Ensamblaje,39.0,Tarde
+10,Soldadura,34.9,Tarde
+11,Pintura,31.6,Mañana
+12,Ensamblaje,38.3,Mañana
+13,Ensamblaje,27.9,Mañana
+14,Soldadura,22.4,Mañana
+15,Pintura,33.5,Tarde
+16,Control de Calidad,30.4,Mañana
+17,Pintura,23.8,Noche
+18,Control de Calidad,34.5,Tarde
+19,Soldadura,22.4,Noche
+20,Hidráulica,24.2,Noche
+21,Mecanizado,39.9,Mañana
+22,Ensamblaje,23.5,Mañana
+23,Soldadura,38.3,Mañana
+24,Soldadura,37.0,Noche
+25,Hidráulica,36.1,Tarde
+26,Ensamblaje,25.9,Mañana
+27,Hidráulica,29.5,Mañana
+28,Pintura,34.9,Noche
+29,Soldadura,23.8,Mañana
+30,Pintura,23.1,Noche
+31,Soldadura,30.3,Tarde
+32,Pintura,22.9,Tarde
+33,Mecanizado,22.3,Noche
+34,Pintura,20.8,Tarde
+35,Hidráulica,39.7,Tarde
+36,Ensamblaje,20.9,Tarde
+37,Mecanizado,32.5,Noche
+38,Ensamblaje,20.5,Mañana
+39,Control de Calidad,26.7,Tarde
+40,Control de Calidad,23.3,Mañana
+41,Hidráulica,24.0,Mañana
+42,Pintura,31.8,Tarde
+43,Control de Calidad,37.8,Noche
+44,Control de Calidad,36.2,Mañana
+45,Soldadura,23.8,Mañana
+46,Control de Calidad,34.4,Mañana
+47,Ensamblaje,37.0,Noche
+48,Control de Calidad,26.0,Tarde
+49,Soldadura,33.4,Noche
+50,Control de Calidad,33.9,Mañana
+51,Control de Calidad,35.4,Mañana
+52,Hidráulica,39.5,Tarde
+53,Pintura,31.6,Noche
+54,Soldadura,39.3,Mañana
+55,Soldadura,21.1,Noche
+56,Ensamblaje,30.6,Noche
+57,Ensamblaje,21.9,Noche
+58,Mecanizado,34.9,Mañana
+59,Pintura,26.1,Mañana
+60,Control de Calidad,21.4,Mañana
+61,Ensamblaje,37.6,Noche
+62,Soldadura,33.6,Noche
+63,Control de Calidad,33.8,Mañana
+64,Pintura,34.2,Mañana
+65,Control de Calidad,20.7,Noche
+66,Hidráulica,33.9,Noche
+67,Pintura,26.8,Tarde
+68,Pintura,29.6,Noche
+69,Soldadura,20.7,Tarde
+70,Pintura,25.6,Tarde
+71,Control de Calidad,22.9,Tarde
+72,Mecanizado,22.8,Mañana
+73,Control de Calidad,21.1,Noche
+74,Soldadura,20.1,Tarde
+75,Control de Calidad,38.6,Tarde
+76,Ensamblaje,34.2,Noche
+77,Ensamblaje,36.1,Tarde
+78,Pintura,39.2,Mañana
+79,Mecanizado,26.8,Noche
+80,Hidráulica,31.3,Tarde
+81,Ensamblaje,34.5,Tarde
+82,Pintura,23.3,Tarde
+83,Ensamblaje,29.3,Mañana
+84,Mecanizado,23.4,Mañana
+85,Mecanizado,38.4,Mañana
+86,Pintura,33.8,Mañana
+87,Pintura,30.4,Tarde
+88,Control de Calidad,33.4,Mañana
+89,Control de Calidad,32.1,Tarde
+90,Pintura,20.3,Mañana
+91,Ensamblaje,34.3,Mañana
+92,Soldadura,30.6,Tarde
+93,Ensamblaje,22.1,Noche
+94,Hidráulica,29.4,Tarde
+95,Soldadura,26.0,Mañana
+96,Mecanizado,24.6,Tarde
+97,Ensamblaje,32.6,Tarde
+98,Ensamblaje,28.7,Tarde
+99,Mecanizado,32.6,Mañana
+100,Pintura,20.3,Noche

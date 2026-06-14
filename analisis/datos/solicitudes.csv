@@ -1,0 +1,1001 @@
+id_solicitud,producto,cantidad,fecha,estado
+1,196,5,2026-06-23,Creada
+2,183,4,2026-01-27,Terminada
+3,191,3,2026-03-20,Creada
+4,194,1,2026-06-23,Creada
+5,192,5,2026-05-09,Planificada
+6,200,4,2026-05-05,Terminada
+7,189,1,2026-02-25,Terminada
+8,187,3,2026-02-01,Planificada
+9,193,3,2026-01-07,Terminada
+10,184,2,2026-02-17,En Curso
+11,185,3,2026-03-12,Planificada
+12,198,4,2026-01-04,En Curso
+13,188,5,2026-04-22,Planificada
+14,187,1,2026-01-03,En Curso
+15,195,3,2026-01-03,Creada
+16,198,2,2026-05-19,Creada
+17,192,1,2026-04-09,Planificada
+18,193,5,2026-04-08,En Curso
+19,191,3,2026-05-08,Planificada
+20,192,5,2026-02-16,En Curso
+21,194,2,2026-01-06,En Curso
+22,189,2,2026-04-09,Terminada
+23,191,3,2026-03-07,Terminada
+24,198,4,2026-06-18,Planificada
+25,188,2,2026-01-20,En Curso
+26,185,5,2026-01-24,Terminada
+27,197,5,2026-03-18,En Curso
+28,185,4,2026-01-09,Terminada
+29,188,1,2026-03-07,En Curso
+30,185,2,2026-05-20,Planificada
+31,195,4,2026-03-23,Creada
+32,198,1,2026-05-24,Terminada
+33,198,3,2026-04-15,Terminada
+34,197,1,2026-03-03,Terminada
+35,195,3,2026-01-09,Terminada
+36,189,4,2026-06-01,Demorada por falta de capacidad
+37,199,4,2026-06-20,Terminada
+38,197,1,2026-02-27,Creada
+39,195,4,2026-04-05,Planificada
+40,195,5,2026-06-01,Demorada por falta de capacidad
+41,191,1,2026-02-22,Planificada
+42,194,5,2026-01-24,Terminada
+43,184,4,2026-06-10,Planificada
+44,197,3,2026-02-15,Terminada
+45,193,2,2026-02-07,Terminada
+46,189,4,2026-04-24,Demorada por falta de stock
+47,187,3,2026-04-05,Creada
+48,193,5,2026-05-03,En Curso
+49,191,2,2026-01-21,Planificada
+50,185,3,2026-06-05,En Curso
+51,195,5,2026-04-10,En Curso
+52,191,5,2026-06-08,Planificada
+53,191,2,2026-02-18,Planificada
+54,200,4,2026-03-04,Terminada
+55,193,5,2026-02-10,Demorada por falta de capacidad
+56,198,4,2026-01-23,Planificada
+57,196,4,2026-03-02,Terminada
+58,194,2,2026-04-03,Terminada
+59,194,5,2026-06-10,Planificada
+60,192,5,2026-03-20,En Curso
+61,184,5,2026-03-14,Creada
+62,189,3,2026-05-08,En Curso
+63,192,1,2026-02-19,Creada
+64,185,2,2026-05-14,Planificada
+65,194,1,2026-06-10,En Curso
+66,197,3,2026-02-18,En Curso
+67,197,3,2026-06-05,En Curso
+68,194,5,2026-04-27,Terminada
+69,190,4,2026-03-06,Terminada
+70,186,4,2026-06-07,En Curso
+71,187,1,2026-03-21,Creada
+72,199,4,2026-01-16,En Curso
+73,184,1,2026-02-11,Terminada
+74,191,2,2026-05-23,Terminada
+75,192,5,2026-02-15,Demorada por falta de capacidad
+76,191,2,2026-03-17,Creada
+77,183,2,2026-04-16,Planificada
+78,195,4,2026-06-22,En Curso
+79,193,5,2026-06-26,Demorada por falta de stock
+80,193,2,2026-02-01,Demorada por falta de capacidad
+81,190,3,2026-06-25,Terminada
+82,186,2,2026-02-19,Terminada
+83,198,3,2026-02-14,Creada
+84,186,3,2026-06-22,Terminada
+85,198,1,2026-01-19,Terminada
+86,193,1,2026-05-21,Creada
+87,186,3,2026-06-13,En Curso
+88,188,5,2026-04-02,En Curso
+89,187,3,2026-04-22,En Curso
+90,192,2,2026-01-22,En Curso
+91,192,1,2026-05-19,Terminada
+92,197,1,2026-06-27,Planificada
+93,190,3,2026-02-04,Demorada por falta de stock
+94,185,2,2026-03-20,Demorada por falta de stock
+95,196,3,2026-06-11,Demorada por falta de capacidad
+96,199,1,2026-02-25,Demorada por falta de stock
+97,185,5,2026-06-07,Planificada
+98,190,3,2026-04-18,Planificada
+99,188,1,2026-04-25,Planificada
+100,197,1,2026-03-11,Creada
+101,192,4,2026-05-21,Creada
+102,192,4,2026-01-26,Creada
+103,200,2,2026-02-05,En Curso
+104,198,3,2026-05-24,Terminada
+105,183,2,2026-03-03,Creada
+106,196,1,2026-02-05,Creada
+107,189,2,2026-01-02,Terminada
+108,199,4,2026-05-12,Creada
+109,197,4,2026-03-26,Terminada
+110,184,5,2026-05-26,Demorada por falta de stock
+111,185,1,2026-01-26,En Curso
+112,188,4,2026-03-15,Planificada
+113,187,4,2026-05-07,Creada
+114,200,2,2026-03-17,Terminada
+115,197,5,2026-02-13,En Curso
+116,185,3,2026-05-05,Terminada
+117,186,1,2026-04-18,Demorada por falta de capacidad
+118,189,1,2026-01-08,Planificada
+119,194,4,2026-05-24,Planificada
+120,194,4,2026-02-07,En Curso
+121,196,3,2026-01-07,Creada
+122,186,2,2026-02-09,En Curso
+123,195,1,2026-01-09,Planificada
+124,198,3,2026-01-07,Planificada
+125,193,5,2026-02-19,En Curso
+126,195,4,2026-02-10,En Curso
+127,200,4,2026-02-20,Creada
+128,194,2,2026-05-05,Terminada
+129,200,1,2026-06-02,Creada
+130,197,5,2026-02-09,Creada
+131,188,3,2026-04-22,Planificada
+132,192,3,2026-03-03,Planificada
+133,200,3,2026-05-26,En Curso
+134,194,3,2026-03-23,Creada
+135,190,1,2026-01-24,En Curso
+136,198,4,2026-06-21,En Curso
+137,187,5,2026-06-06,En Curso
+138,190,3,2026-02-04,Planificada
+139,193,4,2026-05-25,Creada
+140,183,4,2026-02-21,Demorada por falta de stock
+141,196,3,2026-02-12,Terminada
+142,194,3,2026-02-17,Planificada
+143,198,4,2026-05-06,Creada
+144,186,2,2026-05-21,Terminada
+145,196,3,2026-01-17,Planificada
+146,197,2,2026-04-25,En Curso
+147,192,3,2026-06-02,Planificada
+148,190,3,2026-03-07,En Curso
+149,194,1,2026-05-24,Planificada
+150,194,4,2026-04-22,Planificada
+151,196,5,2026-01-12,Creada
+152,186,3,2026-03-19,Terminada
+153,188,3,2026-03-04,Planificada
+154,192,5,2026-05-21,Terminada
+155,188,5,2026-06-07,Planificada
+156,183,4,2026-04-06,Demorada por falta de capacidad
+157,190,3,2026-03-23,Terminada
+158,196,4,2026-03-05,Planificada
+159,186,3,2026-06-27,Terminada
+160,183,5,2026-05-16,Planificada
+161,190,1,2026-03-21,Demorada por falta de stock
+162,195,3,2026-04-14,Planificada
+163,197,3,2026-03-20,Planificada
+164,192,5,2026-01-25,En Curso
+165,196,1,2026-01-14,Terminada
+166,195,1,2026-01-19,Demorada por falta de stock
+167,185,1,2026-01-26,Planificada
+168,195,1,2026-05-23,En Curso
+169,189,3,2026-06-27,Terminada
+170,183,4,2026-03-06,Planificada
+171,195,3,2026-04-20,Terminada
+172,183,2,2026-02-22,Terminada
+173,195,5,2026-05-22,Creada
+174,194,5,2026-04-13,Creada
+175,196,2,2026-05-09,Planificada
+176,199,5,2026-04-08,Demorada por falta de stock
+177,184,4,2026-03-01,En Curso
+178,183,1,2026-01-07,Demorada por falta de stock
+179,198,2,2026-03-15,Terminada
+180,188,5,2026-03-27,Creada
+181,199,5,2026-04-22,Demorada por falta de stock
+182,189,2,2026-03-24,Creada
+183,200,3,2026-04-16,En Curso
+184,194,5,2026-05-13,Terminada
+185,198,1,2026-02-10,En Curso
+186,190,1,2026-05-21,Demorada por falta de stock
+187,199,3,2026-05-03,Terminada
+188,197,4,2026-01-10,Creada
+189,184,4,2026-04-21,Terminada
+190,188,3,2026-04-05,En Curso
+191,198,4,2026-04-06,Terminada
+192,198,5,2026-04-12,Creada
+193,197,2,2026-06-17,Terminada
+194,191,5,2026-02-04,En Curso
+195,193,3,2026-01-21,En Curso
+196,187,5,2026-02-04,En Curso
+197,191,4,2026-01-16,Planificada
+198,200,5,2026-06-03,Planificada
+199,194,5,2026-05-18,Planificada
+200,200,3,2026-04-26,Planificada
+201,199,2,2026-04-17,Terminada
+202,197,3,2026-05-15,Terminada
+203,186,5,2026-03-06,Terminada
+204,187,1,2026-03-11,Planificada
+205,185,2,2026-06-01,En Curso
+206,192,4,2026-02-23,En Curso
+207,191,1,2026-06-15,Planificada
+208,183,2,2026-01-15,Creada
+209,190,4,2026-06-14,Terminada
+210,196,5,2026-05-15,Creada
+211,185,3,2026-04-11,Terminada
+212,189,3,2026-04-02,En Curso
+213,183,5,2026-02-22,Planificada
+214,192,3,2026-03-03,Terminada
+215,195,5,2026-02-27,En Curso
+216,199,2,2026-01-25,Planificada
+217,194,5,2026-01-26,Planificada
+218,194,4,2026-03-26,En Curso
+219,186,4,2026-02-25,Planificada
+220,184,3,2026-02-13,Demorada por falta de capacidad
+221,190,2,2026-03-27,Creada
+222,200,3,2026-05-15,Demorada por falta de stock
+223,186,2,2026-02-15,Creada
+224,199,4,2026-02-19,En Curso
+225,195,3,2026-04-13,Planificada
+226,200,4,2026-01-22,En Curso
+227,187,2,2026-06-22,En Curso
+228,183,4,2026-02-08,Creada
+229,199,2,2026-04-10,Demorada por falta de capacidad
+230,194,3,2026-04-08,En Curso
+231,188,1,2026-01-10,Terminada
+232,195,3,2026-04-05,Demorada por falta de stock
+233,190,5,2026-06-11,Terminada
+234,198,5,2026-04-02,Terminada
+235,189,1,2026-03-08,Creada
+236,198,1,2026-04-05,Terminada
+237,194,1,2026-05-02,Demorada por falta de stock
+238,199,4,2026-04-12,Planificada
+239,195,3,2026-02-11,Terminada
+240,191,4,2026-04-08,En Curso
+241,195,5,2026-03-08,Planificada
+242,196,2,2026-03-23,Terminada
+243,186,3,2026-04-25,En Curso
+244,184,4,2026-01-15,Planificada
+245,196,4,2026-06-17,Demorada por falta de capacidad
+246,186,1,2026-02-03,En Curso
+247,193,5,2026-06-21,Terminada
+248,196,1,2026-05-21,Planificada
+249,194,5,2026-05-07,Planificada
+250,196,4,2026-05-09,En Curso
+251,195,5,2026-06-20,En Curso
+252,185,5,2026-05-10,Creada
+253,198,1,2026-02-05,En Curso
+254,198,2,2026-02-20,En Curso
+255,194,4,2026-02-01,Creada
+256,190,4,2026-06-14,En Curso
+257,190,2,2026-05-09,Creada
+258,198,3,2026-05-07,Creada
+259,183,4,2026-04-01,Creada
+260,198,3,2026-04-07,Planificada
+261,198,2,2026-06-06,En Curso
+262,183,5,2026-05-06,Planificada
+263,188,2,2026-04-24,Demorada por falta de stock
+264,190,5,2026-05-21,Creada
+265,184,4,2026-04-13,Planificada
+266,186,2,2026-01-02,Planificada
+267,192,5,2026-02-18,En Curso
+268,199,1,2026-05-23,Demorada por falta de stock
+269,190,5,2026-06-14,Creada
+270,191,3,2026-04-14,Terminada
+271,196,3,2026-06-22,Terminada
+272,200,3,2026-03-23,Terminada
+273,200,5,2026-04-15,Demorada por falta de stock
+274,193,3,2026-02-27,Terminada
+275,199,5,2026-05-14,En Curso
+276,197,4,2026-01-01,Terminada
+277,194,1,2026-06-06,Planificada
+278,194,4,2026-04-02,Creada
+279,196,1,2026-01-08,Creada
+280,184,5,2026-04-25,Planificada
+281,200,3,2026-04-20,En Curso
+282,194,1,2026-06-08,Creada
+283,190,2,2026-02-02,Creada
+284,194,1,2026-06-17,Terminada
+285,187,1,2026-04-16,Terminada
+286,199,2,2026-06-11,En Curso
+287,193,4,2026-06-25,En Curso
+288,188,2,2026-02-06,Terminada
+289,190,1,2026-05-08,Planificada
+290,185,5,2026-04-25,Demorada por falta de stock
+291,195,4,2026-06-05,En Curso
+292,184,5,2026-01-16,Demorada por falta de stock
+293,187,2,2026-02-10,Planificada
+294,191,3,2026-06-15,Creada
+295,199,5,2026-01-25,En Curso
+296,193,1,2026-06-22,Terminada
+297,183,1,2026-01-22,Terminada
+298,195,4,2026-04-22,Planificada
+299,198,2,2026-01-25,En Curso
+300,194,2,2026-04-14,En Curso
+301,186,4,2026-03-01,Planificada
+302,195,1,2026-04-21,En Curso
+303,187,2,2026-04-26,En Curso
+304,197,2,2026-05-17,En Curso
+305,191,3,2026-01-25,Creada
+306,196,1,2026-01-06,Creada
+307,195,3,2026-01-01,Terminada
+308,196,3,2026-06-01,Terminada
+309,186,4,2026-03-19,Creada
+310,184,4,2026-03-25,Terminada
+311,198,5,2026-06-07,Creada
+312,191,5,2026-04-26,En Curso
+313,198,1,2026-05-18,Terminada
+314,183,5,2026-04-10,Demorada por falta de capacidad
+315,194,1,2026-02-16,Creada
+316,186,2,2026-02-21,En Curso
+317,193,2,2026-02-16,Terminada
+318,200,3,2026-01-21,Demorada por falta de stock
+319,198,2,2026-05-24,Planificada
+320,191,2,2026-04-15,Planificada
+321,193,3,2026-05-05,En Curso
+322,194,1,2026-02-16,Planificada
+323,200,3,2026-06-13,Terminada
+324,187,1,2026-02-13,En Curso
+325,200,5,2026-05-19,En Curso
+326,186,2,2026-05-25,En Curso
+327,189,2,2026-04-03,Planificada
+328,199,5,2026-02-24,Terminada
+329,195,4,2026-05-25,Demorada por falta de stock
+330,189,3,2026-05-12,Creada
+331,194,3,2026-03-16,Terminada
+332,184,5,2026-04-15,En Curso
+333,195,1,2026-01-07,Demorada por falta de stock
+334,198,3,2026-03-10,Terminada
+335,199,4,2026-04-17,Terminada
+336,192,4,2026-06-20,En Curso
+337,200,5,2026-02-23,En Curso
+338,192,5,2026-04-10,Creada
+339,188,3,2026-05-24,En Curso
+340,187,5,2026-06-09,Terminada
+341,194,2,2026-01-10,Creada
+342,195,4,2026-01-04,Creada
+343,187,1,2026-02-15,Terminada
+344,191,2,2026-05-02,Demorada por falta de stock
+345,199,4,2026-06-08,En Curso
+346,193,1,2026-02-17,Creada
+347,196,5,2026-04-07,Creada
+348,199,5,2026-06-11,Terminada
+349,197,3,2026-05-26,Demorada por falta de stock
+350,185,1,2026-05-16,Planificada
+351,199,2,2026-01-22,En Curso
+352,187,1,2026-03-13,Demorada por falta de capacidad
+353,186,4,2026-01-15,En Curso
+354,188,3,2026-02-25,Terminada
+355,198,3,2026-06-20,En Curso
+356,189,4,2026-02-15,En Curso
+357,199,5,2026-06-03,Planificada
+358,185,4,2026-03-22,Planificada
+359,183,5,2026-02-09,Creada
+360,198,3,2026-03-11,Demorada por falta de stock
+361,194,2,2026-06-13,En Curso
+362,186,3,2026-01-13,Demorada por falta de stock
+363,188,4,2026-04-11,Planificada
+364,185,3,2026-01-10,Terminada
+365,193,4,2026-03-10,Creada
+366,194,2,2026-04-27,Terminada
+367,196,2,2026-03-15,En Curso
+368,187,5,2026-05-14,En Curso
+369,197,4,2026-03-08,Planificada
+370,188,3,2026-06-19,Demorada por falta de capacidad
+371,197,3,2026-06-20,Terminada
+372,193,5,2026-01-19,Demorada por falta de capacidad
+373,200,2,2026-02-14,Terminada
+374,191,4,2026-06-05,Planificada
+375,186,5,2026-01-15,En Curso
+376,198,2,2026-05-16,Terminada
+377,186,4,2026-05-14,En Curso
+378,195,5,2026-04-18,En Curso
+379,198,1,2026-02-01,Terminada
+380,185,4,2026-06-06,Creada
+381,190,5,2026-04-01,Planificada
+382,194,1,2026-02-02,En Curso
+383,188,3,2026-04-05,En Curso
+384,193,1,2026-02-20,Demorada por falta de stock
+385,200,3,2026-05-27,Demorada por falta de stock
+386,200,3,2026-02-05,Planificada
+387,188,3,2026-01-16,Planificada
+388,190,1,2026-06-06,En Curso
+389,187,5,2026-05-25,Terminada
+390,188,2,2026-04-21,Terminada
+391,191,3,2026-03-04,Creada
+392,186,1,2026-03-27,Planificada
+393,198,3,2026-06-16,Planificada
+394,191,4,2026-01-26,En Curso
+395,199,2,2026-06-08,En Curso
+396,188,5,2026-03-25,Planificada
+397,200,2,2026-04-19,Terminada
+398,189,2,2026-02-16,Creada
+399,190,2,2026-05-12,En Curso
+400,200,5,2026-03-14,Planificada
+401,191,1,2026-01-19,Terminada
+402,190,3,2026-04-07,Terminada
+403,187,1,2026-02-07,Terminada
+404,199,4,2026-06-07,En Curso
+405,185,3,2026-03-10,Terminada
+406,199,1,2026-01-10,En Curso
+407,188,4,2026-05-23,Planificada
+408,199,1,2026-01-20,Creada
+409,195,3,2026-05-16,Terminada
+410,188,5,2026-06-06,Creada
+411,195,1,2026-02-17,Terminada
+412,198,2,2026-03-21,Creada
+413,189,3,2026-05-18,Terminada
+414,199,5,2026-03-22,En Curso
+415,198,2,2026-04-16,Terminada
+416,195,4,2026-06-20,Demorada por falta de capacidad
+417,196,4,2026-02-18,Terminada
+418,198,3,2026-06-22,En Curso
+419,199,1,2026-05-10,Planificada
+420,186,1,2026-02-26,En Curso
+421,199,1,2026-02-04,Terminada
+422,187,5,2026-05-04,Terminada
+423,190,1,2026-06-05,Planificada
+424,198,5,2026-06-11,Demorada por falta de capacidad
+425,191,2,2026-03-01,Creada
+426,192,1,2026-03-24,Terminada
+427,197,1,2026-03-22,Creada
+428,190,4,2026-04-16,En Curso
+429,188,4,2026-05-13,Terminada
+430,189,2,2026-05-17,Creada
+431,190,5,2026-06-21,Creada
+432,196,4,2026-06-16,En Curso
+433,197,2,2026-06-06,Creada
+434,194,3,2026-03-05,En Curso
+435,199,5,2026-02-17,Planificada
+436,184,1,2026-02-16,Planificada
+437,195,4,2026-04-10,Demorada por falta de capacidad
+438,195,4,2026-03-22,Demorada por falta de capacidad
+439,184,2,2026-02-05,Demorada por falta de stock
+440,193,1,2026-05-03,En Curso
+441,191,3,2026-01-14,Creada
+442,194,2,2026-04-07,Creada
+443,192,4,2026-05-23,Demorada por falta de capacidad
+444,200,2,2026-01-03,Terminada
+445,183,2,2026-02-05,Planificada
+446,200,5,2026-02-05,Demorada por falta de stock
+447,199,4,2026-04-08,En Curso
+448,194,2,2026-06-27,Terminada
+449,190,1,2026-02-04,Terminada
+450,193,2,2026-02-01,Planificada
+451,192,2,2026-04-16,Planificada
+452,185,2,2026-06-10,Demorada por falta de capacidad
+453,191,3,2026-06-03,Creada
+454,186,5,2026-02-26,En Curso
+455,200,1,2026-06-16,Terminada
+456,192,3,2026-06-26,En Curso
+457,189,5,2026-01-04,Planificada
+458,187,2,2026-05-09,Creada
+459,189,2,2026-04-26,Demorada por falta de stock
+460,193,3,2026-05-24,Demorada por falta de capacidad
+461,188,2,2026-01-05,Terminada
+462,197,3,2026-04-21,En Curso
+463,185,3,2026-05-05,Terminada
+464,186,5,2026-06-17,Demorada por falta de capacidad
+465,197,2,2026-05-02,Terminada
+466,187,3,2026-02-03,Demorada por falta de stock
+467,190,2,2026-02-19,Terminada
+468,192,2,2026-01-08,Creada
+469,185,1,2026-06-02,Demorada por falta de capacidad
+470,187,1,2026-05-21,Planificada
+471,192,5,2026-06-16,Demorada por falta de stock
+472,189,2,2026-02-21,Demorada por falta de stock
+473,191,2,2026-06-21,Demorada por falta de stock
+474,199,2,2026-03-09,Creada
+475,188,5,2026-03-01,Terminada
+476,186,2,2026-03-26,Demorada por falta de stock
+477,189,4,2026-06-27,Planificada
+478,186,1,2026-05-17,Demorada por falta de stock
+479,185,2,2026-04-13,En Curso
+480,185,1,2026-06-15,Terminada
+481,196,3,2026-01-03,En Curso
+482,185,3,2026-02-14,Planificada
+483,193,1,2026-04-19,Terminada
+484,193,3,2026-01-07,Planificada
+485,196,4,2026-06-16,En Curso
+486,196,2,2026-02-24,Planificada
+487,190,2,2026-01-06,En Curso
+488,186,4,2026-05-06,Terminada
+489,195,5,2026-04-14,En Curso
+490,196,5,2026-05-08,Demorada por falta de capacidad
+491,188,4,2026-01-26,En Curso
+492,194,5,2026-03-03,Terminada
+493,193,5,2026-02-16,Terminada
+494,188,4,2026-03-08,En Curso
+495,198,2,2026-01-21,Planificada
+496,191,4,2026-06-13,Planificada
+497,185,2,2026-04-02,Terminada
+498,194,3,2026-04-06,Planificada
+499,198,1,2026-01-17,En Curso
+500,191,4,2026-01-27,Terminada
+501,193,5,2026-02-11,Demorada por falta de capacidad
+502,200,1,2026-03-08,Planificada
+503,189,2,2026-01-21,En Curso
+504,186,1,2026-04-21,Demorada por falta de stock
+505,195,1,2026-01-26,En Curso
+506,186,5,2026-04-09,Planificada
+507,191,4,2026-01-17,En Curso
+508,191,4,2026-02-13,En Curso
+509,187,3,2026-01-25,Demorada por falta de stock
+510,186,2,2026-06-09,Terminada
+511,192,3,2026-04-25,Terminada
+512,186,2,2026-02-13,En Curso
+513,196,2,2026-04-24,Planificada
+514,187,4,2026-03-10,Creada
+515,192,4,2026-02-04,Terminada
+516,198,3,2026-05-10,Demorada por falta de capacidad
+517,194,1,2026-03-18,Terminada
+518,197,4,2026-02-24,Planificada
+519,186,5,2026-02-22,Demorada por falta de stock
+520,198,3,2026-01-22,Terminada
+521,192,5,2026-06-20,Terminada
+522,199,1,2026-04-01,En Curso
+523,200,4,2026-03-25,Terminada
+524,194,5,2026-06-26,Creada
+525,188,5,2026-05-23,Terminada
+526,188,4,2026-01-09,Demorada por falta de capacidad
+527,196,5,2026-01-05,Planificada
+528,190,3,2026-05-13,Planificada
+529,188,2,2026-02-25,Planificada
+530,193,1,2026-01-26,Terminada
+531,190,2,2026-06-17,En Curso
+532,198,3,2026-06-05,Terminada
+533,189,5,2026-02-20,Planificada
+534,200,4,2026-02-27,Creada
+535,191,5,2026-02-09,Terminada
+536,196,3,2026-01-15,En Curso
+537,188,3,2026-02-25,Terminada
+538,198,4,2026-06-20,En Curso
+539,188,3,2026-01-16,En Curso
+540,196,4,2026-02-02,Planificada
+541,200,5,2026-03-15,Demorada por falta de stock
+542,185,4,2026-01-25,Terminada
+543,198,4,2026-01-09,Terminada
+544,200,4,2026-01-07,Planificada
+545,195,5,2026-02-25,Terminada
+546,195,4,2026-04-24,Planificada
+547,184,4,2026-05-04,En Curso
+548,197,2,2026-01-15,Planificada
+549,193,2,2026-04-24,Terminada
+550,195,2,2026-05-09,En Curso
+551,184,4,2026-06-10,En Curso
+552,189,2,2026-05-18,Terminada
+553,193,2,2026-05-18,Demorada por falta de capacidad
+554,189,1,2026-02-15,En Curso
+555,185,2,2026-04-02,Terminada
+556,189,4,2026-03-04,En Curso
+557,198,3,2026-01-19,Planificada
+558,196,1,2026-06-15,En Curso
+559,197,5,2026-01-10,Demorada por falta de stock
+560,196,1,2026-01-17,Demorada por falta de stock
+561,189,4,2026-05-08,Planificada
+562,196,1,2026-06-27,Demorada por falta de stock
+563,186,1,2026-03-12,Demorada por falta de stock
+564,190,3,2026-04-17,Creada
+565,188,5,2026-03-24,Creada
+566,190,4,2026-06-10,Creada
+567,198,1,2026-02-27,Planificada
+568,199,3,2026-04-27,Demorada por falta de stock
+569,193,5,2026-05-01,Planificada
+570,190,5,2026-06-13,Demorada por falta de capacidad
+571,196,2,2026-01-03,Terminada
+572,196,5,2026-03-27,Creada
+573,186,1,2026-04-19,Terminada
+574,187,5,2026-04-19,En Curso
+575,195,2,2026-04-02,Demorada por falta de stock
+576,200,4,2026-05-25,Creada
+577,197,5,2026-02-08,Terminada
+578,195,4,2026-06-20,En Curso
+579,187,2,2026-03-13,Terminada
+580,189,4,2026-06-04,Terminada
+581,183,2,2026-03-15,En Curso
+582,197,1,2026-01-15,En Curso
+583,198,4,2026-03-17,Planificada
+584,196,4,2026-04-09,En Curso
+585,199,1,2026-02-17,Planificada
+586,184,5,2026-02-20,En Curso
+587,197,4,2026-06-22,En Curso
+588,184,1,2026-03-03,En Curso
+589,197,3,2026-05-19,Terminada
+590,199,2,2026-02-07,Terminada
+591,190,4,2026-03-21,Creada
+592,189,3,2026-01-16,Creada
+593,184,1,2026-05-24,Terminada
+594,191,4,2026-02-24,Creada
+595,196,2,2026-04-04,Planificada
+596,195,5,2026-05-12,Creada
+597,186,5,2026-04-18,Demorada por falta de stock
+598,198,4,2026-05-06,En Curso
+599,198,4,2026-04-21,En Curso
+600,191,1,2026-03-17,En Curso
+601,200,4,2026-05-07,En Curso
+602,199,4,2026-06-27,En Curso
+603,184,3,2026-02-08,Planificada
+604,197,3,2026-05-06,Creada
+605,193,2,2026-02-07,Terminada
+606,199,4,2026-02-12,Creada
+607,191,5,2026-04-25,Terminada
+608,200,4,2026-01-04,Planificada
+609,200,3,2026-03-20,En Curso
+610,192,5,2026-04-19,Demorada por falta de capacidad
+611,189,5,2026-03-16,Terminada
+612,197,2,2026-01-06,Demorada por falta de stock
+613,188,5,2026-06-23,Planificada
+614,197,2,2026-01-18,Terminada
+615,190,5,2026-05-13,En Curso
+616,200,5,2026-01-17,En Curso
+617,187,3,2026-04-20,Terminada
+618,195,4,2026-03-06,Terminada
+619,183,1,2026-02-24,Planificada
+620,194,3,2026-04-10,Planificada
+621,191,4,2026-06-25,Terminada
+622,191,2,2026-03-13,Terminada
+623,194,2,2026-01-24,Demorada por falta de stock
+624,196,3,2026-01-02,Planificada
+625,195,1,2026-01-04,Terminada
+626,185,4,2026-03-06,En Curso
+627,194,4,2026-01-26,Terminada
+628,187,1,2026-03-05,Demorada por falta de stock
+629,199,2,2026-02-27,Terminada
+630,197,1,2026-06-16,Terminada
+631,183,1,2026-01-13,Terminada
+632,196,3,2026-06-23,Terminada
+633,194,2,2026-03-13,Terminada
+634,188,3,2026-04-17,Terminada
+635,184,5,2026-03-06,Terminada
+636,194,5,2026-02-19,Planificada
+637,191,1,2026-04-18,Demorada por falta de capacidad
+638,190,3,2026-01-21,En Curso
+639,183,5,2026-04-21,En Curso
+640,196,1,2026-01-14,Terminada
+641,183,1,2026-04-07,En Curso
+642,195,2,2026-05-18,Creada
+643,200,4,2026-04-15,En Curso
+644,191,1,2026-06-06,Terminada
+645,198,2,2026-01-02,Creada
+646,186,1,2026-02-16,Terminada
+647,190,1,2026-03-14,En Curso
+648,188,2,2026-03-05,Terminada
+649,189,3,2026-06-04,Demorada por falta de capacidad
+650,196,2,2026-01-01,Terminada
+651,188,4,2026-06-04,Creada
+652,191,4,2026-01-06,Demorada por falta de capacidad
+653,184,5,2026-03-14,Planificada
+654,184,1,2026-03-12,Demorada por falta de stock
+655,191,3,2026-02-16,Demorada por falta de stock
+656,194,5,2026-03-16,En Curso
+657,190,4,2026-05-18,Creada
+658,191,1,2026-02-19,Terminada
+659,194,1,2026-01-06,Planificada
+660,184,3,2026-03-17,Planificada
+661,193,2,2026-04-22,Planificada
+662,189,4,2026-01-15,Demorada por falta de capacidad
+663,186,4,2026-01-20,Terminada
+664,197,4,2026-02-26,En Curso
+665,188,3,2026-03-07,Terminada
+666,191,5,2026-06-21,Planificada
+667,200,4,2026-03-07,Terminada
+668,195,1,2026-04-27,Terminada
+669,196,3,2026-05-02,En Curso
+670,189,5,2026-03-04,Terminada
+671,188,2,2026-06-27,Planificada
+672,189,3,2026-06-27,Terminada
+673,197,1,2026-06-09,Creada
+674,195,1,2026-04-23,Planificada
+675,196,5,2026-02-02,Creada
+676,195,1,2026-06-09,En Curso
+677,187,1,2026-05-14,Creada
+678,197,1,2026-06-03,Creada
+679,196,2,2026-03-02,Terminada
+680,199,4,2026-06-24,En Curso
+681,183,3,2026-04-25,Planificada
+682,199,3,2026-03-05,Creada
+683,192,5,2026-02-12,Planificada
+684,199,4,2026-02-19,Terminada
+685,197,2,2026-03-27,En Curso
+686,190,3,2026-05-22,Terminada
+687,191,4,2026-04-19,Terminada
+688,196,5,2026-05-09,Terminada
+689,199,5,2026-01-26,En Curso
+690,187,1,2026-01-01,En Curso
+691,190,3,2026-04-13,Demorada por falta de stock
+692,200,3,2026-03-21,En Curso
+693,188,5,2026-04-27,En Curso
+694,198,4,2026-02-20,Planificada
+695,200,1,2026-01-19,En Curso
+696,194,3,2026-04-06,Creada
+697,191,1,2026-01-20,Planificada
+698,191,3,2026-05-23,Planificada
+699,189,4,2026-06-20,En Curso
+700,184,1,2026-03-14,Planificada
+701,190,3,2026-02-20,Planificada
+702,195,1,2026-06-22,Terminada
+703,195,2,2026-01-15,Planificada
+704,184,4,2026-03-06,Demorada por falta de stock
+705,196,4,2026-06-11,Creada
+706,194,1,2026-04-01,Creada
+707,187,2,2026-04-13,Planificada
+708,185,4,2026-05-06,Demorada por falta de stock
+709,186,3,2026-06-06,En Curso
+710,191,5,2026-02-25,Terminada
+711,186,2,2026-04-20,Creada
+712,200,1,2026-05-10,Terminada
+713,197,2,2026-05-18,En Curso
+714,197,5,2026-06-22,Demorada por falta de stock
+715,191,5,2026-03-27,En Curso
+716,186,4,2026-04-20,Creada
+717,186,2,2026-01-03,Terminada
+718,189,2,2026-04-15,Planificada
+719,194,2,2026-06-22,En Curso
+720,187,2,2026-05-16,En Curso
+721,191,3,2026-04-25,Terminada
+722,193,1,2026-04-15,En Curso
+723,198,2,2026-01-08,Planificada
+724,191,4,2026-02-22,Terminada
+725,187,3,2026-02-27,Demorada por falta de stock
+726,197,1,2026-03-10,En Curso
+727,197,2,2026-05-15,Planificada
+728,196,2,2026-05-26,Terminada
+729,196,2,2026-01-21,Terminada
+730,189,2,2026-03-09,Planificada
+731,189,1,2026-01-22,Planificada
+732,189,3,2026-05-17,Terminada
+733,194,1,2026-04-19,Creada
+734,190,1,2026-05-07,En Curso
+735,190,1,2026-06-02,Terminada
+736,192,2,2026-04-22,Demorada por falta de capacidad
+737,189,5,2026-06-16,Terminada
+738,196,1,2026-04-23,Creada
+739,185,1,2026-04-18,Planificada
+740,187,3,2026-06-16,Terminada
+741,199,2,2026-02-03,En Curso
+742,188,2,2026-03-09,Terminada
+743,196,1,2026-02-24,Planificada
+744,183,2,2026-02-14,En Curso
+745,184,5,2026-02-10,En Curso
+746,186,1,2026-01-01,Creada
+747,193,2,2026-02-23,En Curso
+748,193,4,2026-03-13,Planificada
+749,183,2,2026-05-13,Terminada
+750,188,4,2026-05-08,Terminada
+751,192,2,2026-01-21,En Curso
+752,183,1,2026-05-16,Terminada
+753,199,5,2026-05-14,En Curso
+754,189,1,2026-05-17,En Curso
+755,184,3,2026-01-06,Demorada por falta de capacidad
+756,187,4,2026-06-05,Demorada por falta de stock
+757,197,5,2026-06-15,Terminada
+758,192,2,2026-05-12,En Curso
+759,193,3,2026-03-09,Terminada
+760,196,1,2026-02-26,Creada
+761,191,5,2026-05-10,En Curso
+762,192,1,2026-03-01,Terminada
+763,196,5,2026-06-07,Creada
+764,188,3,2026-02-21,Demorada por falta de stock
+765,194,3,2026-02-12,En Curso
+766,185,3,2026-05-11,Terminada
+767,193,3,2026-06-23,Planificada
+768,192,2,2026-05-08,Creada
+769,191,2,2026-03-04,En Curso
+770,195,1,2026-04-09,Creada
+771,197,3,2026-03-14,Demorada por falta de capacidad
+772,198,1,2026-02-14,En Curso
+773,197,4,2026-06-06,Creada
+774,199,3,2026-01-26,En Curso
+775,198,2,2026-06-20,Terminada
+776,191,5,2026-06-18,Creada
+777,187,1,2026-05-11,Terminada
+778,184,1,2026-04-15,Creada
+779,200,3,2026-01-10,Planificada
+780,198,2,2026-06-24,Creada
+781,194,2,2026-01-07,Demorada por falta de stock
+782,195,4,2026-05-03,En Curso
+783,195,3,2026-06-04,En Curso
+784,188,4,2026-03-20,En Curso
+785,186,1,2026-04-19,Terminada
+786,195,2,2026-06-26,Terminada
+787,198,4,2026-06-24,Planificada
+788,200,3,2026-01-10,Demorada por falta de capacidad
+789,197,1,2026-03-24,En Curso
+790,186,4,2026-04-20,En Curso
+791,190,5,2026-04-23,Terminada
+792,193,5,2026-03-23,Terminada
+793,194,4,2026-01-18,Creada
+794,194,2,2026-04-18,En Curso
+795,198,5,2026-02-12,En Curso
+796,192,1,2026-02-03,En Curso
+797,185,3,2026-03-04,En Curso
+798,184,5,2026-05-07,En Curso
+799,195,2,2026-02-04,Planificada
+800,200,3,2026-01-11,Planificada
+801,200,3,2026-03-11,Demorada por falta de stock
+802,193,3,2026-03-11,Demorada por falta de stock
+803,192,2,2026-03-05,En Curso
+804,200,5,2026-04-02,En Curso
+805,193,2,2026-04-02,Demorada por falta de stock
+806,192,1,2026-06-23,Demorada por falta de stock
+807,186,2,2026-03-17,En Curso
+808,186,4,2026-06-27,Terminada
+809,191,5,2026-04-06,Demorada por falta de stock
+810,190,4,2026-05-26,Creada
+811,187,5,2026-02-25,Creada
+812,186,1,2026-01-15,Demorada por falta de stock
+813,187,3,2026-03-15,Demorada por falta de stock
+814,199,2,2026-03-19,En Curso
+815,192,3,2026-03-15,Demorada por falta de stock
+816,200,1,2026-06-03,Creada
+817,200,1,2026-02-22,Planificada
+818,192,5,2026-02-21,Demorada por falta de capacidad
+819,186,4,2026-02-23,Creada
+820,184,4,2026-03-21,Creada
+821,188,3,2026-01-01,En Curso
+822,195,2,2026-01-07,Terminada
+823,196,4,2026-06-13,Demorada por falta de stock
+824,192,4,2026-03-06,Planificada
+825,191,2,2026-05-24,En Curso
+826,187,1,2026-01-12,Terminada
+827,195,5,2026-01-18,En Curso
+828,198,2,2026-05-18,Planificada
+829,190,5,2026-04-01,En Curso
+830,199,4,2026-01-07,Demorada por falta de stock
+831,187,2,2026-06-15,Planificada
+832,188,2,2026-05-21,En Curso
+833,194,3,2026-05-04,Demorada por falta de capacidad
+834,197,4,2026-02-14,Creada
+835,189,5,2026-03-09,Terminada
+836,195,1,2026-04-03,En Curso
+837,190,3,2026-06-04,En Curso
+838,190,1,2026-04-23,Demorada por falta de capacidad
+839,196,3,2026-01-12,En Curso
+840,190,5,2026-04-14,Terminada
+841,198,4,2026-04-14,Creada
+842,185,5,2026-01-06,Terminada
+843,200,1,2026-03-10,En Curso
+844,183,4,2026-03-10,Demorada por falta de capacidad
+845,194,5,2026-04-25,Terminada
+846,195,5,2026-01-16,Creada
+847,194,3,2026-05-15,Terminada
+848,193,5,2026-03-21,Terminada
+849,196,1,2026-01-12,Terminada
+850,192,4,2026-03-03,En Curso
+851,192,2,2026-02-26,Creada
+852,196,5,2026-04-17,Terminada
+853,191,4,2026-01-02,Creada
+854,198,4,2026-01-21,Terminada
+855,198,5,2026-02-19,Demorada por falta de stock
+856,195,4,2026-05-18,Terminada
+857,185,2,2026-06-12,Planificada
+858,199,5,2026-06-14,Creada
+859,183,4,2026-02-15,Terminada
+860,193,5,2026-02-10,Planificada
+861,191,4,2026-06-19,Terminada
+862,190,3,2026-06-26,Creada
+863,191,2,2026-06-26,Terminada
+864,186,5,2026-04-16,Terminada
+865,197,4,2026-04-06,Terminada
+866,197,2,2026-05-18,Planificada
+867,183,2,2026-05-05,Demorada por falta de stock
+868,198,5,2026-06-27,Planificada
+869,195,3,2026-02-02,Creada
+870,190,3,2026-05-18,Creada
+871,188,4,2026-02-26,En Curso
+872,195,3,2026-06-26,Creada
+873,199,1,2026-02-27,Creada
+874,185,3,2026-03-13,En Curso
+875,200,3,2026-03-22,Creada
+876,191,4,2026-06-05,Planificada
+877,195,5,2026-04-27,Planificada
+878,196,1,2026-05-21,Demorada por falta de capacidad
+879,199,5,2026-01-21,Creada
+880,190,5,2026-03-25,Creada
+881,194,3,2026-01-19,En Curso
+882,194,3,2026-04-23,Planificada
+883,198,5,2026-05-22,Creada
+884,198,3,2026-04-07,Planificada
+885,185,2,2026-03-15,Planificada
+886,188,5,2026-03-14,Demorada por falta de stock
+887,189,4,2026-02-26,Planificada
+888,184,5,2026-04-22,Terminada
+889,191,1,2026-05-09,Planificada
+890,184,4,2026-06-01,Creada
+891,190,2,2026-04-02,Terminada
+892,192,1,2026-06-20,Creada
+893,190,5,2026-06-21,En Curso
+894,190,1,2026-02-27,Terminada
+895,197,5,2026-01-20,Terminada
+896,200,5,2026-02-17,Terminada
+897,184,2,2026-01-09,Terminada
+898,199,3,2026-03-03,Planificada
+899,183,1,2026-05-04,En Curso
+900,184,3,2026-02-08,En Curso
+901,198,2,2026-03-27,Demorada por falta de stock
+902,198,4,2026-04-22,Terminada
+903,185,4,2026-03-01,Creada
+904,187,1,2026-05-22,Planificada
+905,190,4,2026-04-15,Creada
+906,197,2,2026-03-07,Terminada
+907,197,3,2026-02-04,En Curso
+908,188,1,2026-03-15,En Curso
+909,199,2,2026-01-21,Planificada
+910,192,5,2026-06-10,En Curso
+911,199,3,2026-04-20,En Curso
+912,194,2,2026-04-18,En Curso
+913,200,3,2026-01-10,Terminada
+914,186,1,2026-01-24,Terminada
+915,194,2,2026-02-19,Terminada
+916,197,2,2026-05-22,Terminada
+917,190,1,2026-04-13,Demorada por falta de capacidad
+918,188,3,2026-02-09,Terminada
+919,187,1,2026-05-26,En Curso
+920,186,1,2026-04-10,Terminada
+921,189,1,2026-05-24,En Curso
+922,185,5,2026-02-12,Planificada
+923,188,2,2026-06-27,Creada
+924,186,5,2026-01-04,En Curso
+925,191,5,2026-04-20,En Curso
+926,197,2,2026-01-01,Planificada
+927,187,2,2026-06-05,Demorada por falta de capacidad
+928,185,5,2026-01-24,En Curso
+929,200,5,2026-03-15,Planificada
+930,190,4,2026-01-05,En Curso
+931,194,2,2026-04-14,En Curso
+932,189,4,2026-01-20,Planificada
+933,199,5,2026-01-26,Creada
+934,188,3,2026-02-16,Creada
+935,197,4,2026-03-09,Terminada
+936,195,1,2026-04-24,Terminada
+937,199,4,2026-06-13,En Curso
+938,193,4,2026-06-21,En Curso
+939,192,5,2026-04-27,Demorada por falta de stock
+940,200,5,2026-02-21,Terminada
+941,194,5,2026-02-09,En Curso
+942,183,1,2026-02-14,Demorada por falta de stock
+943,186,2,2026-04-15,Demorada por falta de stock
+944,191,3,2026-01-26,Planificada
+945,184,2,2026-03-23,Demorada por falta de stock
+946,196,4,2026-03-20,En Curso
+947,187,1,2026-04-23,En Curso
+948,198,2,2026-05-16,Terminada
+949,190,3,2026-02-26,Terminada
+950,194,2,2026-01-17,Creada
+951,192,4,2026-05-02,Terminada
+952,186,2,2026-04-24,Creada
+953,200,1,2026-04-01,En Curso
+954,188,2,2026-03-04,Demorada por falta de capacidad
+955,196,1,2026-01-13,En Curso
+956,190,5,2026-02-21,En Curso
+957,188,4,2026-03-26,Creada
+958,183,4,2026-02-03,Planificada
+959,189,1,2026-05-14,Creada
+960,185,2,2026-04-03,Terminada
+961,196,3,2026-02-20,Creada
+962,189,5,2026-06-26,Terminada
+963,186,3,2026-04-14,Terminada
+964,195,1,2026-05-21,Terminada
+965,200,2,2026-04-11,Creada
+966,198,1,2026-06-23,Demorada por falta de stock
+967,195,4,2026-02-27,Terminada
+968,185,5,2026-05-19,Terminada
+969,187,1,2026-04-10,En Curso
+970,189,2,2026-06-24,Terminada
+971,186,2,2026-01-25,Creada
+972,200,1,2026-05-10,Planificada
+973,192,3,2026-02-08,Terminada
+974,188,4,2026-06-12,En Curso
+975,190,3,2026-01-01,Demorada por falta de stock
+976,189,2,2026-02-15,En Curso
+977,192,3,2026-04-18,En Curso
+978,200,5,2026-02-04,Demorada por falta de capacidad
+979,191,4,2026-02-27,Demorada por falta de stock
+980,191,5,2026-05-27,Creada
+981,186,4,2026-06-19,Demorada por falta de capacidad
+982,199,5,2026-03-14,Creada
+983,199,2,2026-01-25,En Curso
+984,199,3,2026-06-23,En Curso
+985,184,2,2026-01-02,Planificada
+986,188,2,2026-06-20,Terminada
+987,194,2,2026-01-07,Planificada
+988,191,5,2026-05-12,En Curso
+989,193,3,2026-04-23,Creada
+990,199,2,2026-04-03,Planificada
+991,195,4,2026-06-02,En Curso
+992,184,4,2026-01-02,Creada
+993,184,3,2026-04-14,Planificada
+994,184,2,2026-01-25,En Curso
+995,194,2,2026-05-04,Terminada
+996,192,4,2026-04-03,En Curso
+997,192,1,2026-05-21,Creada
+998,200,5,2026-02-07,Terminada
+999,195,3,2026-05-18,Terminada
+1000,188,3,2026-01-01,Demorada por falta de capacidad
