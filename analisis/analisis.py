@@ -12,7 +12,7 @@ class Analisis:
 
     def __init__(self, carpeta="datos"):
         self._carpeta = os.path.join(os.path.dirname(__file__), carpeta)
-        self._costos = {} # memoria para no recalcular el costo de un mismo articulo
+        self._costos = {}                                                           
         self._cargar()
 
     def _leer(self, nombre):
@@ -30,24 +30,24 @@ class Analisis:
         self._elem_por_id = {int(e["id_elemento"]): e for e in self._elementos}
         self._unidad_por_id = {int(u["id_unidad"]): u for u in self._unidades}
 
-        self._bom_dict = {} # producto_padre -> [(componente, cantidad)]
+        self._bom_dict = {}                                             
         for fila in bom:
             padre = int(fila["producto_padre"])
             self._bom_dict.setdefault(padre, []).append(
                 (int(fila["componente"]), int(fila["cantidad_requerida"])))
 
-        self._tareas_por_art = {} # articulo -> lista de tareas
+        self._tareas_por_art = {}                              
         for t in tareas:
             self._tareas_por_art.setdefault(int(t["articulo"]), []).append(t)
 
-        # las solicitudes activas son las que todavia van a consumir recursos
+                                                                             
         self._activas = [s for s in self._solicitudes if s["estado"] in self.ESTADOS_ACTIVOS]
 
     def _tipo(self, id_elem):
         return self._elem_por_id[id_elem]["tipo"]
 
     def _explotar(self, id_prod, cant, acum):
-        # baja recursivamente por la BOM hasta los insumos basicos
+                                                                  
         if self._tipo(id_prod) == "Insumo" or id_prod not in self._bom_dict:
             if self._tipo(id_prod) == "Insumo":
                 acum[id_prod] = acum.get(id_prod, 0) + cant
@@ -103,7 +103,7 @@ class Analisis:
         print(f"Materiales con stock critico: {criticos} ({criticos / len(demandas) * 100:.1f}%)")
         print(f"Cobertura promedio de stock: {np.mean(cobertura):.1f}%")
 
-        # nos quedamos con los 15 mas demandados para que el grafico sea legible
+                                                                                
         top = np.argsort(demandas)[-15:][::-1]
         nombres = [self._elem_por_id[i]["nombre"] for i in ids[top]]
 
@@ -133,8 +133,8 @@ class Analisis:
                     if uid in horas_req:
                         horas_req[uid] += cant_art * float(t["tiempo_estandar"])
 
-        # la capacidad del CSV es POR PERIODO, pero el backlog activo abarca varios
-        # meses, asi que la capacidad real disponible es la del periodo x cant. de periodos
+                                                                                   
+                                                                                           
         periodos = sorted({s["fecha"][:7] for s in self._activas})
         n_periodos = max(1, len(periodos))
 
@@ -150,7 +150,7 @@ class Analisis:
         print(f"Unidad mas libre: {nombres[np.argmin(utilizacion)]} ({np.min(utilizacion):.1f}%)")
         print(f"Unidades saturadas (>100%): {int(np.sum(utilizacion > 100))}")
 
-        # color segun que tan exigida esta cada unidad
+                                                      
         colores = ["#e74c3c" if u > 100 else "#f39c12" if u > 75 else "#2ecc71"
                    for u in utilizacion[orden]]
         _, ax = plt.subplots(figsize=(13, 6))
@@ -187,7 +187,7 @@ class Analisis:
             mascara = categorias == cat
             print(f"   [{cat}] n={mascara.sum()} prom=${np.mean(costos[mascara]):,.0f} σ=${np.std(costos[mascara]):,.0f}")
 
-        # para el scatter cruzamos la cantidad pedida con el costo del producto
+                                                                               
         costo_por_id = {int(e["id_elemento"]): self._costo_unitario(int(e["id_elemento"])) for e in fabricados}
         cat_por_id = {int(e["id_elemento"]): e["categoria"] for e in fabricados}
         pedidas = [s for s in self._solicitudes if int(s["producto"]) in costo_por_id]
@@ -223,7 +223,7 @@ class Analisis:
         periodos_unicos = []
 
         for sol in self._activas:
-            # extraemos el año y mes directamente con índices (slicing)
+                                                                       
             periodo = sol["fecha"][:7] 
             
             if periodo not in periodos_unicos:
@@ -250,7 +250,7 @@ class Analisis:
         matriz_heatmap = np.zeros((n_unidades, n_periodos))
         nombres_unidades = np.array([u["nombre"] for u in self._unidades])
 
-        # cargamos la matriz bidimensional para matplotlib
+                                                          
         for i, u in enumerate(self._unidades):
             uid = int(u["id_unidad"])
             for j, p in enumerate(periodos_unicos):
@@ -264,7 +264,7 @@ class Analisis:
         ax.set_xticklabels(periodos_unicos, rotation=45, ha="right")
         ax.set_yticklabels(nombres_unidades, fontsize=8)
 
-        # escribimos los valores adentro del mapa
+                                                 
         for i in range(n_unidades):
             for j in range(n_periodos):
                 valor = matriz_heatmap[i, j]
@@ -285,7 +285,7 @@ class Analisis:
         periodos = sorted({s["fecha"][:7] for s in self._activas})
         n_periodos = max(1, len(periodos))
         
-        # 1. Copiamos capacidades y stocks iniciales para ir "consumiéndolos"
+                                                                             
         stock_restante = {int(e["id_elemento"]): int(e["stock_actual"]) for e in self._elementos if e["tipo"] == "Insumo"}
         horas_uni_restante = {int(u["id_unidad"]): float(u["capacidad_horas_periodo"]) * n_periodos for u in self._unidades}
         horas_colab_restante = sum(float(c["horas_disponibles"]) for c in colaboradores) * n_periodos
@@ -294,10 +294,10 @@ class Analisis:
         ordenes_sin_uni = 0
         ordenes_sin_colab = 0
 
-        # 2. Simulamos la planificación orden por orden (FIFO)
+                                                              
         for sol in self._activas:
             
-            # -- Evaluación de Materiales --
+                                            
             demanda_mat = {}
             self._explotar(int(sol["producto"]), int(sol["cantidad"]), demanda_mat)
             
@@ -313,7 +313,7 @@ class Analisis:
                 for id_ins, cant in demanda_mat.items():
                     stock_restante[id_ins] -= cant
 
-            # -- Evaluación de Unidades y Colaboradores --
+                                                          
             fabs = self._fabricados_involucrados(int(sol["producto"]), int(sol["cantidad"]))
             
             horas_req_uni = {}
@@ -344,32 +344,32 @@ class Analisis:
             else:
                 horas_colab_restante -= horas_req_colab
 
-        # --- ARREGLO DE LA INCONSISTENCIA DE COLORES ---
+                                                         
         categorias = np.array(["Faltante Materiales", "Sobrecarga Unidades", "Falta Colaboradores"])
         valores = np.array([ordenes_sin_mat, ordenes_sin_uni, ordenes_sin_colab])
         
-        # Asignamos un color FIJO a cada categoría usando un array
+                                                                  
         colores_base = np.array(["#e74c3c", "#f39c12", "#3498db"]) 
         
         print(f"Órdenes afectadas reales: Materiales={ordenes_sin_mat}, Unidades={ordenes_sin_uni}, Colaboradores={ordenes_sin_colab}")
         
-        # --- Generación de Gráficos ---
+                                        
         fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(14, 6))
         fig.suptitle("Detección de Cuellos de Botella: Órdenes Afectadas", fontsize=15)
 
-        # Gráfico 1: Diagrama de Torta
+                                      
         mascara = valores > 0
         if np.sum(mascara) > 0:
-            # Le aplicamos la máscara también a los colores
+                                                           
             ax1.pie(valores[mascara], labels=categorias[mascara], autopct='%1.1f%%', 
                     startangle=90, colors=colores_base[mascara])
         ax1.set_title("Distribución de Restricciones")
 
-        # Gráfico 2: Ranking de Barras
+                                      
         orden = np.argsort(valores)[::-1] 
         x = np.arange(len(categorias))
         
-        # Le aplicamos el mismo ordenamiento a los colores
+                                                          
         ax2.bar(x, valores[orden], color=colores_base[orden])
         ax2.set_xticks(x)
         ax2.set_xticklabels(categorias[orden])
@@ -382,45 +382,45 @@ class Analisis:
     def analizar_capacidad(self):
         print("\n--- ANALISIS 5: PLANIFICACION DE CAPACIDAD ---")
         
-        # 1. Capacidad base mensual (suma de las horas de TODAS las unidades de trabajo juntas)
+                                                                                               
         capacidad_mensual_total = sum(float(u["capacidad_horas_periodo"]) for u in self._unidades)
         
-        # Sacamos los periodos únicos ordenados (YYYY-MM)
+                                                         
         periodos_unicos = sorted(list({s["fecha"][:7] for s in self._activas}))
         
-        # Diccionarios para ir acumulando
+                                         
         horas_req_periodo = {p: 0.0 for p in periodos_unicos}
         horas_disp_periodo = {p: capacidad_mensual_total for p in periodos_unicos}
         
         ordenes_completables = 0
         ordenes_demoradas = 0
         
-        # 2. Calcular carga requerida por periodo simulando la entrada de las órdenes
+                                                                                     
         for sol in self._activas:
             periodo = sol["fecha"][:7]
             fabs = self._fabricados_involucrados(int(sol["producto"]), int(sol["cantidad"]))
             
-            # Calculamos las horas que exige esta orden en particular
+                                                                     
             horas_orden = 0.0
             for id_art, cant_art in fabs.items():
                 for t in self._tareas_por_art.get(id_art, []):
                     horas_orden += cant_art * float(t["tiempo_estandar"])
             
-            # Se las sumamos a la mochila de ese mes
+                                                    
             horas_req_periodo[periodo] += horas_orden
             
-            # Si lo acumulado en ese mes supera la capacidad máxima, la orden cae en demora
+                                                                                           
             if horas_req_periodo[periodo] > capacidad_mensual_total:
                 ordenes_demoradas += 1
             else:
                 ordenes_completables += 1
                 
-        # 3. Métricas Globales pedidas en el PDF
+                                                
         total_req = sum(horas_req_periodo.values())
         total_disp = len(periodos_unicos) * capacidad_mensual_total
         utilizacion_prom = (total_req / total_disp) * 100 if total_disp > 0 else 0
         
-        # Si la demanda supera a la oferta, la capacidad residual es 0
+                                                                      
         capacidad_residual = max(0, total_disp - total_req) 
         
         print(f"Órdenes completables a tiempo: {ordenes_completables}")
@@ -428,7 +428,7 @@ class Analisis:
         print(f"Utilización promedio de capacidad global: {utilizacion_prom:.1f}%")
         print(f"Capacidad residual del sistema: {capacidad_residual:.0f} horas")
         
-        # 4. Preparar datos para Matplotlib (usando Arrays de Numpy)
+                                                                    
         x = np.arange(len(periodos_unicos))
         req_arr = np.array([horas_req_periodo[p] for p in periodos_unicos])
         disp_arr = np.array([horas_disp_periodo[p] for p in periodos_unicos])
@@ -436,14 +436,14 @@ class Analisis:
         fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(14, 6))
         fig.suptitle("Planificación de Capacidad Temporal", fontsize=15)
         
-        # Gráfico 1: Evolución temporal de carga (Líneas con relleno para identificar déficit)
+                                                                                              
         ax1.plot(x, req_arr, marker='o', color='#e74c3c', linewidth=2.5, label='Horas Requeridas')
         ax1.plot(x, disp_arr, color='#2ecc71', linestyle='--', linewidth=2, label='Capacidad Máxima')
         
-        # Pintamos el área donde hay saturación (cuello temporal)
+                                                                 
         ax1.fill_between(x, disp_arr, req_arr, where=(req_arr > disp_arr), 
                          interpolate=True, color='#e74c3c', alpha=0.3, label='Saturación / Demoras')
-        # Pintamos el área libre
+                                
         ax1.fill_between(x, req_arr, disp_arr, where=(disp_arr >= req_arr), 
                          interpolate=True, color='#2ecc71', alpha=0.2, label='Capacidad Libre')
                          
@@ -454,7 +454,7 @@ class Analisis:
         ax1.legend(fontsize=9)
         ax1.grid(alpha=0.3)
         
-        # Gráfico 2: Barras comparativas por período
+                                                    
         ancho = 0.35
         ax2.bar(x - ancho/2, disp_arr, ancho, label='Capacidad Disponible', color='#3498db', alpha=0.8)
         ax2.bar(x + ancho/2, req_arr, ancho, label='Carga Requerida', color='#f39c12', alpha=0.9)
@@ -472,7 +472,7 @@ class Analisis:
 
         print("\n--- ANALISIS 6: EFICIENCIA PRODUCTIVA ---")
         
-        # 1. Filtramos solo las órdenes históricas que ya se completaron
+                                                                        
         terminadas = [s for s in self._solicitudes if s["estado"] == "Terminada"]
         
 
@@ -480,20 +480,20 @@ class Analisis:
             print("⚠️ No hay órdenes en estado 'Terminada' en el dataset.")
             print("⚠️ Saltando el gráfico de eficiencia para evitar errores matemáticos.")
             return
-        # ------------------------------------------------
+                                                          
 
-        eficiencia_producto = {}  # prod_id -> {'ordenes': 0, 'horas': 0.0}
+        eficiencia_producto = {}                                           
         eficiencia_unidad = {int(u["id_unidad"]): {'ordenes': 0, 'horas': 0.0} for u in self._unidades}
 
-        # 1. Filtramos solo las órdenes históricas que ya se completaron
+                                                                        
         terminadas = [s for s in self._solicitudes if s["estado"] == "Terminada"]
         
-        eficiencia_producto = {}  # prod_id -> {'ordenes': 0, 'horas': 0.0}
+        eficiencia_producto = {}                                           
         eficiencia_unidad = {int(u["id_unidad"]): {'ordenes': 0, 'horas': 0.0} for u in self._unidades}
         
         horas_globales = 0.0
         
-        # 2. Recorremos las órdenes completadas para acumular las horas reales utilizadas
+                                                                                         
         for sol in terminadas:
             prod_id = int(sol["producto"])
             cant = int(sol["cantidad"])
@@ -503,7 +503,7 @@ class Analisis:
                 
             eficiencia_producto[prod_id]['ordenes'] += 1
             
-            # Explotamos la BOM para ver cuántas horas de máquina llevó esta orden terminada
+                                                                                            
             fabs = self._fabricados_involucrados(prod_id, cant)
             horas_orden_por_unidad = {}
             
@@ -513,23 +513,23 @@ class Analisis:
                     horas = cant_art * float(t["tiempo_estandar"])
                     horas_orden_por_unidad[uid] = horas_orden_por_unidad.get(uid, 0.0) + horas
                     
-            # Acumulamos para el producto y para el total de la fábrica
+                                                                       
             horas_totales_orden = sum(horas_orden_por_unidad.values())
             eficiencia_producto[prod_id]['horas'] += horas_totales_orden
             horas_globales += horas_totales_orden
             
-            # Acumulamos para las unidades de trabajo
+                                                     
             for uid, horas in horas_orden_por_unidad.items():
                 if horas > 0:
                     eficiencia_unidad[uid]['ordenes'] += 1
                     eficiencia_unidad[uid]['horas'] += horas
 
-        # 3. Cálculos de las métricas que pide el PDF
+                                                     
         efi_global = len(terminadas) / horas_globales if horas_globales > 0 else 0
         print(f"Órdenes históricas completadas analizadas: {len(terminadas)}")
         print(f"Eficiencia Global del Sistema: {efi_global:.4f} órdenes/hora")
         
-        # Preparación de datos (Vectores Numpy) para graficar Unidades
+                                                                      
         nombres_uni = []
         efi_uni = []
         for u in self._unidades:
@@ -542,7 +542,7 @@ class Analisis:
         nombres_uni = np.array(nombres_uni)
         efi_uni = np.array(efi_uni)
         
-        # Preparación de datos (Vectores Numpy) para graficar Productos
+                                                                       
         prods = list(eficiencia_producto.keys())
         efi_prod = []
         costo_prod = []
@@ -550,16 +550,16 @@ class Analisis:
             datos = eficiencia_producto[p]
             val = datos['ordenes'] / datos['horas'] if datos['horas'] > 0 else 0
             efi_prod.append(val)
-            costo_prod.append(self._costo_unitario(p)) # Reutilizamos el método de costos de tu compañero
+            costo_prod.append(self._costo_unitario(p))                                                   
             
         efi_prod = np.array(efi_prod)
         costo_prod = np.array(costo_prod)
         
-        # --- Generación de Gráficos ---
+                                        
         fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(14, 6))
         fig.suptitle("Análisis de Eficiencia Productiva", fontsize=15)
         
-        # Gráfico 1: Ranking de eficiencia por unidad (Barras)
+                                                              
         orden = np.argsort(efi_uni)[::-1]
         x_uni = np.arange(len(nombres_uni))
         ax1.bar(x_uni, efi_uni[orden], color="#9b59b6")
@@ -569,10 +569,10 @@ class Analisis:
         ax1.set_ylabel("Eficiencia (Órdenes / Hora)")
         ax1.grid(axis="y", alpha=0.3)
         
-        # Gráfico 2: Scatter de Eficiencia vs Costo por Producto
+                                                                
         ax2.scatter(efi_prod, costo_prod, color="#2ecc71", alpha=0.6, edgecolors="black", s=40)
         
-        # Dibujamos las medias para separar los productos en cuadrantes visuales
+                                                                                
         ax2.axvline(np.mean(efi_prod), color="gray", linestyle="--", alpha=0.5, label="Promedio Eficiencia")
         ax2.axhline(np.mean(costo_prod), color="gray", linestyle="--", alpha=0.5, label="Promedio Costo")
         
