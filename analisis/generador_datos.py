@@ -1,12 +1,9 @@
 import numpy as np
 import csv
 import os
+import datetime
 
 class GeneradorDatos:
-    # arma un dataset sintetico para la extension de numpy/matplotlib.
-    # respeta las reglas de negocio del TP: BOM sin ciclos, cantidades enteras
-    # positivas, cadenas de fabricacion acotadas y stock acorde a la demanda.
-
     CATEGORIAS = ["Mecánico", "Eléctrico", "Hidráulico"]
     PERIODOS = ["Mañana", "Tarde", "Noche"]
     ESPECIALIDADES = ["Soldadura", "Mecanizado", "Ensamblaje", "Pintura", "Control de Calidad", "Hidráulica"]
@@ -66,8 +63,7 @@ class GeneradorDatos:
         self._escribir_csv("unidades.csv", list(self._unidades[0].keys()), self._unidades)
 
     def generar_elementos(self):
-        # 70% insumos y 30% fabricados, igual que sugiere la consigna.
-        # el stock_actual de los insumos se completa al final (necesita la demanda).
+        # 70% insumos y 30% fabricados, el stock_actual de los insumos se completa al final (necesita la demanda)
         for i in range(1, self._n_insumos + 1):
             prefijo = np.random.choice(self.PREFIJOS)
             self._elementos.append({
@@ -204,6 +200,54 @@ class GeneradorDatos:
         self._escribir_csv("elementos.csv", columnas, self._elementos)
         return demanda
 
+    def poblar_compras_produccion(self, n_compras=1000):
+        ruta_csv_principal = os.path.join(os.path.dirname(__file__), "..", "csv")
+        ruta_insumos = os.path.join(ruta_csv_principal, "inventario.csv")
+        ruta_destino_compras = os.path.join(ruta_csv_principal, "compras.csv")
+        ids_insumos_reales = []
+        try:
+            with open(ruta_insumos, mode='r', newline='', encoding='utf-8') as archivo:
+                lector = csv.DictReader(archivo)
+                for fila in lector:
+                    id_ins = fila.get("ID") or fila.get("id_elemento") or fila.get("Insumo_ID")
+                    if id_ins:
+                        ids_insumos_reales.append(int(id_ins))
+        except FileNotFoundError:
+            print(" [!] No se encontró el inventario real. Abortando.")
+            return
+
+        if not ids_insumos_reales:
+            print(" [!] El catálogo está vacío. No se pueden generar compras.")
+            return
+
+        compras_sinteticas = []
+
+        for i in range(1, n_compras + 1):
+            mes = int(np.random.randint(1, 7))
+            dia = int(np.random.randint(1, 28))
+            hora = int(np.random.randint(8, 20))
+            minuto = int(np.random.randint(0, 60))
+            segundo = int(np.random.randint(0, 60))
+            f_emision_dt = datetime.datetime(2026, mes, dia, hora, minuto, segundo)            
+            estado = "Recibida"
+            dias_demora = int(np.random.randint(1, 5))
+            f_recepcion_dt = f_emision_dt + datetime.timedelta(days=dias_demora)
+
+            compras_sinteticas.append({
+                "ID": i,
+                "Insumo_ID": int(np.random.choice(ids_insumos_reales)),
+                "Cantidad": int(np.random.randint(10, 200)),
+                "Estado": estado,
+                "Fecha_Emision": f_emision_dt.strftime("%Y-%m-%d %H:%M:%S"),
+                "Fecha_Recepcion": f_recepcion_dt.strftime("%Y-%m-%d %H:%M:%S")
+            })
+        columnas = ["ID", "Insumo_ID", "Cantidad", "Estado", "Fecha_Emision", "Fecha_Recepcion"]
+        with open(ruta_destino_compras, mode='w', newline='', encoding='utf-8') as archivo:
+            escritor = csv.DictWriter(archivo, fieldnames=columnas)
+            escritor.writeheader()
+            escritor.writerows(compras_sinteticas)
+        print(f" -> ÉXITO: '{ruta_destino_compras}' poblado con {n_compras} compras (Todas en estado 'Recibida').")
+
     def generar_todo(self):
         self.generar_unidades()
         self.generar_elementos()
@@ -212,17 +256,17 @@ class GeneradorDatos:
         self.generar_colaboradores()
         self.generar_solicitudes()
         demanda = self.asignar_stock()
+        self.poblar_compras_produccion(n_compras=1000)
 
         con_demanda = sum(1 for e in self._elementos
-                          if e["tipo"] == "Insumo" and demanda.get(e["id_elemento"], 0) > 0)
-        print(f"-> Dataset generado en '{self._carpeta}'")
+            if e["tipo"] == "Insumo" and demanda.get(e["id_elemento"], 0) > 0)
+        print(f"\n-> Dataset de Análisis generado en '{self._carpeta}'")
         print(f"   {len(self._unidades)} unidades de trabajo")
         print(f"   {self._n_insumos} insumos + {self._n_fabricados} fabricados = {len(self._elementos)} elementos")
         print(f"   {len(self._bom)} relaciones BOM")
         print(f"   {len(self._tareas)} tareas | {len(self._colaboradores)} colaboradores")
         print(f"   {len(self._solicitudes)} solicitudes de fabricacion")
         print(f"   {con_demanda}/{self._n_insumos} insumos con demanda activa")
-
 
 if __name__ == "__main__":
     generador = GeneradorDatos()
