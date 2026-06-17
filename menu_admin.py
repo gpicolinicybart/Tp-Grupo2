@@ -335,6 +335,8 @@ class MenuAdministrativo(MenuBase):
         print("\n--- BUSCAR ORDEN DE COMPRA ---")
         try:
             id_buscado = int(input("Ingrese el ID de la orden: "))
+            if id_buscado <= 0:
+                raise ValueError
         except ValueError:
             print("ID inválido.")
             return
