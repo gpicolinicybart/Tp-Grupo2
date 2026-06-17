@@ -11,7 +11,7 @@ class GeneradorDatos:
     ESTADOS = ["Creada", "Planificada", "En Curso", "Terminada",
                "Demorada por falta de stock", "Demorada por falta de capacidad"]
     PESOS_ESTADO = [0.15, 0.20, 0.25, 0.25, 0.10, 0.05]
-    ESTADOS_ACTIVOS = ("Creada", "Planificada", "En Curso") # solo estas reservan recursos
+    ESTADOS_ACTIVOS = ("Creada", "Planificada", "En Curso")
 
     NOMBRES_UNIDADES = [
         "Corte CNC", "Soldadura MIG", "Ensamble A", "Ensamble B", "Pintura",
@@ -33,16 +33,15 @@ class GeneradorDatos:
         self._n_solicitudes = n_solicitudes
         self._carpeta = os.path.join(os.path.dirname(__file__), carpeta)
         os.makedirs(self._carpeta, exist_ok=True)
-        np.random.seed(semilla) # semilla fija para que el dataset sea reproducible
-        # cada tabla se va llenando a medida que se genera
+        np.random.seed(semilla)
         self._unidades = []
         self._elementos = []
         self._bom = []
         self._tareas = []
         self._colaboradores = []
         self._solicitudes = []
-        self._bom_dict = {}   # producto_padre -> [(componente, cantidad)]
-        self._tipo = {}       # id_elemento -> "Insumo" / "Fabricado"
+        self._bom_dict = {}
+        self._tipo = {}
 
     def _escribir_csv(self, nombre, columnas, filas):
         ruta = os.path.join(self._carpeta, nombre)
@@ -63,7 +62,6 @@ class GeneradorDatos:
         self._escribir_csv("unidades.csv", list(self._unidades[0].keys()), self._unidades)
 
     def generar_elementos(self):
-        # 70% insumos y 30% fabricados, el stock_actual de los insumos se completa al final (necesita la demanda)
         for i in range(1, self._n_insumos + 1):
             prefijo = np.random.choice(self.PREFIJOS)
             self._elementos.append({
@@ -76,28 +74,25 @@ class GeneradorDatos:
             })
         for j in range(1, self._n_fabricados + 1):
             i = self._n_insumos + j
-            es_final = j > 42 # los ultimos quedan como producto terminado, el resto sub-ensambles
+            es_final = j > 42
             self._elementos.append({
                 "id_elemento": i,
                 "nombre": f"Producto-{i:03d}" if es_final else f"Ensamble-{i:03d}",
                 "tipo": "Fabricado",
                 "categoria": np.random.choice(self.CATEGORIAS),
-                "costo_unitario": 0, # se calcula en el analisis a partir del BOM + manufactura
+                "costo_unitario": 0,
                 "stock_actual": int(np.random.randint(0, 50)),
             })
         for e in self._elementos:
             self._tipo[e["id_elemento"]] = e["tipo"]
 
     def generar_bom(self):
-        # para que la BOM no tenga ciclos y la explosion quede acotada, los fabricados
-        # se ordenan en niveles: un fabricado solo puede usar insumos o fabricados de un
-        # nivel inferior (id mas chico). asi la profundidad nunca pasa de 3.
         insumos = [e["id_elemento"] for e in self._elementos if e["tipo"] == "Insumo"]
         ensambles = [e["id_elemento"] for e in self._elementos
                      if e["tipo"] == "Fabricado" and e["nombre"].startswith("Ensamble")]
         mitad = len(ensambles) // 2
-        nivel1 = set(ensambles[:mitad]) # arman solo con insumos
-        nivel2 = set(ensambles[mitad:]) # arman con insumos + nivel1
+        nivel1 = set(ensambles[:mitad])
+        nivel2 = set(ensambles[mitad:])
 
         for elem in self._elementos:
             if elem["tipo"] != "Fabricado":
@@ -107,7 +102,7 @@ class GeneradorDatos:
                 pool_sub = []
             elif id_fab in nivel2:
                 pool_sub = list(nivel1)
-            else: # producto terminado: puede usar cualquier sub-ensamble
+            else:
                 pool_sub = list(nivel1) + list(nivel2)
 
             n_comp = int(np.random.randint(2, 7))
@@ -129,7 +124,6 @@ class GeneradorDatos:
         self._escribir_csv("bom.csv", ["producto_padre", "componente", "cantidad_requerida"], self._bom)
 
     def generar_tareas(self):
-        # cada articulo fabricado tiene su proceso: una o varias tareas en una unidad
         id_tarea = 1
         for elem in self._elementos:
             if elem["tipo"] != "Fabricado":
@@ -157,7 +151,6 @@ class GeneradorDatos:
         self._escribir_csv("colaboradores.csv", list(self._colaboradores[0].keys()), self._colaboradores)
 
     def generar_solicitudes(self):
-        # las solicitudes piden productos terminados, nunca sub-ensambles sueltos
         finales = [e["id_elemento"] for e in self._elementos
                    if e["tipo"] == "Fabricado" and e["nombre"].startswith("Producto")]
         for i in range(1, self._n_solicitudes + 1):
@@ -173,7 +166,6 @@ class GeneradorDatos:
         self._escribir_csv("solicitudes.csv", list(self._solicitudes[0].keys()), self._solicitudes)
 
     def _explotar(self, id_prod, cant, acum):
-        # baja por la BOM sumando cuanto insumo basico hace falta para 'cant' unidades
         if self._tipo[id_prod] == "Insumo" or id_prod not in self._bom_dict:
             if self._tipo[id_prod] == "Insumo":
                 acum[id_prod] = acum.get(id_prod, 0) + cant
@@ -182,8 +174,6 @@ class GeneradorDatos:
             self._explotar(comp, cant * cant_unit, acum)
 
     def asignar_stock(self):
-        # el stock se carga recien ahora para dejarlo proporcional a la demanda real.
-        # la cobertura queda entre 35% y 175%, asi algunos insumos dan criticos y otros no.
         demanda = {}
         for sol in self._solicitudes:
             if sol["estado"] in self.ESTADOS_ACTIVOS:
