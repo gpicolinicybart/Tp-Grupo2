@@ -62,21 +62,28 @@ class Analisis:
             self._fabricados_involucrados(comp, cant * cant_unit, acum)
         return acum
 
-    def _costo_unitario(self, id_elem):
+    def _desglose_costo(self, id_elem):
         if id_elem in self._costos:
             return self._costos[id_elem]
         elem = self._elem_por_id[id_elem]
         if elem["tipo"] == "Insumo":
-            self._costos[id_elem] = float(elem["costo_unitario"])
+            self._costos[id_elem] = (float(elem["costo_unitario"]), 0.0)
             return self._costos[id_elem]
-        costo_mat = sum(self._costo_unitario(c) * q for c, q in self._bom_dict.get(id_elem, []))
-        costo_mfg = 0.0
+        mat = mfg = 0.0
+        for comp, q in self._bom_dict.get(id_elem, []):
+            m, f = self._desglose_costo(comp)
+            mat += m * q
+            mfg += f * q
         for t in self._tareas_por_art.get(id_elem, []):
             unidad = self._unidad_por_id.get(int(t["id_unidad"]))
             if unidad is not None:
-                costo_mfg += float(unidad["costo_hora"]) * float(t["tiempo_estandar"])
-        self._costos[id_elem] = costo_mat + costo_mfg
+                mfg += float(unidad["costo_hora"]) * float(t["tiempo_estandar"])
+        self._costos[id_elem] = (mat, mfg)
         return self._costos[id_elem]
+
+    def _costo_unitario(self, id_elem):
+        mat, mfg = self._desglose_costo(id_elem)
+        return mat + mfg
 
     def analizar_inventario(self):
         print("\n--- ANALISIS 1: EXPLOSION DE MATERIALES vs STOCK ---")
@@ -180,12 +187,13 @@ class Analisis:
             mascara = categorias == cat
             print(f"   [{cat}] n={mascara.sum()} prom=${np.mean(costos[mascara]):,.0f} σ=${np.std(costos[mascara]):,.0f}")
 
-        costo_por_id = {int(e["id_elemento"]): self._costo_unitario(int(e["id_elemento"])) for e in fabricados}
-        cat_por_id = {int(e["id_elemento"]): e["categoria"] for e in fabricados}
-        pedidas = [s for s in self._solicitudes if int(s["producto"]) in costo_por_id]
-        sc_cant = np.array([int(s["cantidad"]) for s in pedidas])
-        sc_costo = np.array([costo_por_id[int(s["producto"])] for s in pedidas])
-        sc_cat = np.array([cat_por_id[int(s["producto"])] for s in pedidas])
+        desglose = [self._desglose_costo(int(e["id_elemento"])) for e in fabricados]
+        sc_mat = np.array([d[0] for d in desglose])
+        sc_mfg = np.array([d[1] for d in desglose])
+        sc_cat = np.array([e["categoria"] for e in fabricados])
+
+        peso_mat = np.sum(sc_mat) / np.sum(sc_mat + sc_mfg) * 100
+        print(f"Peso en el costo total: materiales {peso_mat:.1f}% / manufactura {100 - peso_mat:.1f}%")
 
         fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(14, 6))
         fig.suptitle("Análisis de Costos de Fabricación", fontsize=15)
@@ -199,12 +207,14 @@ class Analisis:
         ax1.legend(fontsize=8)
         ax1.grid(axis="y", alpha=0.35)
 
+        tope = float(max(sc_mat.max(), sc_mfg.max()))
+        ax2.plot([0, tope], [0, tope], color="gray", linestyle="--", linewidth=1, alpha=0.7)
         for cat, color in self.COLORES_CAT.items():
             mascara = sc_cat == cat
-            ax2.scatter(sc_cant[mascara], sc_costo[mascara], alpha=0.35, s=14, color=color, label=cat)
-        ax2.set_title("Cantidad Pedida vs Costo Unitario por Categoría")
-        ax2.set_xlabel("Cantidad Solicitada")
-        ax2.set_ylabel("Costo Unitario ($)")
+            ax2.scatter(sc_mat[mascara], sc_mfg[mascara], alpha=0.6, s=30, color=color, label=cat)
+        ax2.set_title("Costo de Materiales vs Manufactura por Producto")
+        ax2.set_xlabel("Costo de Materiales ($)")
+        ax2.set_ylabel("Costo de Manufactura ($)")
         ax2.legend(fontsize=8)
         ax2.grid(alpha=0.3)
         plt.tight_layout()
