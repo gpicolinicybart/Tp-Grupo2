@@ -106,6 +106,8 @@ class Analisis:
         print(f"Desviacion estandar: {np.std(demandas):.0f}")
         print(f"Materiales con stock critico: {criticos} ({criticos / len(demandas) * 100:.1f}%)")
         print(f"Cobertura promedio de stock: {np.mean(cobertura):.1f}%")
+        print(f"CONCLUSION: el {criticos/len(demandas)*100:.0f}% de los materiales demandados "
+      f"está por debajo del 100% de cobertura, es decir, que esos insumos frenarían el inicio de órdenes.")
                                                                                 
         top = np.argsort(demandas)[-15:][::-1]
         nombres = [self._elem_por_id[i]["nombre"] for i in ids[top]]
@@ -150,7 +152,8 @@ class Analisis:
         print(f"Unidad mas cargada: {nombres[np.argmax(utilizacion)]} ({np.max(utilizacion):.1f}%)")
         print(f"Unidad mas libre: {nombres[np.argmin(utilizacion)]} ({np.min(utilizacion):.1f}%)")
         print(f"Unidades saturadas (>100%): {int(np.sum(utilizacion > 100))}")
-                                                      
+        print(f"CONCLUSION: {int(np.sum(utilizacion > 100))} unidades superan el 100% de capacidad "
+      f"({nombres[np.argmax(utilizacion)]} es el cuello de botella). El resto tiene capacidad desaprovechada.")                                              
         colores = ["#e74c3c" if u > 100 else "#f39c12" if u > 75 else "#2ecc71"
                    for u in utilizacion[orden]]
         _, ax = plt.subplots(figsize=(13, 6))
@@ -194,7 +197,8 @@ class Analisis:
 
         peso_mat = np.sum(sc_mat) / np.sum(sc_mat + sc_mfg) * 100
         print(f"Peso en el costo total: materiales {peso_mat:.1f}% / manufactura {100 - peso_mat:.1f}%")
-
+        print(f"CONCLUSION: los materiales explican el {peso_mat:.0f}% del costo total, "
+      f"así que el costo está dominado por insumos, no por mano de obra/manufactura.")
         fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(14, 6))
         fig.suptitle("Análisis de Costos de Fabricación", fontsize=15)
 
@@ -256,7 +260,13 @@ class Analisis:
             for j, p in enumerate(periodos_unicos):
                 matriz_heatmap[i, j] = horas_por_periodo[uid].get(p, 0.0)
 
+        totales_unidad = matriz_heatmap.sum(axis=1)
+        i_top = int(np.argmax(totales_unidad))
+        j_pico = int(np.argmax(matriz_heatmap[i_top]))
+        print(f"CONCLUSION: '{nombres_unidades[i_top]}' es la unidad más cargada en todo el período analizado; "
+              f"su pico es en {periodos_unicos[j_pico]} con {matriz_heatmap[i_top, j_pico]:.0f}h.")
         fig, ax = plt.subplots(figsize=(10, 8))
+
         im = ax.imshow(matriz_heatmap, cmap="YlOrRd", aspect="auto")
 
         ax.set_xticks(np.arange(n_periodos))
@@ -345,6 +355,9 @@ class Analisis:
         colores_base = np.array(["#e74c3c", "#f39c12", "#3498db"]) 
         
         print(f"Órdenes afectadas reales: Materiales={ordenes_sin_mat}, Unidades={ordenes_sin_uni}, Colaboradores={ordenes_sin_colab}")
+        idx_cuello = int(np.argmax(valores))
+        print(f"CONCLUSION: la restricción principal es '{categorias[idx_cuello]}' "
+              f"({int(valores[idx_cuello])} órdenes frenadas), el cuello de botella dominante del sistema.")
         
         fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(14, 6))
         fig.suptitle("Detección de Cuellos de Botella: Órdenes Afectadas", fontsize=15)
@@ -406,6 +419,13 @@ class Analisis:
         print(f"Órdenes demoradas por saturación: {ordenes_demoradas}")
         print(f"Utilización promedio de capacidad global: {utilizacion_prom:.1f}%")
         print(f"Capacidad residual del sistema: {capacidad_residual:.0f} horas")
+
+        if ordenes_demoradas == 0:
+            print(f"CONCLUSION: la capacidad global alcanza: 0 órdenes demoradas, uso del "
+                  f"{utilizacion_prom:.0f}% y {capacidad_residual:.0f}h de margen libre.")
+        else:
+            print(f"CONCLUSION: la capacidad global NO alcanza: {ordenes_demoradas} órdenes "
+                  f"demoradas con un uso del {utilizacion_prom:.0f}%.")
                                                                     
         x = np.arange(len(periodos_unicos))
         req_arr = np.array([horas_req_periodo[p] for p in periodos_unicos])
@@ -454,10 +474,6 @@ class Analisis:
             print("⚠️ Saltando el gráfico de eficiencia para evitar errores matemáticos.")
             return
                                                           
-        eficiencia_producto = {}                                           
-        eficiencia_unidad = {int(u["id_unidad"]): {'ordenes': 0, 'horas': 0.0} for u in self._unidades}
-            
-        terminadas = [s for s in self._solicitudes if s["estado"] == "Terminada"]
         
         eficiencia_producto = {}                                           
         eficiencia_unidad = {int(u["id_unidad"]): {'ordenes': 0, 'horas': 0.0} for u in self._unidades}
@@ -506,6 +522,10 @@ class Analisis:
             
         nombres_uni = np.array(nombres_uni)
         efi_uni = np.array(efi_uni)
+
+        i_efi = int(np.argmax(efi_uni))
+        print(f"CONCLUSION: la unidad más eficiente es '{nombres_uni[i_efi]}' "
+              f"({efi_uni[i_efi]:.4f} órdenes/hora); ahí conviene apoyar la inversión para escalar.")
                                
         prods = list(eficiencia_producto.keys())
         efi_prod = []
@@ -548,7 +568,7 @@ class Analisis:
     def _guardar_figura(self, nombre):
         ruta = os.path.join(os.path.dirname(__file__), nombre)
         plt.savefig(ruta, dpi=130)
-        plt.show()
+        plt.close()
         print(f"-> Grafico guardado en '{nombre}'")
 
     def correr(self):

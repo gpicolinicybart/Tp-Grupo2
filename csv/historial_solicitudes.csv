@@ -3,3 +3,6 @@ ID Solicitud,Producto,Cantidad,Fecha Creación,Fecha Finalización,Tiempo Transc
 1,escritorio,1,04/06/2026 18:04,04/06/2026 18:05,0.01
 1,escritorio,2,04/06/2026 18:44,04/06/2026 18:49,0.09
 1,Silla,1,10/06/2026 16:07,10/06/2026 16:08,0.01
+1,escritorio,3,17/06/2026 20:24,17/06/2026 20:25,0.01
+2,Mesa Completa,5,17/06/2026 20:25,17/06/2026 20:26,0.02
+1,escritorio,5,17/06/2026 20:28,17/06/2026 20:33,0.09
