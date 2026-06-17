@@ -192,24 +192,8 @@ class GeneradorDatos:
 
     def poblar_compras_produccion(self, n_compras=1000):
         ruta_csv_principal = os.path.join(os.path.dirname(__file__), "..", "csv")
-        ruta_insumos = os.path.join(ruta_csv_principal, "inventario.csv")
         ruta_destino_compras = os.path.join(ruta_csv_principal, "compras.csv")
-        ids_insumos_reales = []
-        try:
-            with open(ruta_insumos, mode='r', newline='', encoding='utf-8') as archivo:
-                lector = csv.DictReader(archivo)
-                for fila in lector:
-                    id_ins = fila.get("ID") or fila.get("id_elemento") or fila.get("Insumo_ID")
-                    if id_ins:
-                        ids_insumos_reales.append(int(id_ins))
-        except FileNotFoundError:
-            print(" [!] No se encontró el inventario real. Abortando.")
-            return
-
-        if not ids_insumos_reales:
-            print(" [!] El catálogo está vacío. No se pueden generar compras.")
-            return
-
+        ids_insumos_reales = [1, 2, 3, 4]
         compras_sinteticas = []
 
         for i in range(1, n_compras + 1):
@@ -231,12 +215,14 @@ class GeneradorDatos:
                 "Fecha_Emision": f_emision_dt.strftime("%Y-%m-%d %H:%M:%S"),
                 "Fecha_Recepcion": f_recepcion_dt.strftime("%Y-%m-%d %H:%M:%S")
             })
+            
         columnas = ["ID", "Insumo_ID", "Cantidad", "Estado", "Fecha_Emision", "Fecha_Recepcion"]
         with open(ruta_destino_compras, mode='w', newline='', encoding='utf-8') as archivo:
             escritor = csv.DictWriter(archivo, fieldnames=columnas)
             escritor.writeheader()
             escritor.writerows(compras_sinteticas)
-        print(f" -> ÉXITO: '{ruta_destino_compras}' poblado con {n_compras} compras (Todas en estado 'Recibida').")
+            
+        print(f" -> ÉXITO: '{ruta_destino_compras}' poblado con {n_compras} compras.")
 
     def generar_todo(self):
         self.generar_unidades()

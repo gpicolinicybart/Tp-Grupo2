@@ -6,14 +6,18 @@ class GestorArchivos:
     def __init__(self, empresa):
         self.empresa = empresa
 
-    def _leer_csv(self, ruta, procesar_fila): # abre un CSV y le pasa cada fila (dict) a procesar_fila
+    def _leer_csv(self, ruta, procesar_fila):
         if not os.path.exists(ruta):
             return
         try:
             with open(ruta, mode='r', newline='', encoding='utf-8') as archivo:
                 for fila in csv.DictReader(archivo):
-                    procesar_fila(fila)
-        except (KeyError, ValueError, OSError):
+                    try:
+                        procesar_fila(fila)
+                    except (KeyError, ValueError, TypeError) as e:
+                        print(f"[Aviso] Fila con error en {ruta} ignorada: {e}")
+                        continue 
+        except OSError:
             pass
 
     def _guardar_csv(self, ruta, encabezados, filas): #escribe encabezados + filas en un CSV nuevo

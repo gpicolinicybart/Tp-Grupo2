@@ -1,6 +1,7 @@
 from collections import deque
 from menu_base import MenuBase
 import math
+from analisis.analisis import Analisis
 
 class MenuAdministrativo(MenuBase):
     def __init__(self, empresa):
@@ -23,6 +24,7 @@ class MenuAdministrativo(MenuBase):
         print("11. Agregar Nueva Tarea al Catálogo")
         print("12. Agregar Nuevo Usuario")
         print("13. Buscar Orden de Compra por ID")
+        print("14. Análisis de Datos y Visualizaciones")
         print("0. Cerrar Sesión")
         print("="*60)
 
@@ -40,6 +42,7 @@ class MenuAdministrativo(MenuBase):
                 elif opcion == "11": self.crear_tarea_maestra()
                 elif opcion == "12": self.agregar_usuario()
                 elif opcion == "13":self.buscar_orden_compra()
+                elif opcion == "14": self.menu_analisis_datos()
                 elif opcion == "0":
                     print("\nCerrando sistema de gestion administrativa. Hasta luego.")
                     return False
@@ -344,3 +347,45 @@ class MenuAdministrativo(MenuBase):
             print(f"Encontrada: {compra}")
         if n > 0:
             print(f"Saltos del árbol: {saltos}  |  Cota O(log n) = log2({n}) = {math.log2(n):.2f}")
+
+    def menu_analisis_datos(self):
+        analizador = Analisis()    
+        while True:
+            print("\n" + "="*40)
+            print("     ANÁLISIS DE DATOS     ")
+            print("="*40)
+            print("1. Análisis de Inventario (Demanda vs Stock)")
+            print("2. Análisis de Unidades (Carga y Utilización)")
+            print("3. Heatmap de Horas por Unidad y Período")
+            print("4. Análisis de Costos de Fabricación")
+            print("5. Detección de Cuellos de Botella")
+            print("6. Planificación de Capacidad Temporal")
+            print("7. Análisis de Eficiencia Productiva")
+            print("8. Ejecutar y guardar todos los análisis")
+            print("0. Volver al Menú Administrador")
+            print("="*40)
+            
+            opcion = input("Seleccione una opción: ").strip()
+            
+            if opcion == "1":
+                analizador.analizar_inventario()
+            elif opcion == "2":
+                analizador.analizar_unidades()
+            elif opcion == "3":
+                analizador.analizar_heatmap_unidades()
+            elif opcion == "4":
+                analizador.analizar_costos()
+            elif opcion == "5":
+                analizador.analizar_cuellos_botella()
+            elif opcion == "6":
+                analizador.analizar_capacidad()
+            elif opcion == "7":
+                analizador.analizar_eficiencia()
+            elif opcion == "8":
+                print("\nProcesando todos los reportes...")
+                analizador.correr()
+            elif opcion == "0":
+                print("Regresando al menú principal de administrador...")
+                break
+            else:
+                print("Opción inválida. Por favor, intente de nuevo.")
